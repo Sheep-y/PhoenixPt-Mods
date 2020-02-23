@@ -17,6 +17,12 @@ namespace Sheepy.PhoenixPt_SkipIntro {
 
    public class Mod {
       private static Logger Log = new Logger( "Mods/SheepyMods.log" );
+      
+      public static void CreateHarmony () {
+         _ = HarmonyInstance.Create( typeof( Mod ).Namespace );
+         Log.Info( "Mea" );
+         Log.Flush();
+      }
 
       public static void Init () {
          HarmonyInstance harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
@@ -73,6 +79,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       }
 
       public static void AfterHomeCutscene_Skip ( UIStateHomeScreenCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
+         Log.Info( ____sourcePlaybackDef.ResourcePath );
          //UIModuleCutscenesPlayer player = (UIModuleCutscenesPlayer) typeof( UIStateHomeScreenCutscene ).GetProperty( "_cutscenePlayer", NonPublic | Instance ).GetValue( __instance );
          //player?.VideoPlayer?.Stop();
          if ( ShouldSkip( ____sourcePlaybackDef ) )
