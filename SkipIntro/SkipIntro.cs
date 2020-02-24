@@ -5,26 +5,24 @@ using Harmony;
 using PhoenixPoint.Common.Game;
 using PhoenixPoint.Home.View.ViewStates;
 using PhoenixPoint.Tactical.View.ViewStates;
-using Sheepy.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Video;
 using System;
 using System.Reflection;
 using static System.Reflection.BindingFlags;
+using System.Diagnostics;
+using System.IO;
 
 namespace Sheepy.PhoenixPt_SkipIntro {
 
    public class Mod {
-      private static Logger Log = new Logger( "Mods/SheepyMods.log" );
-      
-      public static void CreateHarmony () {
-         _ = HarmonyInstance.Create( typeof( Mod ).Namespace );
-         Log.Info( "Mea" );
-         Log.Flush();
-      }
+      private static Action< SourceLevels, object, object[] > Logger;
 
-      public static void Init () {
+      public static void Init () => ModSplash( DefaultLogger );
+      
+      public static void ModSplash ( Action< SourceLevels, object, object[] > logger ) {
+         Logger = logger;
          HarmonyInstance harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
          
          Patch( harmony, typeof( PhoenixGame ), "Initialize", "Prefix_Init" );
@@ -44,13 +42,11 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       }
 
       #region Modding helpers
-      private static void Patch ( HarmonyInstance harmony, Type target, string toPatch, string prefix, string postfix = null ) {
+      private static void Patch ( HarmonyInstance harmony, Type target, string toPatch, string prefix, string postfix = null ) =>
          Patch( harmony, target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix );
-      }
 
-      private static void Patch ( HarmonyInstance harmony, MethodInfo toPatch, string prefix, string postfix = null ) {
+      private static void Patch ( HarmonyInstance harmony, MethodInfo toPatch, string prefix, string postfix = null ) =>
          harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
-      }
 
       private static HarmonyMethod ToHarmonyMethod ( string name ) {
          if ( name == null ) return null;
@@ -59,18 +55,31 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          return new HarmonyMethod( func );
       }
 
-      private static bool LogError ( Exception ex ) {
-         //Log.Error( ex );
+      private static void Info ( object msg, params object[] augs ) =>
+         Logger?.Invoke( SourceLevels.Information, msg, augs );
+
+      private static bool Error ( object msg ) {
+         Logger?.Invoke( SourceLevels.Error, msg, null );
          return true;
       }
+
+      private static void DefaultLogger ( SourceLevels lv, object msg, object[] param ) { try {
+         string line = msg?.ToString();
+         try {
+            if ( param != null ) line = string.Format( line, param );
+         } catch ( Exception ) { }
+         using ( var stream = File.AppendText( "Mods\\SheepyMods.log" ) ) {
+            stream.WriteLineAsync( DateTime.Now.ToString( "T" ) + " " + typeof( Mod ).Namespace + " " + line );
+         }  
+      } catch ( Exception ex ) { Console.WriteLine( ex ); } }
       #endregion
 
-      public static void Prefix_Init () { Log.Info( "Game Init" ); }
-      public static void Prefix_Boot () { Log.Info( "Game Boot" ); }
+      public static void Prefix_Init () { Info( "Game Init" ); }
+      public static void Prefix_Boot () { Info( "Game Boot" ); }
       public static void Postfix_Play ( VideoPlaybackController __instance ) {
          VideoPlayer vid = __instance.VideoPlayer;
-         Log.Info( vid.source == VideoSource.Url ? vid.url : vid.clip.originalPath );
-         Log.Info( Logger.Stacktrace );
+         Info( vid.source == VideoSource.Url ? vid.url : vid.clip.originalPath );
+         Info( new Exception().StackTrace );
       }
 
       public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
@@ -79,17 +88,17 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       }
 
       public static void AfterHomeCutscene_Skip ( UIStateHomeScreenCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
-         Log.Info( ____sourcePlaybackDef.ResourcePath );
+         Info( ____sourcePlaybackDef.ResourcePath );
          //UIModuleCutscenesPlayer player = (UIModuleCutscenesPlayer) typeof( UIStateHomeScreenCutscene ).GetProperty( "_cutscenePlayer", NonPublic | Instance ).GetValue( __instance );
          //player?.VideoPlayer?.Stop();
          if ( ShouldSkip( ____sourcePlaybackDef ) )
             typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
-      } catch ( Exception ex ) { LogError( ex ); } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       public static void AfterTacCutscene_Skip ( UIStateTacticalCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
          if ( ShouldSkip( ____sourcePlaybackDef ) )
             typeof( UIStateTacticalCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
-      } catch ( Exception ex ) { LogError( ex ); } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       public static bool BeforeOnLoad_Skip ( VideoPlaybackSourceDef ____sourcePlaybackDef ) {
          return ! ShouldSkip( ____sourcePlaybackDef );
@@ -101,7 +110,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          ____currentFadingRoutine = null;
          __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
          return false;
-      } catch ( Exception ex ) { return LogError( ex ); } }
+      } catch ( Exception ex ) { return Error( ex ); } }
 
       /*
       public static bool Prefix_LiftCurtain ( ref IEnumerator<NextUpdate> __result, LevelSwitchCurtainController __instance ) { try {
