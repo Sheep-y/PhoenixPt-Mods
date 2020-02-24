@@ -16,9 +16,9 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt_SkipIntro {
 
    public static class Mod {
-      public static void Init () => ModSplash();
+      public static void Init () => SplashMod();
       
-      public static void ModSplash ( Action< SourceLevels, object, object[] > logger = null ) {
+      public static void SplashMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
 
          // Skip logos and splash
