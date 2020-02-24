@@ -46,7 +46,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       }
 
       private static void Patch ( MethodInfo toPatch, string prefix = null, string postfix = null ) {
-         Info( "Patching {0}.{1} with {2}:{3}", toPatch.DeclaringType, toPatch.Name, prefix, postfix );
+         Verbo( "Patching {0}.{1} with {2}:{3}", toPatch.DeclaringType, toPatch.Name, prefix, postfix );
          harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
       }
 
@@ -58,6 +58,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       }
 
       private static Action< SourceLevels, object, object[] > Logger;
+      private static string LogFile;
 
       private static void SetLogger ( Action< SourceLevels, object, object[] > logger ) {
          if ( logger == null ) {
@@ -79,9 +80,9 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          }  
       } catch ( Exception ex ) { Console.WriteLine( ex ); } }
 
-      private static void Info ( object msg, params object[] augs ) =>
-         Logger?.Invoke( SourceLevels.Information, msg, augs );
-
+      private static void Verbo ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Verbose, msg, augs );
+      private static void Info  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Information, msg, augs );
+      private static void Warn  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Warning, msg, augs );
       private static bool Error ( object msg, params object[] augs ) {
          Logger?.Invoke( SourceLevels.Error, msg, augs );
          return true;
@@ -90,11 +91,13 @@ namespace Sheepy.PhoenixPt_SkipIntro {
 
       public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
          string path = def.ResourcePath;
+         Verbo( "Checking cutscene {0}", path );
          return path.Contains( "Game_Intro_Cutscene" ) || path.Contains( "LandingSequences" );
       }
 
       public static bool BeforeRunGameLevel_Skip ( PhoenixGame __instance, LevelSceneBinding levelSceneBinding, ref IEnumerator<NextUpdate> __result ) { try {
          if ( levelSceneBinding != __instance.Def.IntroLevelSceneDef.Binding ) return true;
+         Info( "Skipping IntroLevel" );
          __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }

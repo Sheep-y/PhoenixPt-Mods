@@ -29,6 +29,7 @@ namespace Sheepy.PhotnixPt_FlatDifficulty {
       }
 
       private static void Patch ( MethodInfo toPatch, string prefix = null, string postfix = null ) {
+         Verbo( "Patching {0}.{1} with {2}:{3}", toPatch.DeclaringType, toPatch.Name, prefix, postfix );
          harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
       }
 
@@ -61,9 +62,9 @@ namespace Sheepy.PhotnixPt_FlatDifficulty {
          }  
       } catch ( Exception ex ) { Console.WriteLine( ex ); } }
 
-      private static void Info ( object msg, params object[] augs ) =>
-         Logger?.Invoke( SourceLevels.Information, msg, augs );
-
+      private static void Verbo ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Verbose, msg, augs );
+      private static void Info  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Information, msg, augs );
+      private static void Warn  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Warning, msg, augs );
       private static bool Error ( object msg, params object[] augs ) {
          Logger?.Invoke( SourceLevels.Error, msg, null );
          return true;
@@ -73,13 +74,13 @@ namespace Sheepy.PhotnixPt_FlatDifficulty {
       public static void BeforeReadjust_ClearHistory ( DynamicDifficultySystem __instance ) { try {
          float[] val = __instance.BattleOutcomes.GetType().GetField( "_items", NonPublic | Instance ).GetValue( __instance.BattleOutcomes ) as float[];
          if ( val == null ) return;
-         Info( "Resetting battle history {0} => 1f", __instance.BattleOutcomes.DefaultIfEmpty(1f).Average() );
+         Info( "Resetting battle history to 1.0 from {0}", () => __instance.BattleOutcomes.DefaultIfEmpty(1f).Average() );
          // Can't just clear the outcome, that will reset all history to 0 without removing them!
          for ( int i = 0 ; i < val.Length ; i++ ) val[ i ] = 1f;
       } catch ( Exception ex ) { Error( ex ); } }
 
       public static void AfterBattleOutcome_Const ( ref float __result ) {
-         Info( "Overwriting battle score {0} => 1f", __result );
+         Info( "Overwriting battle score to 1.0 from {0}", __result );
          __result = 1f;
       }
 
