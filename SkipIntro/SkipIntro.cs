@@ -33,29 +33,6 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
          Patch( typeof( UIStateTacticalCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
 
-         // Tracers to find where to skip
-         //Patch( typeof( Timing ), "Call", nameof( Trace ) );
-         //Patch( typeof( CinemachineBrain ), "Start", nameof( Trace ) );
-         //Patch( typeof( CinemachineCore ), "InitializeModule", nameof( Trace ) );
-         //Patch( typeof( CinemachineCore ), "GetActiveBrain", nameof( Trace ) );
-         //Patch( typeof( CinemachineCore ), "AddActiveBrain", nameof( Trace ) );
-         //Patch( typeof( CinemachineCore ), "RemoveActiveBrain", nameof( Trace ) );
-         //Patch( typeof( Level ), "SetCurrentCrt", nameof( TraceLevel ) );
-         //Patch( typeof( Level ), "LoadCrt", nameof( TraceLvScene ) );
-         //Patch( typeof( SceneLoader ), "LoadScenesCrt", nameof( Trace ) );
-         //Patch( typeof( Level ), "CallWaiters", nameof( TraceLvScene ) );
-         //Patch( typeof( Level ), "WaitFor", nameof( TraceLvScene ) );
-         //Patch( typeof( Level ), "CancelWaiting", nameof( TraceLvScene ) );
-         //Patch( typeof( Game ), "CreateLevel", nameof( TraceCreate ) );
-         //Patch( typeof( CinemachineCore ), "GetVirtualCamera", nameof( Trace ) );
-         //Patch( typeof( CinemachineCore ), "AddActiveCamera", nameof( Trace ) );
-         //Patch( typeof( CinemachineCore ), "RemoveActiveCamera", nameof( Trace ) );
-         //Patch( typeof( CinemachineCore ), "CameraAwakened", nameof( Trace ) );
-         //Patch( typeof( PhoenixGame ), "Initialize", "Prefix_Init" );
-         //Patch( typeof( PhoenixGame ), "BootCrt", "Prefix_Boot" );
-         //Patch( typeof( VideoPlaybackController ), "Play", null, "Postfix_Play" );
-         //Patch( harmony, typeof( UIStateInitial ).GetMethod( "EnterState", NonPublic | Instance ), typeof( Mod ).GetMethod( "Prefix_Initial" ) );
-
          // Skip curtain drop
          //Patch( harmony, typeof( LevelSwitchCurtainController ), "DropCurtainCrt", "BeforeDropCurtain_Skip" );
          // Disabled because it is a hassle to call OnCurtainLifted
@@ -112,25 +89,6 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       }
       #endregion
 
-      public static void Trace () { Info( new StackTrace( false ) ); }
-      public static void TraceLevel ( Level __instance, bool become ) {
-         if ( become ) return;
-         TraceLvScene( __instance );
-      }
-      public static void TraceLvScene ( Level __instance ) {
-         Info( "{0} {1}", __instance.Scenes[0].SceneName, __instance.Scenes[0].ScenePath );
-         Info( new StackTrace( false ) );
-      }
-      public static void TraceCreate ( LevelSceneBinding levelScene ) {
-         Info( levelScene );
-         Info( new StackTrace( false ) );
-      }
-
-      public static void Postfix_Play ( VideoPlaybackController __instance ) {
-         VideoPlayer vid = __instance.VideoPlayer;
-         Info( vid.source == VideoSource.Url ? vid.url : vid.clip.originalPath );
-      }
-
       public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
          string path = def.ResourcePath;
          return path.Contains( "Game_Intro_Cutscene" ) || path.Contains( "LandingSequences" );
@@ -144,8 +102,6 @@ namespace Sheepy.PhoenixPt_SkipIntro {
 
       public static void AfterHomeCutscene_Skip ( UIStateHomeScreenCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
          Info( ____sourcePlaybackDef.ResourcePath );
-         //UIModuleCutscenesPlayer player = (UIModuleCutscenesPlayer) typeof( UIStateHomeScreenCutscene ).GetProperty( "_cutscenePlayer", NonPublic | Instance ).GetValue( __instance );
-         //player?.VideoPlayer?.Stop();
          if ( ShouldSkip( ____sourcePlaybackDef ) )
             typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
       } catch ( Exception ex ) { Error( ex ); } }
