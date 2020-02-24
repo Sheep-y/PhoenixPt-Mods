@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhotnixPt_FlatDifficulty {
@@ -41,11 +42,13 @@ namespace Sheepy.PhotnixPt_FlatDifficulty {
       }
 
       private static Action< SourceLevels, object, object[] > Logger;
+      private static string LogFile;
 
       private static void SetLogger ( Action< SourceLevels, object, object[] > logger ) {
          if ( logger == null ) {
             Logger = DefaultLogger;
             Info( DateTime.Now.ToString( "D" ) + " " + typeof( Mod ).Namespace + " " + Assembly.GetExecutingAssembly().GetName().Version );
+            LogFile = Regex.Replace( Assembly.GetExecutingAssembly().Location, "\\.dll$", ".log", RegexOptions.IgnoreCase );
          } else
             Logger = logger;
          if ( harmony == null )
@@ -57,7 +60,7 @@ namespace Sheepy.PhotnixPt_FlatDifficulty {
          try {
             if ( param != null ) line = string.Format( line, param );
          } catch ( Exception ) { }
-         using ( var stream = File.AppendText( "Mods\\SheepyMods.log" ) ) {
+         using ( var stream = File.AppendText( LogFile ) ) {
             stream.WriteLineAsync( DateTime.Now.ToString( "T" ) + " " + typeof( Mod ).Namespace + " " + line );
          }  
       } catch ( Exception ex ) { Console.WriteLine( ex ); } }
@@ -74,7 +77,7 @@ namespace Sheepy.PhotnixPt_FlatDifficulty {
       public static void BeforeReadjust_ClearHistory ( DynamicDifficultySystem __instance ) { try {
          float[] val = __instance.BattleOutcomes.GetType().GetField( "_items", NonPublic | Instance ).GetValue( __instance.BattleOutcomes ) as float[];
          if ( val == null ) return;
-         Info( "Resetting battle history to 1.0 from {0}", () => __instance.BattleOutcomes.DefaultIfEmpty(1f).Average() );
+         Info( "Resetting battle history to 1.0 from {0}", __instance.BattleOutcomes.DefaultIfEmpty(1f).Average() );
          // Can't just clear the outcome, that will reset all history to 0 without removing them!
          for ( int i = 0 ; i < val.Length ; i++ ) val[ i ] = 1f;
       } catch ( Exception ex ) { Error( ex ); } }

@@ -2,6 +2,7 @@
 using Base.Levels;
 using Base.UI.VideoPlayback;
 using Harmony;
+using PhoenixPoint.Common.Game;
 using PhoenixPoint.Home.View.ViewStates;
 using PhoenixPoint.Tactical.View.ViewStates;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using PhoenixPoint.Common.Game;
+using System.Text.RegularExpressions;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt_SkipIntro {
@@ -64,6 +65,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          if ( logger == null ) {
             Logger = DefaultLogger;
             Info( DateTime.Now.ToString( "D" ) + " " + typeof( Mod ).Namespace + " " + Assembly.GetExecutingAssembly().GetName().Version );
+            LogFile = Regex.Replace( Assembly.GetExecutingAssembly().Location, "\\.dll$", ".log", RegexOptions.IgnoreCase );
          } else
             Logger = logger;
          if ( harmony == null )
@@ -75,7 +77,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          try {
             if ( param != null ) line = string.Format( line, param );
          } catch ( Exception ) { }
-         using ( var stream = File.AppendText( "Mods\\SheepyMods.log" ) ) {
+         using ( var stream = File.AppendText( LogFile ) ) {
             stream.WriteLineAsync( DateTime.Now.ToString( "T" ) + " " + typeof( Mod ).Namespace + " " + line );
          }  
       } catch ( Exception ex ) { Console.WriteLine( ex ); } }
