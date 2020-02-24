@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle( "Skip Intro" )]
-[assembly: AssemblyDescription( "Phoenix Point mod - Skip Intro" )]
+[assembly: AssemblyDescription( "Skip game intro and combat landing videos." )]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany( "Sheepy" )]
 [assembly: AssemblyProduct( "" )]
