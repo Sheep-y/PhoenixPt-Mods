@@ -1,8 +1,6 @@
 ﻿using Base.Core;
 using Base.UI.VideoPlayback;
-using Base.Utils;
 using Harmony;
-using PhoenixPoint.Common.Game;
 using PhoenixPoint.Home.View.ViewStates;
 using PhoenixPoint.Tactical.View.ViewStates;
 using System.Collections.Generic;
@@ -13,8 +11,8 @@ using System.Reflection;
 using static System.Reflection.BindingFlags;
 using System.Diagnostics;
 using System.IO;
-using Cinemachine;
 using Base.Levels;
+using PhoenixPoint.Common.Game;
 
 namespace Sheepy.PhoenixPt_SkipIntro {
 
@@ -23,32 +21,40 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       
       public static void ModSplash ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
-         
+
+         // Skip logos and splash
+         Patch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
+
+         // Skip "The Hottest Year"
+         Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
+         Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
+
+         // Skip aircraft landings
+         Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
+         Patch( typeof( UIStateTacticalCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
+
          // Tracers to find where to skip
-         //Patch( typeof( CinemachineBrain ), "Start", "Trace" );
-         //Patch( typeof( CinemachineCore ), "InitializeModule", "Trace" );
-         //Patch( typeof( CinemachineCore ), "GetActiveBrain", "Trace" );
-         //Patch( typeof( CinemachineCore ), "AddActiveBrain", "Trace" );
-         //Patch( typeof( CinemachineCore ), "RemoveActiveBrain", "Trace" );
-         Patch( typeof( Level ), "SetCurrentCrt", "Trace" );
-         Patch( typeof( Level ), "LoadCrt", "Trace" );
-         Patch( typeof( Game ), "CreateLevel", "Trace" );
-         //Patch( typeof( CinemachineCore ), "GetVirtualCamera", "Trace" );
-         //Patch( typeof( CinemachineCore ), "AddActiveCamera", "Trace" );
-         //Patch( typeof( CinemachineCore ), "RemoveActiveCamera", "Trace" );
-         //Patch( typeof( CinemachineCore ), "CameraAwakened", "Trace" );
+         //Patch( typeof( Timing ), "Call", nameof( Trace ) );
+         //Patch( typeof( CinemachineBrain ), "Start", nameof( Trace ) );
+         //Patch( typeof( CinemachineCore ), "InitializeModule", nameof( Trace ) );
+         //Patch( typeof( CinemachineCore ), "GetActiveBrain", nameof( Trace ) );
+         //Patch( typeof( CinemachineCore ), "AddActiveBrain", nameof( Trace ) );
+         //Patch( typeof( CinemachineCore ), "RemoveActiveBrain", nameof( Trace ) );
+         //Patch( typeof( Level ), "SetCurrentCrt", nameof( TraceLevel ) );
+         //Patch( typeof( Level ), "LoadCrt", nameof( TraceLvScene ) );
+         //Patch( typeof( SceneLoader ), "LoadScenesCrt", nameof( Trace ) );
+         //Patch( typeof( Level ), "CallWaiters", nameof( TraceLvScene ) );
+         //Patch( typeof( Level ), "WaitFor", nameof( TraceLvScene ) );
+         //Patch( typeof( Level ), "CancelWaiting", nameof( TraceLvScene ) );
+         //Patch( typeof( Game ), "CreateLevel", nameof( TraceCreate ) );
+         //Patch( typeof( CinemachineCore ), "GetVirtualCamera", nameof( Trace ) );
+         //Patch( typeof( CinemachineCore ), "AddActiveCamera", nameof( Trace ) );
+         //Patch( typeof( CinemachineCore ), "RemoveActiveCamera", nameof( Trace ) );
+         //Patch( typeof( CinemachineCore ), "CameraAwakened", nameof( Trace ) );
          //Patch( typeof( PhoenixGame ), "Initialize", "Prefix_Init" );
          //Patch( typeof( PhoenixGame ), "BootCrt", "Prefix_Boot" );
          //Patch( typeof( VideoPlaybackController ), "Play", null, "Postfix_Play" );
          //Patch( harmony, typeof( UIStateInitial ).GetMethod( "EnterState", NonPublic | Instance ), typeof( Mod ).GetMethod( "Prefix_Initial" ) );
-
-         // Skip "The Hottest Year"
-         Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: "AfterHomeCutscene_Skip");
-         Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", "BeforeOnLoad_Skip" );
-
-         // Skip aircraft landings
-         Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: "AfterTacCutscene_Skip" );
-         Patch( typeof( UIStateTacticalCutscene ), "PlayCutsceneOnFinishedLoad", "BeforeOnLoad_Skip" );
 
          // Skip curtain drop
          //Patch( harmony, typeof( LevelSwitchCurtainController ), "DropCurtainCrt", "BeforeDropCurtain_Skip" );
@@ -107,8 +113,19 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       #endregion
 
       public static void Trace () { Info( new StackTrace( false ) ); }
-      public static void Prefix_Init () { Info( "Game Init" ); }
-      public static void Prefix_Boot () { Info( "Game Boot" ); }
+      public static void TraceLevel ( Level __instance, bool become ) {
+         if ( become ) return;
+         TraceLvScene( __instance );
+      }
+      public static void TraceLvScene ( Level __instance ) {
+         Info( "{0} {1}", __instance.Scenes[0].SceneName, __instance.Scenes[0].ScenePath );
+         Info( new StackTrace( false ) );
+      }
+      public static void TraceCreate ( LevelSceneBinding levelScene ) {
+         Info( levelScene );
+         Info( new StackTrace( false ) );
+      }
+
       public static void Postfix_Play ( VideoPlaybackController __instance ) {
          VideoPlayer vid = __instance.VideoPlayer;
          Info( vid.source == VideoSource.Url ? vid.url : vid.clip.originalPath );
@@ -118,6 +135,12 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          string path = def.ResourcePath;
          return path.Contains( "Game_Intro_Cutscene" ) || path.Contains( "LandingSequences" );
       }
+
+      public static bool BeforeRunGameLevel_Skip ( PhoenixGame __instance, LevelSceneBinding levelSceneBinding, ref IEnumerator<NextUpdate> __result ) { try {
+         if ( levelSceneBinding != __instance.Def.IntroLevelSceneDef.Binding ) return true;
+         __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
+         return false;
+      } catch ( Exception ex ) { return Error( ex ); } }
 
       public static void AfterHomeCutscene_Skip ( UIStateHomeScreenCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
          Info( ____sourcePlaybackDef.ResourcePath );
