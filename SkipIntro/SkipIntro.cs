@@ -16,7 +16,7 @@ using System.IO;
 
 namespace Sheepy.PhoenixPt_SkipIntro {
 
-   public class Mod {
+   public static class Mod {
       private static Action< SourceLevels, object, object[] > Logger;
 
       public static void Init () => ModSplash( DefaultLogger );

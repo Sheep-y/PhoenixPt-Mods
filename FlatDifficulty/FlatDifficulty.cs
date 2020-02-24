@@ -11,7 +11,7 @@ using System.Reflection;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhotnixPt_FlatDifficulty {
-   public class Mod {
+   public static class Mod {
       private static Action< SourceLevels, object, object[] > Logger;
 
       public static void Init () => ModMainMenu( DefaultLogger );
