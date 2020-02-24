@@ -12,25 +12,23 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhotnixPt_FlatDifficulty {
    public static class Mod {
-      private static Action< SourceLevels, object, object[] > Logger;
-
-      public static void Init () => ModMainMenu( DefaultLogger );
+      public static void Init () => ModMainMenu();
       
-      public static void ModMainMenu ( Action< SourceLevels, object, object[] > logger ) {
-         Logger = logger;
-         HarmonyInstance harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
-         Patch( harmony, typeof( DynamicDifficultySystem ), "ReadjustThreatLevelMods", nameof( BeforeReadjust_ClearHistory ) );
+      public static void ModMainMenu ( Action< SourceLevels, object, object[] > logger = null ) {
+         SetLogger( logger );
+         Patch( typeof( DynamicDifficultySystem ), "ReadjustThreatLevelMods", nameof( BeforeReadjust_ClearHistory ) );
          //Patch( harmony, typeof( DynamicDifficultySystem ), "GetCalculatedDeployment", nameof( BeforeCalculate_Readjust ) );
-         Patch( harmony, typeof( DynamicDifficultySystem ), "GetBattleOutcomeModifier", null, nameof( AfterBattleOutcome_Const ) );
-         Info( DateTime.Now.ToString( "D" ) );
+         Patch( typeof( DynamicDifficultySystem ), "GetBattleOutcomeModifier", null, nameof( AfterBattleOutcome_Const ) );
       }
 
       #region Modding helpers
-      private static void Patch ( HarmonyInstance harmony, Type target, string toPatch, string prefix, string postfix = null ) {
-         Patch( harmony, target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix );
+      private static HarmonyInstance harmony;
+
+      private static void Patch ( Type target, string toPatch, string prefix = null, string postfix = null ) {
+         Patch( target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix );
       }
 
-      private static void Patch ( HarmonyInstance harmony, MethodInfo toPatch, string prefix, string postfix = null ) {
+      private static void Patch ( MethodInfo toPatch, string prefix = null, string postfix = null ) {
          harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
       }
 
@@ -41,12 +39,16 @@ namespace Sheepy.PhotnixPt_FlatDifficulty {
          return new HarmonyMethod( func );
       }
 
-      private static void Info ( object msg, params object[] augs ) =>
-         Logger?.Invoke( SourceLevels.Information, msg, augs );
+      private static Action< SourceLevels, object, object[] > Logger;
 
-      private static bool Error ( object msg ) {
-         Logger?.Invoke( SourceLevels.Error, msg, null );
-         return true;
+      private static void SetLogger ( Action< SourceLevels, object, object[] > logger ) {
+         if ( logger == null ) {
+            Logger = DefaultLogger;
+            Info( DateTime.Now.ToString( "D" ) + " " + typeof( Mod ).Namespace + " " + Assembly.GetExecutingAssembly().GetName().Version );
+         } else
+            Logger = logger;
+         if ( harmony == null )
+            harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
       }
 
       private static void DefaultLogger ( SourceLevels lv, object msg, object[] param ) { try {
@@ -58,6 +60,14 @@ namespace Sheepy.PhotnixPt_FlatDifficulty {
             stream.WriteLineAsync( DateTime.Now.ToString( "T" ) + " " + typeof( Mod ).Namespace + " " + line );
          }  
       } catch ( Exception ex ) { Console.WriteLine( ex ); } }
+
+      private static void Info ( object msg, params object[] augs ) =>
+         Logger?.Invoke( SourceLevels.Information, msg, augs );
+
+      private static bool Error ( object msg, params object[] augs ) {
+         Logger?.Invoke( SourceLevels.Error, msg, null );
+         return true;
+      }
       #endregion
 
       public static void BeforeReadjust_ClearHistory ( DynamicDifficultySystem __instance ) { try {

@@ -13,40 +13,60 @@ using System.Reflection;
 using static System.Reflection.BindingFlags;
 using System.Diagnostics;
 using System.IO;
+using Cinemachine;
+using Base.Levels;
 
 namespace Sheepy.PhoenixPt_SkipIntro {
 
    public static class Mod {
-      private static Action< SourceLevels, object, object[] > Logger;
-
-      public static void Init () => ModSplash( DefaultLogger );
+      public static void Init () => ModSplash();
       
-      public static void ModSplash ( Action< SourceLevels, object, object[] > logger ) {
-         Logger = logger;
-         HarmonyInstance harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
+      public static void ModSplash ( Action< SourceLevels, object, object[] > logger = null ) {
+         SetLogger( logger );
          
-         Patch( harmony, typeof( PhoenixGame ), "Initialize", "Prefix_Init" );
-         Patch( harmony, typeof( PhoenixGame ), "BootCrt", "Prefix_Boot" );
-         Patch( harmony, typeof( VideoPlaybackController ), "Play", null, "Postfix_Play" );
+         // Tracers to find where to skip
+         //Patch( typeof( CinemachineBrain ), "Start", "Trace" );
+         //Patch( typeof( CinemachineCore ), "InitializeModule", "Trace" );
+         //Patch( typeof( CinemachineCore ), "GetActiveBrain", "Trace" );
+         //Patch( typeof( CinemachineCore ), "AddActiveBrain", "Trace" );
+         //Patch( typeof( CinemachineCore ), "RemoveActiveBrain", "Trace" );
+         Patch( typeof( Level ), "SetCurrentCrt", "Trace" );
+         Patch( typeof( Level ), "LoadCrt", "Trace" );
+         Patch( typeof( Game ), "CreateLevel", "Trace" );
+         //Patch( typeof( CinemachineCore ), "GetVirtualCamera", "Trace" );
+         //Patch( typeof( CinemachineCore ), "AddActiveCamera", "Trace" );
+         //Patch( typeof( CinemachineCore ), "RemoveActiveCamera", "Trace" );
+         //Patch( typeof( CinemachineCore ), "CameraAwakened", "Trace" );
+         //Patch( typeof( PhoenixGame ), "Initialize", "Prefix_Init" );
+         //Patch( typeof( PhoenixGame ), "BootCrt", "Prefix_Boot" );
+         //Patch( typeof( VideoPlaybackController ), "Play", null, "Postfix_Play" );
          //Patch( harmony, typeof( UIStateInitial ).GetMethod( "EnterState", NonPublic | Instance ), typeof( Mod ).GetMethod( "Prefix_Initial" ) );
 
-         Patch( harmony, typeof( UIStateHomeScreenCutscene ), "EnterState", null, "AfterHomeCutscene_Skip");
-         Patch( harmony, typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", "BeforeOnLoad_Skip" );
+         // Skip "The Hottest Year"
+         Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: "AfterHomeCutscene_Skip");
+         Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", "BeforeOnLoad_Skip" );
 
-         Patch( harmony, typeof( UIStateTacticalCutscene ), "EnterState", null, "AfterTacCutscene_Skip" );
-         Patch( harmony, typeof( UIStateTacticalCutscene ), "PlayCutsceneOnFinishedLoad", "BeforeOnLoad_Skip" );
+         // Skip aircraft landings
+         Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: "AfterTacCutscene_Skip" );
+         Patch( typeof( UIStateTacticalCutscene ), "PlayCutsceneOnFinishedLoad", "BeforeOnLoad_Skip" );
 
-         Patch( harmony, typeof( LevelSwitchCurtainController ), "DropCurtainCrt", "BeforeDropCurtain_Skip" );
+         // Skip curtain drop
+         //Patch( harmony, typeof( LevelSwitchCurtainController ), "DropCurtainCrt", "BeforeDropCurtain_Skip" );
          // Disabled because it is a hassle to call OnCurtainLifted
          //Patch( harmony, typeof( LevelSwitchCurtainController ).GetMethod( "LiftCurtainCrt", Public | Instance ), typeof( Mod ).GetMethod( "Prefix_LiftCurtain" ) );
       }
 
       #region Modding helpers
-      private static void Patch ( HarmonyInstance harmony, Type target, string toPatch, string prefix, string postfix = null ) =>
-         Patch( harmony, target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix );
+      private static HarmonyInstance harmony;
 
-      private static void Patch ( HarmonyInstance harmony, MethodInfo toPatch, string prefix, string postfix = null ) =>
+      private static void Patch ( Type target, string toPatch, string prefix = null, string postfix = null ) {
+         Patch( target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix );
+      }
+
+      private static void Patch ( MethodInfo toPatch, string prefix = null, string postfix = null ) {
+         Info( "Patching {0}.{1} with {2}:{3}", toPatch.DeclaringType, toPatch.Name, prefix, postfix );
          harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
+      }
 
       private static HarmonyMethod ToHarmonyMethod ( string name ) {
          if ( name == null ) return null;
@@ -55,12 +75,16 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          return new HarmonyMethod( func );
       }
 
-      private static void Info ( object msg, params object[] augs ) =>
-         Logger?.Invoke( SourceLevels.Information, msg, augs );
+      private static Action< SourceLevels, object, object[] > Logger;
 
-      private static bool Error ( object msg ) {
-         Logger?.Invoke( SourceLevels.Error, msg, null );
-         return true;
+      private static void SetLogger ( Action< SourceLevels, object, object[] > logger ) {
+         if ( logger == null ) {
+            Logger = DefaultLogger;
+            Info( DateTime.Now.ToString( "D" ) + " " + typeof( Mod ).Namespace + " " + Assembly.GetExecutingAssembly().GetName().Version );
+         } else
+            Logger = logger;
+         if ( harmony == null )
+            harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
       }
 
       private static void DefaultLogger ( SourceLevels lv, object msg, object[] param ) { try {
@@ -72,14 +96,22 @@ namespace Sheepy.PhoenixPt_SkipIntro {
             stream.WriteLineAsync( DateTime.Now.ToString( "T" ) + " " + typeof( Mod ).Namespace + " " + line );
          }  
       } catch ( Exception ex ) { Console.WriteLine( ex ); } }
+
+      private static void Info ( object msg, params object[] augs ) =>
+         Logger?.Invoke( SourceLevels.Information, msg, augs );
+
+      private static bool Error ( object msg, params object[] augs ) {
+         Logger?.Invoke( SourceLevels.Error, msg, augs );
+         return true;
+      }
       #endregion
 
+      public static void Trace () { Info( new StackTrace( false ) ); }
       public static void Prefix_Init () { Info( "Game Init" ); }
       public static void Prefix_Boot () { Info( "Game Boot" ); }
       public static void Postfix_Play ( VideoPlaybackController __instance ) {
          VideoPlayer vid = __instance.VideoPlayer;
          Info( vid.source == VideoSource.Url ? vid.url : vid.clip.originalPath );
-         Info( new Exception().StackTrace );
       }
 
       public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
