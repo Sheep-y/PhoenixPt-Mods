@@ -18,8 +18,9 @@ namespace Sheepy.PhoenixPt_SkipIntro {
 
    public static class Mod {
       public static void Init () => SplashMod();
+      private static Assembly Loader;
       
-      public static void SplashMod ( Action< SourceLevels, object, object[] > logger = null ) {
+      public static void SplashMod ( Assembly loader = null, Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
 
          // Skip logos and splash
@@ -33,11 +34,72 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
          Patch( typeof( UIStateTacticalCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
 
+         Loader = loader;
          // Skip curtain drop
          //Patch( harmony, typeof( LevelSwitchCurtainController ), "DropCurtainCrt", "BeforeDropCurtain_Skip" );
          // Disabled because it is a hassle to call OnCurtainLifted
          //Patch( harmony, typeof( LevelSwitchCurtainController ).GetMethod( "LiftCurtainCrt", Public | Instance ), typeof( Mod ).GetMethod( "Prefix_LiftCurtain" ) );
       }
+
+      public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
+         string path = def.ResourcePath;
+         Verbo( "Checking cutscene {0}", path );
+         return path.Contains( "Game_Intro_Cutscene" ) || path.Contains( "LandingSequences" );
+      }
+
+      public static bool BeforeRunGameLevel_Skip ( PhoenixGame __instance, LevelSceneBinding levelSceneBinding, ref IEnumerator<NextUpdate> __result ) { try {
+         if ( levelSceneBinding != __instance.Def.IntroLevelSceneDef.Binding ) return true;
+         Info( "Skipping IntroLevel" );
+         __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
+         return false;
+      } catch ( Exception ex ) { return Error( ex ); } }
+
+      public static void AfterHomeCutscene_Skip ( UIStateHomeScreenCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
+         Info( ____sourcePlaybackDef.ResourcePath );
+         if ( ShouldSkip( ____sourcePlaybackDef ) ) {
+            typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
+            if ( Loader != null ) // Kick loader in place of skipped cutscene
+               Loader.GetType( "Sheepy.Modnix.ModLoader" )?.GetMethod( "Init", Static | Public )?.Invoke( null, new object[0] );
+            Info( "Home intro skipped. Unpatching home cutscene." );
+            harmony.Unpatch( 
+               typeof( UIStateHomeScreenCutscene ).GetMethod( "EnterState",  Public | NonPublic | Instance | Static ),
+               typeof( Mod ).GetMethod( nameof( AfterHomeCutscene_Skip ), Static | Public )
+            );
+            harmony.Unpatch( 
+               typeof( UIStateHomeScreenCutscene ).GetMethod( "PlayCutsceneOnFinishedLoad",  Public | NonPublic | Instance | Static ),
+               typeof( Mod ).GetMethod( nameof( BeforeOnLoad_Skip ), Static | Public )
+            );
+         }
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      public static void AfterTacCutscene_Skip ( UIStateTacticalCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
+         if ( ShouldSkip( ____sourcePlaybackDef ) )
+            typeof( UIStateTacticalCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      public static bool BeforeOnLoad_Skip ( VideoPlaybackSourceDef ____sourcePlaybackDef ) {
+         return ! ShouldSkip( ____sourcePlaybackDef );
+      }
+
+      public static bool BeforeDropCurtain_Skip ( ref IEnumerator<NextUpdate> __result, Action action, ref IUpdateable ____currentFadingRoutine ) { try {
+         ____currentFadingRoutine?.Stop();
+         action?.Invoke();
+         ____currentFadingRoutine = null;
+         __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
+         return false;
+      } catch ( Exception ex ) { return Error( ex ); } }
+
+      /*
+      public static bool Prefix_LiftCurtain ( ref IEnumerator<NextUpdate> __result, LevelSwitchCurtainController __instance ) { try {
+         Action onCurtainLifted = __instance.OnCurtainLifted;
+         onCurtainLifted?.Invoke();
+         __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
+         return false;
+      } catch ( Exception err ) {
+         log.Error( err );
+         return true;
+      } }
+      */
 
       #region Modding helpers
       private static HarmonyInstance harmony;
@@ -90,53 +152,5 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          return true;
       }
       #endregion
-
-      public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
-         string path = def.ResourcePath;
-         Verbo( "Checking cutscene {0}", path );
-         return path.Contains( "Game_Intro_Cutscene" ) || path.Contains( "LandingSequences" );
-      }
-
-      public static bool BeforeRunGameLevel_Skip ( PhoenixGame __instance, LevelSceneBinding levelSceneBinding, ref IEnumerator<NextUpdate> __result ) { try {
-         if ( levelSceneBinding != __instance.Def.IntroLevelSceneDef.Binding ) return true;
-         Info( "Skipping IntroLevel" );
-         __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
-         return false;
-      } catch ( Exception ex ) { return Error( ex ); } }
-
-      public static void AfterHomeCutscene_Skip ( UIStateHomeScreenCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
-         Info( ____sourcePlaybackDef.ResourcePath );
-         if ( ShouldSkip( ____sourcePlaybackDef ) )
-            typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
-      } catch ( Exception ex ) { Error( ex ); } }
-
-      public static void AfterTacCutscene_Skip ( UIStateTacticalCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
-         if ( ShouldSkip( ____sourcePlaybackDef ) )
-            typeof( UIStateTacticalCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
-      } catch ( Exception ex ) { Error( ex ); } }
-
-      public static bool BeforeOnLoad_Skip ( VideoPlaybackSourceDef ____sourcePlaybackDef ) {
-         return ! ShouldSkip( ____sourcePlaybackDef );
-      }
-
-      public static bool BeforeDropCurtain_Skip ( ref IEnumerator<NextUpdate> __result, Action action, ref IUpdateable ____currentFadingRoutine ) { try {
-         ____currentFadingRoutine?.Stop();
-         action?.Invoke();
-         ____currentFadingRoutine = null;
-         __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
-         return false;
-      } catch ( Exception ex ) { return Error( ex ); } }
-
-      /*
-      public static bool Prefix_LiftCurtain ( ref IEnumerator<NextUpdate> __result, LevelSwitchCurtainController __instance ) { try {
-         Action onCurtainLifted = __instance.OnCurtainLifted;
-         onCurtainLifted?.Invoke();
-         __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
-         return false;
-      } catch ( Exception err ) {
-         log.Error( err );
-         return true;
-      } }
-      */
    }
 }
