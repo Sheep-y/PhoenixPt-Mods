@@ -18,9 +18,8 @@ namespace Sheepy.PhoenixPt_SkipIntro {
 
    public static class Mod {
       public static void Init () => SplashMod();
-      private static Assembly Loader;
       
-      public static void SplashMod ( Assembly loader = null, Action< SourceLevels, object, object[] > logger = null ) {
+      public static void SplashMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
 
          // Skip logos and splash
@@ -38,21 +37,6 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          //Patch( harmony, typeof( LevelSwitchCurtainController ), "DropCurtainCrt", "BeforeDropCurtain_Skip" );
          // Disabled because it is a hassle to call OnCurtainLifted
          //Patch( harmony, typeof( LevelSwitchCurtainController ).GetMethod( "LiftCurtainCrt", Public | Instance ), typeof( Mod ).GetMethod( "Prefix_LiftCurtain" ) );
-
-         Loader = loader;
-         if ( Loader != null ) {
-            Info( "Patching mod loader to make up for skipped trigger." );
-            Patch( typeof( PhoenixGame ), "MenuCrt", postfix: nameof( AfterMenuCrtLoadMods ) );
-         }
-      }
-
-      public static void AfterMenuCrtLoadMods () {
-         Info( "Triggering mod initialisation" );
-         Loader.GetType( "Sheepy.Modnix.ModLoader" )?.GetMethod( "Init", Static | Public )?.Invoke( null, new object[0] );
-         harmony.Unpatch(
-            typeof( PhoenixGame ).GetMethod( "MenuCrt", NonPublic | Instance ),
-            typeof( Mod ).GetMethod( nameof( AfterMenuCrtLoadMods ), Static | Public )
-         );
       }
 
       public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
