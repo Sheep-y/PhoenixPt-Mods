@@ -34,11 +34,25 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
          Patch( typeof( UIStateTacticalCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
 
-         Loader = loader;
          // Skip curtain drop
          //Patch( harmony, typeof( LevelSwitchCurtainController ), "DropCurtainCrt", "BeforeDropCurtain_Skip" );
          // Disabled because it is a hassle to call OnCurtainLifted
          //Patch( harmony, typeof( LevelSwitchCurtainController ).GetMethod( "LiftCurtainCrt", Public | Instance ), typeof( Mod ).GetMethod( "Prefix_LiftCurtain" ) );
+
+         Loader = loader;
+         if ( Loader != null ) {
+            Info( "Patching mod loader to make up for skipped trigger." );
+            Patch( typeof( PhoenixGame ), "MenuCrt", postfix: nameof( AfterMenuCrtLoadMods ) );
+         }
+      }
+
+      public static void AfterMenuCrtLoadMods () {
+         Info( "Triggering mod initialisation" );
+         Loader.GetType( "Sheepy.Modnix.ModLoader" )?.GetMethod( "Init", Static | Public )?.Invoke( null, new object[0] );
+         harmony.Unpatch(
+            typeof( PhoenixGame ).GetMethod( "MenuCrt", NonPublic | Instance ),
+            typeof( Mod ).GetMethod( nameof( AfterMenuCrtLoadMods ), Static | Public )
+         );
       }
 
       public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
@@ -58,8 +72,6 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          Info( ____sourcePlaybackDef.ResourcePath );
          if ( ShouldSkip( ____sourcePlaybackDef ) ) {
             typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
-            if ( Loader != null ) // Kick loader in place of skipped cutscene
-               Loader.GetType( "Sheepy.Modnix.ModLoader" )?.GetMethod( "Init", Static | Public )?.Invoke( null, new object[0] );
             Info( "Home intro skipped. Unpatching home cutscene." );
             harmony.Unpatch( 
                typeof( UIStateHomeScreenCutscene ).GetMethod( "EnterState",  Public | NonPublic | Instance | Static ),
