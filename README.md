@@ -3,7 +3,11 @@
 *Source Codes* of my mods for [Phoenix Point](https://phoenixpoint.info/), [Snapshot Games](http://www.snapshotgames.com/) 2019.
 (No dlls here.)
 
-Mods will be added as they are updated to [Modnix](https://github.com/Sheep-y/Modnix) compatible.
+Unless otherwise noted, my mods tries their best to not modify game data,
+meaning they shouldn't taint your save.
+In other words, savegames made with the mods active should be safe to load when the mods are disabled.
+
+Mods will be added as they are updated to be [Modnix](https://github.com/Sheep-y/Modnix) compatible.
 
 Some unpublished not found on [NexusMods](https://www.nexusmods.com/phoenixpoint/mods/?BH=1), usually custom jobs, can be found here.
 
