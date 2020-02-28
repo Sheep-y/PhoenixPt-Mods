@@ -17,8 +17,10 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt_SkipIntro {
 
    public static class Mod {
+      // PPML v0.1 entry point
       public static void Init () => SplashMod();
-      
+
+      // Modnis entry point, splash phase
       public static void SplashMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
 
@@ -77,6 +79,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          return ! ShouldSkip( ____sourcePlaybackDef );
       }
 
+      /*
       public static bool BeforeDropCurtain_Skip ( ref IEnumerator<NextUpdate> __result, Action action, ref IUpdateable ____currentFadingRoutine ) { try {
          ____currentFadingRoutine?.Stop();
          action?.Invoke();
@@ -85,7 +88,6 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
 
-      /*
       public static bool Prefix_LiftCurtain ( ref IEnumerator<NextUpdate> __result, LevelSwitchCurtainController __instance ) { try {
          Action onCurtainLifted = __instance.OnCurtainLifted;
          onCurtainLifted?.Invoke();
@@ -105,6 +107,8 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       }
 
       private static void Patch ( MethodInfo toPatch, string prefix = null, string postfix = null ) {
+         if ( harmony == null )
+            harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
          Verbo( "Patching {0}.{1} with {2}:{3}", toPatch.DeclaringType, toPatch.Name, prefix, postfix );
          harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
       }
@@ -120,16 +124,15 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       private static string LogFile;
 
       private static void SetLogger ( Action< SourceLevels, object, object[] > logger ) {
-         if ( logger == null ) {
+         if ( logger == null ) { // Use default
             Logger = DefaultLogger;
             Info( DateTime.Now.ToString( "D" ) + " " + typeof( Mod ).Namespace + " " + Assembly.GetExecutingAssembly().GetName().Version );
             LogFile = Regex.Replace( Assembly.GetExecutingAssembly().Location, "\\.dll$", ".log", RegexOptions.IgnoreCase );
          } else
-            Logger = logger;
-         if ( harmony == null )
-            harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
+            Logger = logger; // Logger provided by mod loader
       }
 
+      // A simple file logger when one is not provided by the mod loader.
       private static void DefaultLogger ( SourceLevels lv, object msg, object[] param ) { try {
          string line = msg?.ToString();
          try {
