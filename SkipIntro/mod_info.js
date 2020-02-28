@@ -1,6 +1,6 @@
 ({
    Id: "Sheepy.SkipIntro",
-   Author: "Sheepy",
+   Lang: "*",
    Name: {
       en: "Skip Intro",
       zh: "略過片頭" },
@@ -8,6 +8,7 @@
       en: "Skip game intro and combat landing videos.",
       zh: "略過遊戲片頭及戰鬥進場影片" },
    Url: {
-      "NexusMods" : "https://www.nexusmods.com/phoenixpoint/mods/17"
+      "NexusMods" : "https://www.nexusmods.com/phoenixpoint/mods/17",
+      "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods"
    },
 })
