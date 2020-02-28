@@ -13,9 +13,9 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhotnixPt_FlatDifficulty {
    public static class Mod {
-      public static void Init () => ModMainMenu();
+      public static void Init () => MainMod();
 
-      public static void ModMainMenu ( Action< SourceLevels, object, object[] > logger = null ) {
+      public static void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
          Patch( typeof( DynamicDifficultySystem ), "ReadjustThreatLevelMods", nameof( BeforeReadjust_ClearHistory ) );
          //Patch( harmony, typeof( DynamicDifficultySystem ), "GetCalculatedDeployment", nameof( BeforeCalculate_Readjust ) );
