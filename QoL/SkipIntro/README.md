@@ -12,15 +12,18 @@ This mod skips these videos:
 * "Hottest year in history" intro video.
 * All aircraft landing videos.
 
-This mod should not affect save games.
+This mod does not affect save games.
 
 
 # Change Log #
 
+## Version 2.0.0.1, 2020-03-02
+* Fix typo in mod_info
+
 ## Version 2.0, 2020-02-29
 * Add Modnix support.
 * Skip software and company logos (Modnix only)
-* Skip araise fron mist opening cinematic (Modnix only)
+* Skip arise from mist opening cinematic (Modnix only)
 * No longer skip dropping curtain because slow machines may get stuck long.
 * Self-cleanup after skipping intro to leave minimal footprint.
 

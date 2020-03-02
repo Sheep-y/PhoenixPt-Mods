@@ -7,7 +7,7 @@
    Description: {
       en: "Skip game intro and combat landing videos.",
       zh: "略過遊戲片頭及戰鬥進場影片" },
-   Url: {
+   Urls: {
       "NexusMods" : "https://www.nexusmods.com/phoenixpoint/mods/17",
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods"
    },
