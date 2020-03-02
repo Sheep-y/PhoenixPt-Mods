@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt_SkipIntro {
-
+   
    public static class Mod {
       // PPML v0.1 entry point
       public static void Init () => SplashMod();
@@ -23,6 +23,9 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       // Modnis entry point, splash phase
       public static void SplashMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
+
+         // I prefer doing manual patch for better control, such as reusing a method.
+         // Most modders prefer the simpler Harmony Attributes / Annotation, and it'll work the same.
 
          // Skip logos and splash
          Patch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
@@ -37,7 +40,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
 
          // Skip curtain drop
          //Patch( harmony, typeof( LevelSwitchCurtainController ), "DropCurtainCrt", "BeforeDropCurtain_Skip" );
-         // Disabled because it is a hassle to call OnCurtainLifted
+         // Skip curtain raise; disabled because it is a hassle to call OnCurtainLifted
          //Patch( harmony, typeof( LevelSwitchCurtainController ).GetMethod( "LiftCurtainCrt", Public | Instance ), typeof( Mod ).GetMethod( "Prefix_LiftCurtain" ) );
       }
 
@@ -107,8 +110,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       }
 
       private static void Patch ( MethodInfo toPatch, string prefix = null, string postfix = null ) {
-         if ( harmony == null )
-            harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
+         if ( harmony == null ) harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
          Verbo( "Patching {0}.{1} with {2}:{3}", toPatch.DeclaringType, toPatch.Name, prefix, postfix );
          harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
       }
@@ -116,7 +118,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       private static HarmonyMethod ToHarmonyMethod ( string name ) {
          if ( name == null ) return null;
          MethodInfo func = typeof( Mod ).GetMethod( name );
-         if ( func == null ) throw new NullReferenceException( name + " is null" );
+         if ( func == null ) throw new NullReferenceException( name + " not found" );
          return new HarmonyMethod( func );
       }
 
