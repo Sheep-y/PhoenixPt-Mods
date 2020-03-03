@@ -13,35 +13,55 @@ using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using static System.Reflection.BindingFlags;
+using Base.Utils;
+using Base.UI;
 
 namespace Sheepy.PhoenixPt_SkipIntro {
 
    public static class Mod {
+
+      // Setting objects
+      private static ModSettings Settings = DefaultSettings;
+      public static ModSettings DefaultSettings => new ModSettings();
+
       // PPML v0.1 entry point
       public static void Init () => SplashMod();
 
       // Modnis entry point, splash phase
       public static void SplashMod ( Action< SourceLevels, object, object[] > logger = null ) {
+         //if ( settings != null ) Settings = settings;
+         var settings = DefaultSettings;
          SetLogger( logger );
 
          // Skip logos and splash
-         Patch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
+         if ( settings.Skip_Logos )
+            Patch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
 
          // Skip "The Hottest Year"
-         Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
-         Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
+         if ( settings.Skip_HottestYear ) {
+            Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
+            Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
+         }
 
          // Skip aircraft landings
-         Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
-         Patch( typeof( UIStateTacticalCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
+         if ( settings.Skip_Landings ) {
+            Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
+            Patch( typeof( UIStateTacticalCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
+         }
 
-         // Skip curtain drop
-         //Patch( harmony, typeof( LevelSwitchCurtainController ), "DropCurtainCrt", "BeforeDropCurtain_Skip" );
-         // Disabled because it is a hassle to call OnCurtainLifted
-         //Patch( harmony, typeof( LevelSwitchCurtainController ).GetMethod( "LiftCurtainCrt", Public | Instance ), typeof( Mod ).GetMethod( "Prefix_LiftCurtain" ) );
+         // Skip curtain drop (opening loading screen)
+         if ( settings.Skip_CurtainDrop )
+            Patch( typeof( LevelSwitchCurtainController ), "DropCurtainCrt", nameof( BeforeDropCurtain_Skip ) );
+         // Skip curtain lift (closing loading screen)
+         if ( settings.Skip_CurtainLift )
+            Patch( typeof( UseInkUI ), "Close", nameof( BeforeLiftCurtain_Skip ) );
+            //Patch( typeof( LevelSwitchCurtainController ), "LiftCurtainCrt", nameof( BeforeLiftCurtain_Skip ) );
+
+         //Patch( typeof( SceneFadeController ), "LiftCurtain", nameof( ST ) );
       }
 
       public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
+         if ( def == null ) return false;
          string path = def.ResourcePath;
          Verbo( "Checking cutscene {0}", path );
          return path.Contains( "Game_Intro_Cutscene" ) || path.Contains( "LandingSequences" );
@@ -59,11 +79,11 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          if ( ShouldSkip( ____sourcePlaybackDef ) ) {
             typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
             Info( "Home intro skipped. Unpatching home cutscene." );
-            harmony.Unpatch( 
+            harmony.Unpatch(
                typeof( UIStateHomeScreenCutscene ).GetMethod( "EnterState",  Public | NonPublic | Instance | Static ),
                typeof( Mod ).GetMethod( nameof( AfterHomeCutscene_Skip ), Static | Public )
             );
-            harmony.Unpatch( 
+            harmony.Unpatch(
                typeof( UIStateHomeScreenCutscene ).GetMethod( "PlayCutsceneOnFinishedLoad",  Public | NonPublic | Instance | Static ),
                typeof( Mod ).GetMethod( nameof( BeforeOnLoad_Skip ), Static | Public )
             );
@@ -79,24 +99,31 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          return ! ShouldSkip( ____sourcePlaybackDef );
       }
 
-      /*
-      public static bool BeforeDropCurtain_Skip ( ref IEnumerator<NextUpdate> __result, Action action, ref IUpdateable ____currentFadingRoutine ) { try {
+      public static bool BeforeDropCurtain_Skip ( ref IEnumerator<NextUpdate> __result, Action action, SceneFadeController ____fadeController, ref IUpdateable ____currentFadingRoutine ) { try {
+         Info( "Skipping curtain drop of loading screen" );
          ____currentFadingRoutine?.Stop();
+         ____fadeController.Curtain.CanvasGroup.alpha = 1f;
          action?.Invoke();
          ____currentFadingRoutine = null;
          __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
 
-      public static bool Prefix_LiftCurtain ( ref IEnumerator<NextUpdate> __result, LevelSwitchCurtainController __instance ) { try {
-         Action onCurtainLifted = __instance.OnCurtainLifted;
-         onCurtainLifted?.Invoke();
+      public static void BeforeLiftCurtain_Skip ( ref float ____progress ) {
+         ____progress = 0.000000000000000000001f;
+      }
+
+      /* Do not ask me why LiftCurtainCrt is not called at all.
+      public static bool BeforeLiftCurtain_Skip ( ref IEnumerator<NextUpdate> __result, LevelSwitchCurtainController __instance, SceneFadeController ____fadeController, ref IUpdateable ____currentFadingRoutine ) { try {
+         Info( "Skipping curtain lift of loading screen" );
+         ____currentFadingRoutine?.Stop();
+         ____fadeController.Curtain.CanvasGroup.alpha = 0f;
+         var onCurtainLifted = typeof( LevelSwitchCurtainController ).GetField( "OnCurtainLifted", NonPublic | Instance ).GetValue( __instance ) as MulticastDelegate;
+         onCurtainLifted?.DynamicInvoke( new object[]{ __instance } );
+         ____currentFadingRoutine = null;
          __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
          return false;
-      } catch ( Exception err ) {
-         log.Error( err );
-         return true;
-      } }
+      } catch ( Exception ex ) { return Error( ex ); } }
       */
 
       #region Modding helpers
@@ -109,7 +136,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       private static void Patch ( MethodInfo toPatch, string prefix = null, string postfix = null ) {
          if ( harmony == null )
             harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
-         Verbo( "Patching {0}.{1} with {2}:{3}", toPatch.DeclaringType, toPatch.Name, prefix, postfix );
+         Info( "Patching {0}.{1}, pre={2} post={3}", toPatch.DeclaringType, toPatch.Name, prefix, postfix );
          harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
       }
 
@@ -151,5 +178,14 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          return true;
       }
       #endregion
+   }
+
+   public class ModSettings {
+      public string Settings_Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+      public bool Skip_Logos = true;
+      public bool Skip_HottestYear = true;
+      public bool Skip_Landings = true;
+      public bool Skip_CurtainDrop = true;
+      public bool Skip_CurtainLift = true;
    }
 }
