@@ -18,10 +18,17 @@ using Base.UI;
 
 namespace Sheepy.PhoenixPt_SkipIntro {
 
-   public static class Mod {
+   public class ModSettings {
+      public string Settings_Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+      public bool Skip_Logos = true;
+      public bool Skip_HottestYear = true;
+      public bool Skip_Landings = true;
+      public bool Skip_CurtainDrop = true;
+      public bool Skip_CurtainLift = true;
+   }
 
-      // Setting objects
-      private static ModSettings Settings = DefaultSettings;
+   public static class Mod {
+      // Tell Modnix what our settings is and its default
       public static ModSettings DefaultSettings => new ModSettings();
 
       // PPML v0.1 entry point
@@ -51,13 +58,10 @@ namespace Sheepy.PhoenixPt_SkipIntro {
 
          // Skip curtain drop (opening loading screen)
          if ( settings.Skip_CurtainDrop )
-            Patch( typeof( LevelSwitchCurtainController ), "DropCurtainCrt", nameof( BeforeDropCurtain_Skip ) );
+            Patch( typeof( UseInkUI ), "Open", nameof( InkOpen_Skip ) );
          // Skip curtain lift (closing loading screen)
          if ( settings.Skip_CurtainLift )
-            Patch( typeof( UseInkUI ), "Close", nameof( BeforeLiftCurtain_Skip ) );
-            //Patch( typeof( LevelSwitchCurtainController ), "LiftCurtainCrt", nameof( BeforeLiftCurtain_Skip ) );
-
-         //Patch( typeof( SceneFadeController ), "LiftCurtain", nameof( ST ) );
+            Patch( typeof( UseInkUI ), "Close", nameof( InkClose_Skip ) );
       }
 
       public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
@@ -99,32 +103,19 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          return ! ShouldSkip( ____sourcePlaybackDef );
       }
 
-      public static bool BeforeDropCurtain_Skip ( ref IEnumerator<NextUpdate> __result, Action action, SceneFadeController ____fadeController, ref IUpdateable ____currentFadingRoutine ) { try {
-         Info( "Skipping curtain drop of loading screen" );
-         ____currentFadingRoutine?.Stop();
-         ____fadeController.Curtain.CanvasGroup.alpha = 1f;
-         action?.Invoke();
-         ____currentFadingRoutine = null;
-         __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
-         return false;
-      } catch ( Exception ex ) { return Error( ex ); } }
+      private const float SKIP_FRAME = 0.00001f;
 
-      public static void BeforeLiftCurtain_Skip ( ref float ____progress ) {
-         ____progress = 0.000000000000000000001f;
+      public static void InkOpen_Skip ( ref float ____progress, object __instance ) { try {
+         float ____endFrame = (float) typeof( UseInkUI ).GetProperty( "_endFrame", NonPublic | Instance ).GetValue( __instance );
+         var target = ____endFrame - SKIP_FRAME;
+         if ( ____progress < target )
+            ____progress = target;
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      public static void InkClose_Skip ( ref float ____progress ) {
+         if ( ____progress > SKIP_FRAME )
+            ____progress = SKIP_FRAME;
       }
-
-      /* Do not ask me why LiftCurtainCrt is not called at all.
-      public static bool BeforeLiftCurtain_Skip ( ref IEnumerator<NextUpdate> __result, LevelSwitchCurtainController __instance, SceneFadeController ____fadeController, ref IUpdateable ____currentFadingRoutine ) { try {
-         Info( "Skipping curtain lift of loading screen" );
-         ____currentFadingRoutine?.Stop();
-         ____fadeController.Curtain.CanvasGroup.alpha = 0f;
-         var onCurtainLifted = typeof( LevelSwitchCurtainController ).GetField( "OnCurtainLifted", NonPublic | Instance ).GetValue( __instance ) as MulticastDelegate;
-         onCurtainLifted?.DynamicInvoke( new object[]{ __instance } );
-         ____currentFadingRoutine = null;
-         __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
-         return false;
-      } catch ( Exception ex ) { return Error( ex ); } }
-      */
 
       #region Modding helpers
       private static HarmonyInstance harmony;
@@ -178,14 +169,5 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          return true;
       }
       #endregion
-   }
-
-   public class ModSettings {
-      public string Settings_Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-      public bool Skip_Logos = true;
-      public bool Skip_HottestYear = true;
-      public bool Skip_Landings = true;
-      public bool Skip_CurtainDrop = true;
-      public bool Skip_CurtainLift = true;
    }
 }
