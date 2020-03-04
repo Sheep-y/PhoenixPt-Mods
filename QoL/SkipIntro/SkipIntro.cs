@@ -76,7 +76,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
 
       public static bool BeforeRunGameLevel_Skip ( PhoenixGame __instance, LevelSceneBinding levelSceneBinding, ref IEnumerator<NextUpdate> __result ) { try {
          if ( levelSceneBinding != __instance.Def.IntroLevelSceneDef.Binding ) return true;
-         Info( "Skipping IntroLevel" );
+         Info( "Skipping Logos" );
          __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
@@ -84,8 +84,9 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       public static void AfterHomeCutscene_Skip ( UIStateHomeScreenCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
          Info( ____sourcePlaybackDef.ResourcePath );
          if ( ShouldSkip( ____sourcePlaybackDef ) ) {
+            Info( "Skipping Intro" );
             typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
-            Info( "Home intro skipped. Unpatching home cutscene." );
+            Info( "Intro skipped. Unpatching home cutscene." );
             harmony.Unpatch(
                typeof( UIStateHomeScreenCutscene ).GetMethod( "EnterState",  Public | NonPublic | Instance | Static ),
                typeof( Mod ).GetMethod( nameof( AfterHomeCutscene_Skip ), Static | Public )
@@ -109,6 +110,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       private const float SKIP_FRAME = 0.00001f;
 
       public static void InkOpen_Skip ( ref float ____progress, object __instance ) { try {
+         Verbo( "Skipping Curtain Drop" );
          float ____endFrame = (float) typeof( UseInkUI ).GetProperty( "_endFrame", NonPublic | Instance ).GetValue( __instance );
          var target = ____endFrame - SKIP_FRAME;
          if ( ____progress < target )
@@ -116,6 +118,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       } catch ( Exception ex ) { Error( ex ); } }
 
       public static void InkClose_Skip ( ref float ____progress ) {
+         Verbo( "Skipping Curtain Lift" );
          if ( ____progress > SKIP_FRAME )
             ____progress = SKIP_FRAME;
       }
