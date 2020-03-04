@@ -40,6 +40,9 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          var settings = DefaultSettings;
          SetLogger( logger );
 
+         // I prefer doing manual patch for better control, such as reusing a method.
+         // Most modders prefer the simpler Harmony Attributes / Annotation, and it'll work the same.
+
          // Skip logos and splash
          if ( settings.Skip_Logos )
             Patch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
@@ -134,7 +137,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       private static HarmonyMethod ToHarmonyMethod ( string name ) {
          if ( name == null ) return null;
          MethodInfo func = typeof( Mod ).GetMethod( name );
-         if ( func == null ) throw new NullReferenceException( name + " is null" );
+         if ( func == null ) throw new NullReferenceException( name + " not found" );
          return new HarmonyMethod( func );
       }
 
