@@ -37,9 +37,8 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       private static PatchRecord LogoPatch, IntroEnterPatch, IntroLoadPatch;
 
       // Modnis entry point, splash phase
-      public static void SplashMod ( Action< SourceLevels, object, object[] > logger = null ) {
-         //if ( settings != null ) Settings = settings;
-         var settings = DefaultSettings;
+      public static void SplashMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
+         if ( settings == null ) settings = DefaultSettings;
          SetLogger( logger );
 
          // I prefer doing manual patch for better control, such as reusing a method.
