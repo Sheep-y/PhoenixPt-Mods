@@ -34,6 +34,8 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       // PPML v0.1 entry point
       public static void Init () => SplashMod();
 
+      private static PatchRecord LogoPatch, IntroEnterPatch, IntroLoadPatch;
+
       // Modnis entry point, splash phase
       public static void SplashMod ( Action< SourceLevels, object, object[] > logger = null ) {
          //if ( settings != null ) Settings = settings;
@@ -45,12 +47,12 @@ namespace Sheepy.PhoenixPt_SkipIntro {
 
          // Skip logos and splash
          if ( settings.Skip_Logos )
-            Patch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
+            LogoPatch = Patch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
 
          // Skip "The Hottest Year"
          if ( settings.Skip_HottestYear ) {
-            Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
-            Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
+            IntroEnterPatch = Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
+            IntroLoadPatch = Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
          }
 
          // Skip aircraft landings
@@ -78,6 +80,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          if ( levelSceneBinding != __instance.Def.IntroLevelSceneDef.Binding ) return true;
          Info( "Skipping Logos" );
          __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
+         LogoPatch.Unpatch();
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
 
@@ -87,14 +90,8 @@ namespace Sheepy.PhoenixPt_SkipIntro {
             Info( "Skipping Intro" );
             typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
             Info( "Intro skipped. Unpatching home cutscene." );
-            harmony.Unpatch(
-               typeof( UIStateHomeScreenCutscene ).GetMethod( "EnterState",  Public | NonPublic | Instance | Static ),
-               typeof( Mod ).GetMethod( nameof( AfterHomeCutscene_Skip ), Static | Public )
-            );
-            harmony.Unpatch(
-               typeof( UIStateHomeScreenCutscene ).GetMethod( "PlayCutsceneOnFinishedLoad",  Public | NonPublic | Instance | Static ),
-               typeof( Mod ).GetMethod( nameof( BeforeOnLoad_Skip ), Static | Public )
-            );
+            IntroEnterPatch.Unpatch();
+            IntroLoadPatch.Unpatch();
          }
       } catch ( Exception ex ) { Error( ex ); } }
 
@@ -126,15 +123,17 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       #region Modding helpers
       private static HarmonyInstance harmony;
 
-      private static void Patch ( Type target, string toPatch, string prefix = null, string postfix = null ) {
-         Patch( target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix );
+      private static PatchRecord Patch ( Type target, string toPatch, string prefix = null, string postfix = null ) {
+         return Patch( target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix );
       }
 
-      private static void Patch ( MethodInfo toPatch, string prefix = null, string postfix = null ) {
+      private static PatchRecord Patch ( MethodInfo toPatch, string prefix = null, string postfix = null ) {
          if ( harmony == null )
             harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
          Info( "Patching {0}.{1}, pre={2} post={3}", toPatch.DeclaringType, toPatch.Name, prefix, postfix );
-         harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
+         var patch = new PatchRecord{ Target = toPatch, Prefix = ToHarmonyMethod( prefix ), Postfix = ToHarmonyMethod( postfix ) };
+         harmony.Patch( toPatch, patch.Prefix, patch.Postfix );
+         return patch;
       }
 
       private static HarmonyMethod ToHarmonyMethod ( string name ) {
@@ -142,6 +141,16 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          MethodInfo func = typeof( Mod ).GetMethod( name );
          if ( func == null ) throw new NullReferenceException( name + " not found" );
          return new HarmonyMethod( func );
+      }
+
+      public struct PatchRecord {
+         public MethodBase Target;
+         public HarmonyMethod Prefix;
+         public HarmonyMethod Postfix;
+         public void Unpatch () {
+            if ( Prefix  != null ) harmony.Unpatch( Target, Prefix.method );
+            if ( Postfix != null ) harmony.Unpatch( Target, Postfix.method );
+         }
       }
 
       private static Action< SourceLevels, object, object[] > Logger;
