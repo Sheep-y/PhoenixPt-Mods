@@ -13,15 +13,31 @@ Mods will be added as they are updated to be [Modnix](https://github.com/Sheep-y
 Some [unpublished mods](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished) not found on NexusMods,
 usually custom jobs or for self use, can be found here.
 
-All published mods works with both [PPML v0.1](https://github.com/RealityMachina/PhoenixPointModInjector/#readme) and [Modnix](https://github.com/Sheep-y/Modnix),
-and are released to the Public Domain.
-
 ## List of Mods
 
-Published mods only
+Published mods only 
 
 * **Skip Intro** - Skip logos, openings, and landings.
 * * https://www.nexusmods.com/phoenixpoint/mods/17
+
+## PPML Compatibility
+
+All published mods works with both [PPML v0.1](https://github.com/RealityMachina/PhoenixPointModInjector/#readme) and [Modnix](https://github.com/Sheep-y/Modnix),
+and are released to the Public Domain.
+
+All my mods are *incompatible* with [PPML v0.2](https://github.com/Ijwu/PhoenixPointModLoader/#readme) found on [NexusMods](https://www.nexusmods.com/phoenixpoint/mods/38).
+Because of how PPML v0.2 is designed, mods must choice one to support.
+
+* 0.1 mods will be ignored by 0.2.
+* 0.2 mods will *crash* PPML 0.1.
+
+Since 0.1 is still used by old mods, and many players are not experts in mod management,
+I opt for having my mods not work rather than crashing the game, when they are used incorrectly.
+
+Could have make two versions for each and every mods, of course.
+But I'd rather spend time on mods and tools, than supporting a tool that back itself into a corner and is not being updated.
+
+Thanks for your understanding.
 
 ## Tech Tree
 
