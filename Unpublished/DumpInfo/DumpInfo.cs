@@ -1,6 +1,8 @@
 ﻿using Base.Core;
 using Base.Defs;
 using Harmony;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Geoscape.Entities.Requirement;
 using PhoenixPoint.Geoscape.Entities.Research;
@@ -11,6 +13,7 @@ using PhoenixPoint.Geoscape.Levels.Factions;
 using PhoenixPoint.Tactical.Entities;
 using PhoenixPoint.Tactical.Entities.Abilities;
 using PhoenixPoint.Tactical.Entities.DamageKeywords;
+using PhoenixPoint.Tactical.Entities.Equipments;
 using PhoenixPoint.Tactical.Entities.Weapons;
 using System;
 using System.Collections.Generic;
@@ -28,34 +31,37 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
 
-         Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogWeapons" );
+         Patch( typeof( GeoLevelController ), "OnLevelStart", null, postfix: nameof( DumpJson ) );
+         //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogWeapons" );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogAbilities" );
          //Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: "DumpResearches" );
-         //Patch( typeof( TacticalLevelController ), "OnLevelStart", null, "AfterLevelStart_PatchWeapons" );
-         //Patch( typeof( GeoFaction ), "RebuildBonusesFromResearchState", "LogList" );
          //Patch( typeof( ItemManufacturing ), "AddAvailableItem", "LogItem" );
       }
 
-      public static bool LogList ( GeoFaction __instance ) { try {
-         foreach ( var research in __instance.Research.Completed ) {
-            Info( "Research {0}", research.GetLocalizedName() );
-            foreach ( var reward in research.Rewards ) {
-               Info( reward.GetType() );
-               if ( reward.RewardOnce ) continue;
-               reward.GiveReward( __instance );
-            }
-         }
-         return false;
-      } catch ( Exception ex ) { return Error( ex ); } }
-
-      public static void LogItem ( ItemManufacturing __instance, IManufacturable item ) { try {
-         //if ( item.RelatedItemDef.name == "PX_GrenadeLauncher_WeaponDef" || item.RelatedItemDef.name == "PX_ShotgunRifle_WeaponDef" )
-         //Info( Logging.Logger.Stacktrace );
-         Info( "IManufacturable {0}", item.RelatedItemDef.name );
+      public static void DumpJson ( GeoLevelController __instance) { try {
+         var JsonOptions = new JsonSerializerSettings{
+            ContractResolver = new DefaultContractResolver(),
+            DefaultValueHandling = DefaultValueHandling.Ignore,
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            Error = ( sender, err ) => Error( err ),
+            MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
+            MissingMemberHandling = MissingMemberHandling.Ignore,
+            NullValueHandling = NullValueHandling.Ignore,
+            ObjectCreationHandling = ObjectCreationHandling.Replace,
+            PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+            TypeNameHandling = TypeNameHandling.Objects
+         };
+         foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<ItemDef>() )
+            Info( "{0}", JsonConvert.SerializeObject( e, Formatting.Indented, JsonOptions ) );
+         foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<TacticalItemDef>() )
+            Info( "{0}", JsonConvert.SerializeObject( e, Formatting.Indented, JsonOptions ) );
+         foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<EquipmentDef>() )
+            Info( "{0}", JsonConvert.SerializeObject( e, Formatting.Indented, JsonOptions ) );
+         foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<WeaponDef>() )
+            Info( "{0}", JsonConvert.SerializeObject( e, Formatting.Indented, JsonOptions ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
-
-      public static void LogWeapons ( GeoLevelController __instance ) { try {
+      public static void DumpWeapons ( GeoLevelController __instance ) { try {
          // Build keyword list and weapon list - heavy code, do once
          var keywords = GameUtl.GameComponent<DefRepository>().GetAllDefs<DamageKeywordDef>().ToDictionary( e => e.name );
          var weapons = GameUtl.GameComponent<DefRepository>().GetAllDefs<WeaponDef>().ToDictionary( e => e.name );
