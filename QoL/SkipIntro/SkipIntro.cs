@@ -14,6 +14,7 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.SkipIntro {
 
+   // Modnix will save and load settings to/from {dll_name}.conf as utf-8 json
    public class ModSettings {
       public string Settings_Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
       public bool Skip_Logos = true;
@@ -24,13 +25,11 @@ namespace Sheepy.PhoenixPt.SkipIntro {
    }
 
    public class Mod : SheepyMod {
-      // Tell Modnix what our settings is and its default
+      // Tell Modnix what type our settings is, and its default values
       public static ModSettings DefaultSettings => new ModSettings();
 
       // PPML v0.1 entry point
       public static void Init () => new Mod().SplashMod();
-
-      private static IPatchRecord LogoPatch, IntroEnterPatch, IntroLoadPatch;
 
       // Modnis entry point, splash phase
       public void SplashMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
@@ -47,7 +46,7 @@ namespace Sheepy.PhoenixPt.SkipIntro {
          // Skip "The Hottest Year"
          if ( settings.Skip_HottestYear ) {
             IntroEnterPatch = Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
-            IntroLoadPatch = Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
+            IntroLoadPatch  = Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
          }
 
          // Skip aircraft landings
@@ -64,10 +63,13 @@ namespace Sheepy.PhoenixPt.SkipIntro {
             Patch( typeof( UseInkUI ), "Close", nameof( InkClose_Skip ) );
       }
 
+      // For manual unpatching
+      private static IPatchRecord LogoPatch, IntroEnterPatch, IntroLoadPatch;
+
       public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
          if ( def == null ) return false;
          string path = def.ResourcePath;
-         Verbo( "Checking cutscene {0}", path );
+         Verbo( "Checking video {0}", path );
          return path.Contains( "Game_Intro_Cutscene" ) || path.Contains( "LandingSequences" );
       }
 
@@ -80,19 +82,18 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       } catch ( Exception ex ) { return Error( ex ); } }
 
       public static void AfterHomeCutscene_Skip ( UIStateHomeScreenCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
-         Info( ____sourcePlaybackDef.ResourcePath );
-         if ( ShouldSkip( ____sourcePlaybackDef ) ) {
-            Info( "Skipping Intro" );
-            typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance ).Invoke( __instance, null );
-            Info( "Intro skipped. Unpatching home cutscene." );
-            IntroEnterPatch.Unpatch();
-            IntroLoadPatch.Unpatch();
-         }
+         if ( ! ShouldSkip( ____sourcePlaybackDef ) ) return;
+         Info( "Skipping Intro" );
+         typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance ).Invoke( __instance, null );
+         Info( "Intro skipped. Unpatching home cutscene." );
+         IntroEnterPatch.Unpatch();
+         IntroLoadPatch.Unpatch();
       } catch ( Exception ex ) { Error( ex ); } }
 
       public static void AfterTacCutscene_Skip ( UIStateTacticalCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
-         if ( ShouldSkip( ____sourcePlaybackDef ) )
-            typeof( UIStateTacticalCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
+         if ( ! ShouldSkip( ____sourcePlaybackDef ) ) return;
+         Info( "Skipping Combat Video" );
+         typeof( UIStateTacticalCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
       } catch ( Exception ex ) { Error( ex ); } }
 
       public static bool BeforeOnLoad_Skip ( VideoPlaybackSourceDef ____sourcePlaybackDef ) {

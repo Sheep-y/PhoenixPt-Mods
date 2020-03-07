@@ -11,6 +11,10 @@ using System.Threading.Tasks;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt {
+
+   /// <summary>
+   /// Base mod class to supports manual patching and unpatch, default logger, and logging.
+   /// </summary>
    public class SheepyMod {
 
       protected internal HarmonyInstance Patcher;
