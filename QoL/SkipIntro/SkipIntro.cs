@@ -1,7 +1,7 @@
 ﻿using Base.Core;
 using Base.Levels;
+using Base.UI;
 using Base.UI.VideoPlayback;
-using Harmony;
 using PhoenixPoint.Common.Game;
 using PhoenixPoint.Home.View.ViewStates;
 using PhoenixPoint.Tactical.View.ViewStates;
@@ -9,14 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using static System.Reflection.BindingFlags;
-using Base.Utils;
-using Base.UI;
 
-namespace Sheepy.PhoenixPt_SkipIntro {
+namespace Sheepy.PhoenixPt.SkipIntro {
 
    public class ModSettings {
       public string Settings_Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
@@ -27,17 +23,17 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       public bool Skip_CurtainLift = true;
    }
 
-   public static class Mod {
+   public class Mod : SheepyMod {
       // Tell Modnix what our settings is and its default
       public static ModSettings DefaultSettings => new ModSettings();
 
       // PPML v0.1 entry point
-      public static void Init () => SplashMod();
+      public static void Init () => new Mod().SplashMod();
 
-      private static PatchRecord LogoPatch, IntroEnterPatch, IntroLoadPatch;
+      private static IPatchRecord LogoPatch, IntroEnterPatch, IntroLoadPatch;
 
       // Modnis entry point, splash phase
-      public static void SplashMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
+      public void SplashMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
          if ( settings == null ) settings = DefaultSettings;
          SetLogger( logger );
 
@@ -87,7 +83,7 @@ namespace Sheepy.PhoenixPt_SkipIntro {
          Info( ____sourcePlaybackDef.ResourcePath );
          if ( ShouldSkip( ____sourcePlaybackDef ) ) {
             Info( "Skipping Intro" );
-            typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
+            typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance ).Invoke( __instance, null );
             Info( "Intro skipped. Unpatching home cutscene." );
             IntroEnterPatch.Unpatch();
             IntroLoadPatch.Unpatch();
@@ -120,68 +116,6 @@ namespace Sheepy.PhoenixPt_SkipIntro {
       }
 
       #region Modding helpers
-      private static HarmonyInstance harmony;
-
-      private static PatchRecord Patch ( Type target, string toPatch, string prefix = null, string postfix = null ) {
-         return Patch( target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix );
-      }
-
-      private static PatchRecord Patch ( MethodInfo toPatch, string prefix = null, string postfix = null ) {
-         if ( harmony == null )
-            harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
-         Info( "Patching {0}.{1}, pre={2} post={3}", toPatch.DeclaringType, toPatch.Name, prefix, postfix );
-         var patch = new PatchRecord{ Target = toPatch, Prefix = ToHarmonyMethod( prefix ), Postfix = ToHarmonyMethod( postfix ) };
-         harmony.Patch( toPatch, patch.Prefix, patch.Postfix );
-         return patch;
-      }
-
-      private static HarmonyMethod ToHarmonyMethod ( string name ) {
-         if ( name == null ) return null;
-         MethodInfo func = typeof( Mod ).GetMethod( name );
-         if ( func == null ) throw new NullReferenceException( name + " not found" );
-         return new HarmonyMethod( func );
-      }
-
-      public struct PatchRecord {
-         public MethodBase Target;
-         public HarmonyMethod Prefix;
-         public HarmonyMethod Postfix;
-         public void Unpatch () {
-            if ( Prefix  != null ) harmony.Unpatch( Target, Prefix.method );
-            if ( Postfix != null ) harmony.Unpatch( Target, Postfix.method );
-         }
-      }
-
-      private static Action< SourceLevels, object, object[] > Logger;
-      private static string LogFile;
-
-      private static void SetLogger ( Action< SourceLevels, object, object[] > logger ) {
-         if ( logger == null ) { // Use default
-            Logger = DefaultLogger;
-            Info( DateTime.Now.ToString( "D" ) + " " + typeof( Mod ).Namespace + " " + Assembly.GetExecutingAssembly().GetName().Version );
-            LogFile = Regex.Replace( Assembly.GetExecutingAssembly().Location, "\\.dll$", ".log", RegexOptions.IgnoreCase );
-         } else
-            Logger = logger; // Logger provided by mod loader
-      }
-
-      // A simple file logger when one is not provided by the mod loader.
-      private static void DefaultLogger ( SourceLevels lv, object msg, object[] param ) { try {
-         string line = msg?.ToString();
-         try {
-            if ( param != null ) line = string.Format( line, param );
-         } catch ( Exception ) { }
-         using ( var stream = File.AppendText( LogFile ) ) {
-            stream.WriteLineAsync( DateTime.Now.ToString( "T" ) + " " + typeof( Mod ).Namespace + " " + line );
-         }  
-      } catch ( Exception ex ) { Console.WriteLine( ex ); } }
-
-      private static void Verbo ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Verbose, msg, augs );
-      private static void Info  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Information, msg, augs );
-      private static void Warn  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Warning, msg, augs );
-      private static bool Error ( object msg, params object[] augs ) {
-         Logger?.Invoke( SourceLevels.Error, msg, augs );
-         return true;
-      }
       #endregion
    }
 }
