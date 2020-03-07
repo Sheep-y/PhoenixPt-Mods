@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle( "Flat Difficulty" )]
-[assembly: AssemblyDescription( "Disable Dynamic Difficulty System" )]
+[assembly: AssemblyDescription( "Phoenix Point Mod - Disable Dynamic Difficulty System" )]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany( "Sheepy" )]
 [assembly: AssemblyProduct( "" )]

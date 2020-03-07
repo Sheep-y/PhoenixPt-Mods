@@ -74,4 +74,8 @@ mkdir distro
 cd distro
 copy /y $(ProjectDir)$(OutDir)$(TargetFileName) .</PostBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>cd $(SolutionDir)
+copy SheepyMod.cs $(ProjectDir)</PreBuildEvent>
+  </PropertyGroup>
 </Project>

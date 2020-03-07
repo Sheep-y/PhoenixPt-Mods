@@ -1,21 +1,17 @@
-﻿using Harmony;
-using PhoenixPoint.Common.Core;
+﻿using PhoenixPoint.Common.Core;
 using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.Entities.DifficultySystem;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
 using static System.Reflection.BindingFlags;
 
-namespace Sheepy.PhotnixPt_FlatDifficulty {
-   public static class Mod {
-      public static void Init () => MainMod();
+namespace Sheepy.PhotnixPt.FlatDifficulty {
+   public class Mod : PhoenixPt.SheepyMod {
+      public static void Init () => new Mod().MainMod();
 
-      public static void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
+      public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
          Patch( typeof( DynamicDifficultySystem ), "ReadjustThreatLevelMods", nameof( BeforeReadjust_ClearHistory ) );
          //Patch( harmony, typeof( DynamicDifficultySystem ), "GetCalculatedDeployment", nameof( BeforeCalculate_Readjust ) );
@@ -49,58 +45,5 @@ namespace Sheepy.PhotnixPt_FlatDifficulty {
             );
             */
       } catch ( Exception ex ) { Error( ex ); } }
-
-      #region Modding helpers
-      private static HarmonyInstance harmony;
-
-      private static void Patch ( Type target, string toPatch, string prefix = null, string postfix = null ) {
-         Patch( target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix );
-      }
-
-      private static void Patch ( MethodInfo toPatch, string prefix = null, string postfix = null ) {
-         if ( harmony == null )
-            harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
-         Verbo( "Patching {0}.{1} with {2}:{3}", toPatch.DeclaringType, toPatch.Name, prefix, postfix );
-         harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
-      }
-
-      private static HarmonyMethod ToHarmonyMethod ( string name ) {
-         if ( name == null ) return null;
-         MethodInfo func = typeof( Mod ).GetMethod( name );
-         if ( func == null ) throw new NullReferenceException( name + " is null" );
-         return new HarmonyMethod( func );
-      }
-
-      private static Action< SourceLevels, object, object[] > Logger;
-      private static string LogFile;
-
-      private static void SetLogger ( Action< SourceLevels, object, object[] > logger ) {
-         if ( logger == null ) { // Use default
-            Logger = DefaultLogger;
-            Info( DateTime.Now.ToString( "D" ) + " " + typeof( Mod ).Namespace + " " + Assembly.GetExecutingAssembly().GetName().Version );
-            LogFile = Regex.Replace( Assembly.GetExecutingAssembly().Location, "\\.dll$", ".log", RegexOptions.IgnoreCase );
-         } else
-            Logger = logger; // Logger provided by mod loader
-      }
-
-      // A simple file logger when one is not provided by the mod loader.
-      private static void DefaultLogger ( SourceLevels lv, object msg, object[] param ) { try {
-         string line = msg?.ToString();
-         try {
-            if ( param != null ) line = string.Format( line, param );
-         } catch ( Exception ) { }
-         using ( var stream = File.AppendText( LogFile ) ) {
-            stream.WriteLineAsync( DateTime.Now.ToString( "T" ) + " " + typeof( Mod ).Namespace + " " + line );
-         }  
-      } catch ( Exception ex ) { Console.WriteLine( ex ); } }
-
-      private static void Verbo ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Verbose, msg, augs );
-      private static void Info  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Information, msg, augs );
-      private static void Warn  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Warning, msg, augs );
-      private static bool Error ( object msg, params object[] augs ) {
-         Logger?.Invoke( SourceLevels.Error, msg, augs );
-         return true;
-      }
-      #endregion
    }
 }
