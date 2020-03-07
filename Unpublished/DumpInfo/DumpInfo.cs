@@ -1,13 +1,23 @@
 ﻿using Base.Core;
 using Base.Defs;
+using Base.Entities.Abilities;
+using Base.Platforms;
 using Harmony;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using PhoenixPoint.Common.Core;
+using PhoenixPoint.Common.Entities;
+using PhoenixPoint.Common.Entities.Characters;
 using PhoenixPoint.Common.Entities.Items;
+using PhoenixPoint.Common.Levels.Missions;
+using PhoenixPoint.Geoscape.Entities;
+using PhoenixPoint.Geoscape.Entities.DifficultySystem;
 using PhoenixPoint.Geoscape.Entities.Requirement;
 using PhoenixPoint.Geoscape.Entities.Research;
 using PhoenixPoint.Geoscape.Entities.Research.Requirement;
 using PhoenixPoint.Geoscape.Entities.Research.Reward;
+using PhoenixPoint.Geoscape.Entities.Sites;
+using PhoenixPoint.Geoscape.Events.Eventus;
 using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Geoscape.Levels.Factions;
 using PhoenixPoint.Tactical.Entities;
@@ -43,25 +53,31 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
 
       public static void DumpJson ( GeoLevelController __instance) { try {
-         foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs )
-            Info( "{0}", ToXml( e ) );
+         foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs ) {
+            if ( e is ItemDef )
+            // if ( e is ResearchDef )
+            // if ( e is AbilityDef || e is AbilityTrackDef || e is TacUnitClassDef || e is GeoActorDef )
+            // if ( e is AlienMonsterClassDef || e is BodyPartAspectDef || e is GeoAlienBaseDef || e is GeoMistGeneratorDef )
+            // if ( e is GeoHavenZoneDef || e is GeoFactionDef || e is PhoenixFacilityDef )
+            // if ( e is AchievementDef || e is GeoscapeEventDef || e is TacMissionDef || e is DynamicDifficultySettingsDef || e is GameDifficultyLevelDef )
+               Info( "{0}", ToXml( e ) );
+         }
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static string ToXml ( object subject ) {
-         return Obj2Xml( subject, 0, new StringBuilder() ).ToString();
+         var txt = new StringBuilder();
+         Obj2Xml( subject, 0, txt );
+         return txt.ToString();
       }
 
-      private static StringBuilder Obj2Xml ( object subject, int level, StringBuilder txt ) {
-         if ( subject == null )
-            return txt.Append( "null" );
+      private static void Obj2Xml ( object subject, int level, StringBuilder txt ) {
+         if ( subject == null ) { txt.Append( "null" ); return; }
+         if ( subject is string str ) { txt.Append( str ); return; }
          var type = subject.GetType();
-         if ( type.IsValueType )
-            return txt.Append( EscXml( subject.ToString() ) );
-         if ( level == 0 ) {
-            Mem2Xml( type.Name, subject, 1, txt );
-            return txt;
-         }
-         if ( level > 5 ) return txt.Append( "..." );
+         if ( type.IsValueType ) { txt.Append( EscXml( subject.ToString() ) ); return; }
+         if ( level == 0 ) { Mem2Xml( type.Name, subject, 1, txt ); return; }
+         if ( level > 10 ) { txt.Append( "..." ); return; }
+         if ( type.FullName.StartsWith( "UnityEngine.", StringComparison.InvariantCulture ) ) { txt.Append( type.FullName ); return; }
          if ( subject is IEnumerable list ) {
             foreach ( var e in list ) {
                var typeName = EscXml( e?.GetType().ToString() ?? "null" );
@@ -69,15 +85,20 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                Obj2Xml( e, level + 1, txt );
                txt.Append( "</" ).Append( typeName ).Append( '>' );
             }
-            return txt;
+            return;
          }
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1, txt );
-         } catch ( TargetInvocationException ex ) { throw new InvalidOperationException( $"{type.Name}.{f.Name}", ex ); }
+         } catch ( ApplicationException ex ) {
+            Mem2Xml( f.Name, ex.GetType().Name, level + 1, txt );
+         }
          foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1, txt );
-         } catch ( TargetInvocationException ex ) { throw new InvalidOperationException( $"{type.Name}.{f.Name}", ex ); }
-         return txt;
+         } catch ( ApplicationException ex ) {
+            Mem2Xml( f.Name, ex.GetType().Name, level + 1, txt );
+         }
+//         } catch ( ApplicationException ex ) { Info( txt ); throw new InvalidOperationException( $"{type.FullName}.{f.Name}", ex ); }
+         return;
       }
 
       private static void Mem2Xml ( string name, object val, int level, StringBuilder txt ) {
