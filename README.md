@@ -10,12 +10,15 @@ In other words, savegames made with the mods active should be safe to load when 
 
 Mods will be added as they are updated to be [Modnix](https://github.com/Sheep-y/Modnix) compatible.
 
-Some unpublished not found on NexusMods usually custom jobs, can be found here.
+Some [unpublished mods](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished) not found on NexusMods,
+usually custom jobs or for self use, can be found here.
 
-All mods works with both [PPML v0.1](https://github.com/RealityMachina/PhoenixPointModInjector/#readme) and [Modnix](https://github.com/Sheep-y/Modnix),
+All published mods works with both [PPML v0.1](https://github.com/RealityMachina/PhoenixPointModInjector/#readme) and [Modnix](https://github.com/Sheep-y/Modnix),
 and are released to the Public Domain.
 
 ## List of Mods
+
+Published mods only
 
 * **Skip Intro** - Skip logos, openings, and landings.
 * * https://www.nexusmods.com/phoenixpoint/mods/17
