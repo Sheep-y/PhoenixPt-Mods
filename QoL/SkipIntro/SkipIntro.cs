@@ -31,7 +31,7 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       // PPML v0.1 entry point
       public static void Init () => new Mod().SplashMod();
 
-      // Modnis entry point, splash phase
+      // Modnix entry point, splash phase
       public void SplashMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
          if ( settings == null ) settings = DefaultSettings;
          SetLogger( logger );

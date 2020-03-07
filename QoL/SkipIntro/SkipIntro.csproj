@@ -7,7 +7,7 @@
     <ProjectGuid>{C4FD3097-8303-4A61-9469-FE4E61CBB08A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sheepy.PhoenixPt_SkipIntro</RootNamespace>
+    <RootNamespace>Sheepy.PhoenixPt.SkipIntro</RootNamespace>
     <AssemblyName>PhoenixPt_SkipIntro</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
