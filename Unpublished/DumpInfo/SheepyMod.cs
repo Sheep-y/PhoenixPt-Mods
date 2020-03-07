@@ -26,7 +26,7 @@ namespace Sheepy.PhoenixPt {
       protected internal IPatchRecord Patch ( MethodInfo toPatch, string prefix = null, string postfix = null, string transpiler = null ) {
          if ( Patcher == null )
             Patcher = HarmonyInstance.Create( GetType().Namespace );
-         Info( "Patching {0}.{1}, pre={2} post={3} trans={4}", toPatch.DeclaringType, toPatch.Name, prefix, postfix, transpiler );
+         Verbo( "Patching {0}.{1}, pre={2} post={3} trans={4}", toPatch.DeclaringType, toPatch.Name, prefix, postfix, transpiler );
          var patch = new PatchRecord{ Mod = this, Target = toPatch, Prefix = ToHarmonyMethod( prefix ), Postfix = ToHarmonyMethod( postfix ), Transpiler = ToHarmonyMethod( transpiler ) };
          Patcher.Patch( toPatch, patch.Prefix, patch.Postfix, patch.Transpiler );
          return patch;
@@ -46,7 +46,7 @@ namespace Sheepy.PhoenixPt {
          internal HarmonyMethod Postfix;
          internal HarmonyMethod Transpiler;
          public void Unpatch () {
-            Info( "Unpatching {0}, pre={1} post={2} trans={3}", Target, Prefix?.methodName, Postfix?.methodName, Transpiler?.methodName );
+            Verbo( "Unpatching {0}, pre={1} post={2} trans={3}", Target, Prefix?.methodName, Postfix?.methodName, Transpiler?.methodName );
             if ( Prefix     != null ) Mod.Patcher.Unpatch( Target, Prefix.method );
             if ( Postfix    != null ) Mod.Patcher.Unpatch( Target, Postfix.method );
             if ( Transpiler != null ) Mod.Patcher.Unpatch( Target, Transpiler.method );
