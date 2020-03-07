@@ -19,6 +19,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Text;
+using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
@@ -39,27 +42,46 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
 
       public static void DumpJson ( GeoLevelController __instance) { try {
-         var JsonOptions = new JsonSerializerSettings{
-            ContractResolver = new DefaultContractResolver(),
-            DefaultValueHandling = DefaultValueHandling.Ignore,
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            Error = ( sender, err ) => Error( err ),
-            MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore,
-            NullValueHandling = NullValueHandling.Ignore,
-            ObjectCreationHandling = ObjectCreationHandling.Replace,
-            PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-            TypeNameHandling = TypeNameHandling.Objects
-         };
          foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<ItemDef>() )
-            Info( "{0}", JsonConvert.SerializeObject( e, Formatting.Indented, JsonOptions ) );
+            Info( "{0}", ToXml( e ) );
          foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<TacticalItemDef>() )
-            Info( "{0}", JsonConvert.SerializeObject( e, Formatting.Indented, JsonOptions ) );
+            Info( "{0}", ToXml( e ) );
          foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<EquipmentDef>() )
-            Info( "{0}", JsonConvert.SerializeObject( e, Formatting.Indented, JsonOptions ) );
+            Info( "{0}", ToXml( e ) );
          foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<WeaponDef>() )
-            Info( "{0}", JsonConvert.SerializeObject( e, Formatting.Indented, JsonOptions ) );
+            Info( "{0}", ToXml( e ) );
       } catch ( Exception ex ) { Error( ex ); } }
+
+      private static Func<string> ToXml ( object subject ) {
+         return () => Obj2Xml( subject, 0, new StringBuilder() ).ToString();
+      }
+
+      private static StringBuilder Obj2Xml ( object subject, int level, StringBuilder txt ) {
+         if ( subject == null )
+            return txt.Append( "null" );
+         var type = subject.GetType();
+         if ( type.IsValueType )
+            return txt.Append( EscXml( subject.ToString() ) );
+         if ( level == 0 ) {
+            Mem2Xml( type.Name, subject, 1, txt );
+            return txt;
+         }
+         if ( level > 5 ) return txt.Append( "..." );
+         foreach ( var f in type.GetFields( Public | NonPublic | Instance ) )
+            Mem2Xml( f.Name, f.GetValue( subject ), level + 1, txt );
+         foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) )
+            Mem2Xml( f.Name, f.GetValue( subject ), level + 1, txt );
+         return txt;
+      }
+
+      private static void Mem2Xml ( string name, object val, int level, StringBuilder txt ) {
+         txt.Append( '<' ).Append( EscXml( name ) ).Append( '>' );
+         Obj2Xml( val, level + 1, txt );
+         txt.Append( "</" ).Append( EscXml( name ) ).Append( '>' );
+      }
+
+      private static string EscXml ( string txt ) =>
+         txt.Replace( "<", "&lt;" ).Replace( ">", "&gt;" ).Replace( "\"", "&quot;" );
 
       public static void DumpWeapons ( GeoLevelController __instance ) { try {
          // Build keyword list and weapon list - heavy code, do once
