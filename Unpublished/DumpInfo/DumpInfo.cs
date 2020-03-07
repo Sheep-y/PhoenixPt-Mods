@@ -16,6 +16,7 @@ using PhoenixPoint.Tactical.Entities.DamageKeywords;
 using PhoenixPoint.Tactical.Entities.Equipments;
 using PhoenixPoint.Tactical.Entities.Weapons;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
 
-         Patch( typeof( GeoLevelController ), "OnLevelStart", null, postfix: nameof( DumpJson ) );
+         Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", null, postfix: nameof( DumpJson ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogWeapons" );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogAbilities" );
          //Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: "DumpResearches" );
@@ -42,18 +43,12 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
 
       public static void DumpJson ( GeoLevelController __instance) { try {
-         foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<ItemDef>() )
-            Info( "{0}", ToXml( e ) );
-         foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<TacticalItemDef>() )
-            Info( "{0}", ToXml( e ) );
-         foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<EquipmentDef>() )
-            Info( "{0}", ToXml( e ) );
-         foreach ( var e in GameUtl.GameComponent<DefRepository>().GetAllDefs<WeaponDef>() )
+         foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs )
             Info( "{0}", ToXml( e ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static Func<string> ToXml ( object subject ) {
-         return () => Obj2Xml( subject, 0, new StringBuilder() ).ToString();
+      private static string ToXml ( object subject ) {
+         return Obj2Xml( subject, 0, new StringBuilder() ).ToString();
       }
 
       private static StringBuilder Obj2Xml ( object subject, int level, StringBuilder txt ) {
@@ -67,10 +62,21 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             return txt;
          }
          if ( level > 5 ) return txt.Append( "..." );
-         foreach ( var f in type.GetFields( Public | NonPublic | Instance ) )
+         if ( subject is IEnumerable list ) {
+            foreach ( var e in list ) {
+               var typeName = EscXml( e?.GetType().ToString() ?? "null" );
+               txt.Append( '<' ).Append( typeName ).Append( '>' );
+               Obj2Xml( e, level + 1, txt );
+               txt.Append( "</" ).Append( typeName ).Append( '>' );
+            }
+            return txt;
+         }
+         foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1, txt );
-         foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) )
+         } catch ( TargetInvocationException ex ) { throw new InvalidOperationException( $"{type.Name}.{f.Name}", ex ); }
+         foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1, txt );
+         } catch ( TargetInvocationException ex ) { throw new InvalidOperationException( $"{type.Name}.{f.Name}", ex ); }
          return txt;
       }
 
