@@ -28,12 +28,12 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
 
-         //Patch( harmony, typeof( GeoLevelController ), "OnLevelStart", null, "LogWeapons" );
-         //Patch( harmony, typeof( GeoLevelController ), "OnLevelStart", null, "LogAbilities" );
-         Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: "DumpResearches" );
-         //Patch( harmony, typeof( TacticalLevelController ), "OnLevelStart", null, "AfterLevelStart_PatchWeapons" );
-         //Patch( harmony, typeof( GeoFaction ), "RebuildBonusesFromResearchState", "LogList" );
-         //Patch( harmony, typeof( ItemManufacturing ), "AddAvailableItem", "LogItem" );
+         Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogWeapons" );
+         //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogAbilities" );
+         //Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: "DumpResearches" );
+         //Patch( typeof( TacticalLevelController ), "OnLevelStart", null, "AfterLevelStart_PatchWeapons" );
+         //Patch( typeof( GeoFaction ), "RebuildBonusesFromResearchState", "LogList" );
+         //Patch( typeof( ItemManufacturing ), "AddAvailableItem", "LogItem" );
       }
 
       public static bool LogList ( GeoFaction __instance ) { try {
@@ -67,12 +67,16 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             DamagePayload dmg = weapon.DamagePayload;
             Info( weapon.GetDisplayName().Localize() );
             Info( "{0} [{1} {2}]", weapon.name, weapon.Guid, weapon.ResourcePath );
-            Info( "Tags: {0}", weapon.Tags.Join( e => e.ResourcePath ) );
-            Info( "AP {0}, Weight {1}, Accuracy {2}, Ammo {3}, Manufacturable {4}", weapon.APToUsePerc, weapon.CombinedWeight(), weapon.EffectiveRange, weapon.ChargesMax, weapon.CanManufacture( __instance.PhoenixFaction ) );
+            Info( "Traits: {1} / Tags: {0}", weapon.Tags?.Join( e => e.name ), weapon.Traits?.Join() );
+            Info( "AP {0}, Weight {1}, Accuracy {2}, Ammo {3}, Free Ammo {4}, HP {5}, Armour {6}",
+               weapon.APToUsePerc, weapon.CombinedWeight(), weapon.EffectiveRange, weapon.ChargesMax, weapon.FreeReloadOnMissionEnd, weapon.HitPoints, weapon.Armor );
+            Info( "Slot {0}, Hands {1}, Fumble {2}, Non-Prof accuracy {3}, Manufacturable {4}, NoDropChance {5}",
+               weapon.HolsterSlotDef?.name, weapon.HandsToUse, weapon.FumblePerc, weapon.IncompetenceAccuracyMultiplier, weapon.CanManufacture( __instance.PhoenixFaction ), weapon.DestroyOnActorDeathPerc );
             Info( "Damage: {0}", dmg.DamageKeywords.Select( e => e.DamageKeywordDef.name + " " + e.Value ).Join() );
-            Info( "{0} bullets x{1} shots, each bullet cost {7} ammo, AoE {2}, Cone {3}, Spread {4}:{5}, Range {6}",
-               dmg.ProjectilesPerShot, dmg.AutoFireShotCount, dmg.AoeRadius, dmg.ConeRadius, weapon.SpreadRadius, weapon.SpreadDegrees, dmg.Range, weapon.AmmoChargesPerProjectile );
+            Info( "{0} bullets x{1} shots, each bullet cost {2} ammo, Range {3} Max {4}", dmg.ProjectilesPerShot, dmg.AutoFireShotCount, weapon.AmmoChargesPerProjectile, dmg.Range, weapon.MaximumRange );
+            Info( "AoE {0}, Cone {1}, Spread {2}:{3}", dmg.AoeRadius, dmg.ConeRadius, weapon.SpreadRadius, weapon.SpreadDegrees, weapon.AmmoChargesPerProjectile );
             if ( weapon.UnlockRequirements != null ) Info( "Requires {0}", ReqToString( weapon.UnlockRequirements ) );
+            Info( "{0}", weapon.Abilities?.Join( e => e.GetType().ToString() ) );
             Info( " " );
             //weapon.DamagePayload.DamageKeywords.Add( new DamageKeywordPair(){ DamageKeywordDef = keywords[ "Paralysing_DamageKeywordDataDef" ], Value = 8 });
          }
