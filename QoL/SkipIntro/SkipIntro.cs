@@ -36,7 +36,7 @@ namespace Sheepy.PhoenixPt.SkipIntro {
          if ( settings == null ) settings = DefaultSettings;
          SetLogger( logger );
 
-         // I prefer doing manual patch for better control, such as reusing a method.
+         // I prefer doing manual patch for better control, such as reusing a method in patch.
          // Most modders prefer the simpler Harmony Attributes / Annotation, and it'll work the same.
 
          // Skip logos and splash
