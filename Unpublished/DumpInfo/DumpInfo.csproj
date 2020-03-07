@@ -7,8 +7,8 @@
     <ProjectGuid>{9EB89B81-E091-492C-B029-48B04E9148A6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DumpInfo</RootNamespace>
-    <AssemblyName>DumpInfo</AssemblyName>
+    <RootNamespace>Sheepy.PhoenixPt.DumpInfo</RootNamespace>
+    <AssemblyName>PhoenixPt_DumpInfo</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -31,9 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>C:\Program Files\Epic Games\PhoenixPoint\PhoenixPointWin64_Data\Managed\0Harmony.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Lib.Harmony.1.2.0.1\lib\net45\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>C:\Program Files\Epic Games\PhoenixPoint\PhoenixPointWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
@@ -54,8 +53,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DumpInfo.cs" />
-    <Compile Include="Logger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SheepyMod.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="mod_info.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>cd $(SolutionDir)
+mkdir distro
+cd distro
+copy /y $(ProjectDir)$(OutDir)$(TargetFileName) .</PostBuildEvent>
+  </PropertyGroup>
 </Project>
