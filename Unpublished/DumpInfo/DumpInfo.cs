@@ -67,7 +67,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( ! ExportData.ContainsKey( type ) ) ExportData.Add( type, new List<BaseDef>() );
             ExportData[ type ].Add( e );
          }
-         var txt = new StringBuilder();
          foreach ( var entry in ExportData ) {
             entry.Value.Sort( CompareDef );
             var typeName = entry.Key.Name;
@@ -76,7 +75,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             using ( var writer = new StreamWriter( new BufferedStream( new FileStream( path, FileMode.Create ) ) ) ) {
                writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>" );
                foreach ( var def in entry.Value )
-                  writer.Write( ToXml( def, txt ).ToString() );
+                  ToXml( def, writer );
                writer.Write( $"</{typeName}>" );
                writer.Flush();
             }
@@ -91,27 +90,26 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          return aid.CompareTo( bid );
       }
 
-      private static StringBuilder ToXml ( object subject, StringBuilder txt ) {
-         txt.Clear();
-         Obj2Xml( subject, 0, txt );
-         return txt.Append( '\r' );
+      private static void ToXml ( object subject, StreamWriter stream ) {
+         Obj2Xml( subject, 0, stream );
+         stream.Write( '\r' );
       }
 
-      private static void Obj2Xml ( object subject, int level, StringBuilder txt ) {
-         if ( subject == null ) { txt.Append( "null" ); return; }
-         if ( subject is string str ) { txt.Append( str ); return; }
-         if ( subject is LocalizedTextBind l10n ) { txt.Append( l10n.ToString() ); return; }
+      private static void Obj2Xml ( object subject, int level, StreamWriter txt ) {
+         if ( subject == null ) { txt.Write( "null" ); return; }
+         if ( subject is string str ) { txt.Write( EscXml( str ) ); return; }
+         if ( subject is LocalizedTextBind l10n ) { txt.Write( EscXml( l10n.ToString() ) ); return; }
          var type = subject.GetType();
-         if ( type.IsValueType ) { txt.Append( EscXml( subject.ToString() ) ); return; }
+         if ( type.IsValueType ) { txt.Write( EscXml( subject.ToString() ) ); return; }
          if ( level == 0 ) { Mem2Xml( type.Name, subject, 1, txt ); return; }
-         if ( level > 10 ) { txt.Append( "..." ); return; }
-         if ( type.FullName.StartsWith( "UnityEngine.", StringComparison.InvariantCulture ) ) { txt.Append( type.FullName ); return; }
+         if ( level > 10 ) { txt.Write( "..." ); return; }
+         if ( type.FullName.StartsWith( "UnityEngine.", StringComparison.InvariantCulture ) ) { txt.Write( type.FullName ); return; }
          if ( subject is IEnumerable list ) {
             foreach ( var e in list ) {
                var typeName = EscXml( e?.GetType().ToString() ?? "null" );
-               txt.Append( '<' ).Append( typeName ).Append( '>' );
+               WriteTag( typeName, txt, true );
                Obj2Xml( e, level + 1, txt );
-               txt.Append( "</" ).Append( typeName ).Append( '>' );
+               WriteTag( typeName, txt, false );
             }
             return;
          }
@@ -129,10 +127,16 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          return;
       }
 
-      private static void Mem2Xml ( string name, object val, int level, StringBuilder txt ) {
-         txt.Append( '<' ).Append( EscXml( name ) ).Append( '>' );
+      private static void Mem2Xml ( string name, object val, int level, StreamWriter txt ) {
+         WriteTag( name, txt, true );
          Obj2Xml( val, level + 1, txt );
-         txt.Append( "</" ).Append( EscXml( name ) ).Append( '>' );
+         WriteTag( name, txt, false );
+      }
+
+      private static void WriteTag ( string name, StreamWriter txt, bool start ) {
+         txt.Write( start ? "<" : "</" );
+         txt.Write( EscXml( name ) );
+         txt.Write( '>' );
       }
 
       private static string EscXml ( string txt ) =>
