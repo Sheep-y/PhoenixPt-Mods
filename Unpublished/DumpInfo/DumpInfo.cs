@@ -111,11 +111,11 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
 
       private static void Mem2Xml ( string name, object val, int level ) {
-         if ( val == null ) { SimpleMem( name, "null" ); return; }
+         if ( val == null ) { NullMem( name ); return; }
          if ( val is string str ) { SimpleMem( name, str ); return; }
          if ( val is LocalizedTextBind l10n ) { SimpleMem( name, l10n.LocalizeEnglish() ); return; }
          var type = val.GetType();
-         if ( type.IsPrimitive || type.IsEnum ) { SimpleMem( name, val.ToString() ); return; }
+         if ( type.IsPrimitive || type.IsEnum ) { StartTag( name, "val", val.ToString(), true ); return; }
          if ( type.IsClass ) {
             if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
                { SimpleMem( name, type.FullName ); return; }
@@ -125,14 +125,16 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             var id = RecurringObject.Count;
             RecurringObject.Add( val, id );
             StartTag( name, "id", id.ToString( "X" ), false );
+            if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
+               foreach ( var e in list )
+                  if ( e == null ) NullMem( "LI" );
+                  else Mem2Xml( "LI." + e.GetType().Name, e, level + 1 );
+               EndTag( name );
+               return;
+            }
          } else
             StartTag( name );
-         if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
-            foreach ( var e in list )
-               if ( e == null ) SimpleMem( "LI", null );
-               else Mem2Xml( "LI." + e.GetType().Name, e, level + 1 );
-         } else
-            Obj2Xml( val, level + 1 );
+         Obj2Xml( val, level + 1 );
          EndTag( name );
       }
 
@@ -158,6 +160,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Writer.Write( EscXml( val ) );
          EndTag( name );
       }
+
+      private static void NullMem ( string name ) => StartTag( name, "null", "1", true );
 
       private static void StartTag ( string name ) {
          Writer.Write( '<' );
