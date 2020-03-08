@@ -2,6 +2,7 @@
 using Base.Defs;
 using Base.Entities.Abilities;
 using Base.Platforms;
+using Base.UI;
 using Harmony;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities;
@@ -53,7 +54,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private static Dictionary< Type, List<BaseDef> > ExportData = new Dictionary< Type, List<BaseDef> >();
 
       public static void DumpJson ( GeoLevelController __instance) { try {
-         Type[] wanted = new Type[] { typeof( ItemDef ), typeof( ResearchDef ),
+         Type[] wanted = new Type[] { typeof( ResearchDef ),
+            typeof( TacticalItemDef ), typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ),
             typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
             typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( GeoAlienBaseDef ), typeof( GeoMistGeneratorDef ),
             typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ),
@@ -96,6 +98,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private static void Obj2Xml ( object subject, int level, StringBuilder txt ) {
          if ( subject == null ) { txt.Append( "null" ); return; }
          if ( subject is string str ) { txt.Append( str ); return; }
+         if ( subject is LocalizedTextBind l10n ) { txt.Append( txt.ToString() ); return; }
          var type = subject.GetType();
          if ( type.IsValueType ) { txt.Append( EscXml( subject.ToString() ) ); return; }
          if ( level == 0 ) { Mem2Xml( type.Name, subject, 1, txt ); return; }
