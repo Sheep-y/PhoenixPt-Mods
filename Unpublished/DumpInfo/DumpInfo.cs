@@ -3,8 +3,6 @@ using Base.Defs;
 using Base.Entities.Abilities;
 using Base.Platforms;
 using Harmony;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities;
 using PhoenixPoint.Common.Entities.Characters;
@@ -29,6 +27,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -38,11 +37,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
    public class Mod : SheepyMod {
 
-      // PPML v0.1 entry point
-      public static void Init () => new Mod().MainMod();
+      private static string ModsRoot;
 
-      // Modnix entry point
-      public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
+      public void MainMod ( string modsRoot, Action< SourceLevels, object, object[] > logger = null ) {
+         modsRoot = modsRoot;
          SetLogger( logger );
 
          Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", null, postfix: nameof( DumpJson ) );
@@ -52,22 +50,47 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          //Patch( typeof( ItemManufacturing ), "AddAvailableItem", "LogItem" );
       }
 
+      private static Dictionary< Type, List<BaseDef> > ExportData = new Dictionary< Type, List<BaseDef> >();
+
       public static void DumpJson ( GeoLevelController __instance) { try {
+         Type[] wanted = new Type[] { typeof( ItemDef ), typeof( ResearchDef ),
+            typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
+            typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( GeoAlienBaseDef ), typeof( GeoMistGeneratorDef ),
+            typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ),
+            typeof( AchievementDef ), typeof( GeoscapeEventDef ), typeof( TacMissionDef ),
+            typeof( DynamicDifficultySettingsDef ), typeof( GameDifficultyLevelDef ) };
          foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs ) {
-            if ( e is ItemDef )
-            // if ( e is ResearchDef )
-            // if ( e is AbilityDef || e is AbilityTrackDef || e is TacUnitClassDef || e is GeoActorDef )
-            // if ( e is AlienMonsterClassDef || e is BodyPartAspectDef || e is GeoAlienBaseDef || e is GeoMistGeneratorDef )
-            // if ( e is GeoHavenZoneDef || e is GeoFactionDef || e is PhoenixFacilityDef )
-            // if ( e is AchievementDef || e is GeoscapeEventDef || e is TacMissionDef || e is DynamicDifficultySettingsDef || e is GameDifficultyLevelDef )
-               Info( "{0}", ToXml( e ) );
+            var type = wanted.FirstOrDefault( cls => cls.IsInstanceOfType( e ) );
+            if ( type == null ) continue;
+            if ( ! ExportData.ContainsKey( type ) ) ExportData.Add( type, new List<BaseDef>() );
+            ExportData[ type ].Add( e );
+         }
+         var txt = new StringBuilder();
+         foreach ( var entry in ExportData ) {
+            entry.Value.Sort( CompareDef );
+            var typeName = entry.Key.Name;
+            var path = Path.Combine( ModsRoot, typeName + ".xml" );
+            File.Delete( path );
+            using ( var writer = new StreamWriter( new FileStream( path, FileMode.Create ) ) ) {
+               writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>" );
+               foreach ( var def in entry.Value )
+                  writer.Write( ToXml( def, txt ).ToString() );
+               writer.Write( $"</{typeName}>" );
+            }
          }
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static string ToXml ( object subject ) {
-         var txt = new StringBuilder();
+      private static int CompareDef ( BaseDef a, BaseDef b ) {
+         string aid = a.Guid, bid = b.Guid;
+         if ( aid == null ) return bid == null ? 0 : -1;
+         if ( bid == null ) return 1;
+         return aid.CompareTo( bid );
+      }
+
+      private static StringBuilder ToXml ( object subject, StringBuilder txt ) {
+         txt.Clear();
          Obj2Xml( subject, 0, txt );
-         return txt.ToString();
+         return txt.Append( '\r' );
       }
 
       private static void Obj2Xml ( object subject, int level, StringBuilder txt ) {
