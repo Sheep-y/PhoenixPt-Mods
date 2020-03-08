@@ -73,9 +73,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( ! ExportData.ContainsKey( type ) ) ExportData.Add( type, new List<BaseDef>() );
             ExportData[ type ].Add( e );
          }
-         Info( "{0} entries found", ExportData.Values.Sum( e => e.Count ) );
          foreach ( var entry in ExportData )
             DumpList( entry.Key, entry.Value );
+         Info( "{0} entries dumped", ExportData.Values.Sum( e => e.Count ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void DumpList ( Type key, List<BaseDef> list ) {
@@ -92,7 +92,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             writer.Write( $"</{typeName}>" );
             writer.Flush();
          }
-         Info( "{0} dumped, {1} bytes", key.Name, new FileInfo( path ).Length );
+         //Info( "{0} dumped, {1} bytes", key.Name, new FileInfo( path ).Length );
          list.Clear();
          RecurringObject.Clear();
       }
@@ -115,22 +115,21 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          if ( val is string str ) { SimpleMem( name, str ); return; }
          if ( val is LocalizedTextBind l10n ) { SimpleMem( name, l10n.LocalizeEnglish() ); return; }
          var type = val.GetType();
-         if ( type.IsValueType ) { SimpleMem( name, val.ToString() ); return; }
-         if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
-            { StartTag( type.FullName, -1, true ); return; }
-         try {
-            if ( RecurringObject.TryGetValue( val, out int id ) ) { StartTag( name, id, true ); return; }
-         } catch ( Exception ) { SimpleMem( name, val.GetType().FullName ); return; }
-         NewObject( name, val, level );
-      }
-
-      private static void NewObject ( string name, object val, int level ) {
-         var id = RecurringObject.Count;
-         RecurringObject.Add( val, id );
-         StartTag( name, id, false );
+         if ( type.IsPrimitive || type.IsEnum ) { SimpleMem( name, val.ToString() ); return; }
+         if ( type.IsClass ) {
+            if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
+               { SimpleMem( name, type.FullName ); return; }
+            try {
+               if ( RecurringObject.TryGetValue( val, out int link ) ) { StartTag( name, "ref", link.ToString( "X" ), true ); return; }
+            } catch ( Exception ex ) { SimpleMem( name, "Ref check error " + ex.GetType().Name ); return; }
+            var id = RecurringObject.Count;
+            RecurringObject.Add( val, id );
+            StartTag( name, "id", id.ToString( "X" ), false );
+         } else
+            StartTag( name );
          if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
             foreach ( var e in list )
-               Mem2Xml( "LI", e, level + 1 );
+               Mem2Xml( "LI." + e.GetType().Name, e, level + 1 );
          } else
             Obj2Xml( val, level + 1 );
          EndTag( name );
@@ -143,12 +142,12 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
-            SimpleMem( f.Name, ex.GetType().Name );
+            SimpleMem( f.Name, "Field get error " + ex.GetType().Name );
          }
          foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
-            SimpleMem( f.Name, ex.GetType().Name );
+            SimpleMem( f.Name, "Prop get error " + ex.GetType().Name );
          }
 //         } catch ( ApplicationException ex ) { Info( txt ); throw new InvalidOperationException( $"{type.FullName}.{f.Name}", ex ); }
       }
@@ -165,17 +164,19 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Writer.Write( '>' );
       }
 
-      private static void StartTag ( string name, int id, bool selfClose ) {
+      private static void StartTag ( string tag, string attr, string aVal, bool selfClose ) {
          Writer.Write( '<' );
-         Writer.Write( EscTag( name ) );
-         Writer.Write( " id=\"" );
-         Writer.Write( id.ToString( "X" ) );
+         Writer.Write( EscTag( tag ) );
+         Writer.Write( ' ' );
+         Writer.Write( attr );
+         Writer.Write( "=\"" );
+         Writer.Write( aVal );
          Writer.Write( selfClose ? "\"/>" : "\">" );
       }
       
-      private static void EndTag ( string name  ) {
+      private static void EndTag ( string tag ) {
          Writer.Write( "</" );
-         Writer.Write( EscTag( name ) );
+         Writer.Write( EscTag( tag ) );
          Writer.Write( '>' );
       }
 
