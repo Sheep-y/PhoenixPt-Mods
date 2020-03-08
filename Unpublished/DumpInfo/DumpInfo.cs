@@ -115,7 +115,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          if ( val is string str ) { SimpleMem( name, str ); return; }
          if ( val is LocalizedTextBind l10n ) { SimpleMem( name, l10n.LocalizeEnglish() ); return; }
          var type = val.GetType();
-         if ( type.IsPrimitive || type.IsEnum ) { StartTag( name, "val", val.ToString(), true ); return; }
+         if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
          if ( type.IsClass ) {
             if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
                { SimpleMem( name, type.FullName ); return; }
@@ -143,7 +143,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private static void Obj2Xml ( object subject, int level ) {
          var type = subject.GetType();
          if ( level == 0 ) { Writer.Write( type.Name, subject, 1 ); return; }
-         if ( level > 15 ) { Writer.Write( "..." ); return; }
+         if ( level > 20 ) { Writer.Write( "..." ); return; }
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
