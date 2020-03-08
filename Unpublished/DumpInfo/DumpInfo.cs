@@ -121,14 +121,16 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                { SimpleMem( name, type.FullName ); return; }
             try {
                if ( RecurringObject.TryGetValue( val, out int link ) ) { StartTag( name, "ref", link.ToString( "X" ), true ); return; }
-            } catch ( Exception ex ) { SimpleMem( name, "Ref check error " + ex.GetType().Name ); return; }
+            } catch ( Exception ex ) { SimpleMem( name, "Ref error " + ex.GetType().Name ); return; }
             var id = RecurringObject.Count;
             RecurringObject.Add( val, id );
             StartTag( name, "id", id.ToString( "X" ), false );
             if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
                foreach ( var e in list )
-                  if ( e == null ) NullMem( "LI" );
-                  else Mem2Xml( "LI." + e.GetType().Name, e, level + 1 );
+                  if ( e == null )
+                     NullMem( "LI" );
+                  else
+                     Mem2Xml( e.GetType() == type.GetElementType() ? "LI" : ( "LI." + e.GetType().Name ), e, level + 1 );
                EndTag( name );
                return;
             }
@@ -145,13 +147,13 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
-            SimpleMem( f.Name, "Field get error " + ex.GetType().Name );
+            SimpleMem( f.Name, "Field error " + ex.GetType().Name );
          }
          if ( subject.GetType().IsClass ) {
             foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
                Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
             } catch ( ApplicationException ex ) {
-               SimpleMem( f.Name, "Prop get error " + ex.GetType().Name );
+               SimpleMem( f.Name, "Prop error " + ex.GetType().Name );
             }
          }
       }
