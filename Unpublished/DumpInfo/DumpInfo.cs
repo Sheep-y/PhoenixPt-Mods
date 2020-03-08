@@ -73,9 +73,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( ! ExportData.ContainsKey( type ) ) ExportData.Add( type, new List<BaseDef>() );
             ExportData[ type ].Add( e );
          }
+         var sum = ExportData.Values.Sum( e => e.Count );
          foreach ( var entry in ExportData )
             DumpList( entry.Key, entry.Value );
-         Info( "{0} entries dumped", ExportData.Values.Sum( e => e.Count ) );
+         Info( "{0} entries dumped", sum );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void DumpList ( Type key, List<BaseDef> list ) {
@@ -151,6 +152,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          }
          if ( subject.GetType().IsClass ) {
             foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
+               if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), false ).Any() ) continue;
                Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
             } catch ( ApplicationException ex ) {
                SimpleMem( f.Name, "Prop error " + ex.GetType().Name );
