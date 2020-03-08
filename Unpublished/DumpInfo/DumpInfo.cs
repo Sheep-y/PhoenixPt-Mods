@@ -6,6 +6,7 @@ using Base.UI;
 using Harmony;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities;
+using PhoenixPoint.Common.Entities.Addons;
 using PhoenixPoint.Common.Entities.Characters;
 using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Common.Levels.Missions;
@@ -58,6 +59,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private static StreamWriter Writer;
 
       public static void DumpJson ( GeoLevelController __instance) { try {
+         Info( "Scanning data" );
          Type[] wanted = new Type[] { typeof( ResearchDef ),
             typeof( TacticalItemDef ), typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ),
             typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
@@ -71,8 +73,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( ! ExportData.ContainsKey( type ) ) ExportData.Add( type, new List<BaseDef>() );
             ExportData[ type ].Add( e );
          }
+         Info( "{0} entries found", ExportData.Values.Sum( e => e.Count ) );
          foreach ( var entry in ExportData ) {
             List<BaseDef> list = entry.Value;
+            Info( "Dumping {0} ({1})", entry.Key.Name, list.Count );
             list.Sort( CompareDef );
             var typeName = entry.Key.Name;
             var path = Path.Combine( ModDir, "Data-" + typeName + ".xml" );
@@ -85,6 +89,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                writer.Write( $"</{typeName}>" );
                writer.Flush();
             }
+            Info( "{0} dumped, {1} bytes", entry.Key.Name, new FileInfo( path ).Length );
             list.Clear();
             RecurringObject.Clear();
          }
@@ -121,9 +126,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          var id = RecurringObject.Count;
          RecurringObject.Add( val, id );
          StartTag( name, id, false );
-         if ( val is IEnumerable list ) {
+         if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
             foreach ( var e in list )
-               Mem2Xml( "Item", e, level + 1 );
+               Mem2Xml( "LI", e, level + 1 );
          } else
             Obj2Xml( val, level + 1 );
          EndTag( name );
@@ -172,8 +177,12 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Writer.Write( '>' );
       }
 
-      private static Regex cleanTag = new Regex( "[^\\w.-]+", RegexOptions.Compiled );
-      private static string EscTag ( string txt ) => cleanTag.Replace( txt, ":" );
+      private static Regex cleanTag = new Regex( "[^\\w:-]+", RegexOptions.Compiled );
+      private static string EscTag ( string txt ) {
+         txt = cleanTag.Replace( txt, "." );
+         while ( txt.Length > 0 && txt[0] == '.' ) txt = txt.Substring( 1 );
+         return txt;
+      }
       private static string EscXml ( string txt ) => SecurityElement.Escape( txt );
 
       public static void DumpWeapons ( GeoLevelController __instance ) { try {
