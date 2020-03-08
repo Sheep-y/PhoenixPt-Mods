@@ -31,6 +31,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security;
 using System.Text;
 using static System.Reflection.BindingFlags;
 
@@ -52,6 +53,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
 
       private static Dictionary< Type, List<BaseDef> > ExportData = new Dictionary< Type, List<BaseDef> >();
+      private static Dictionary< object, int > RecurringObject = new Dictionary< object, int >();
+      private static StreamWriter Writer;
 
       public static void DumpJson ( GeoLevelController __instance) { try {
          Type[] wanted = new Type[] { typeof( ResearchDef ),
@@ -68,18 +71,21 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             ExportData[ type ].Add( e );
          }
          foreach ( var entry in ExportData ) {
-            entry.Value.Sort( CompareDef );
+            List<BaseDef> list = entry.Value;
+            list.Sort( CompareDef );
             var typeName = entry.Key.Name;
             var path = Path.Combine( ModsRoot, typeName + ".xml" );
             File.Delete( path );
             using ( var writer = new StreamWriter( new BufferedStream( new FileStream( path, FileMode.Create ) ) ) ) {
-               writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>" );
-               foreach ( var def in entry.Value )
-                  ToXml( def, writer );
+               Writer = writer;
+               writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>\r" );
+               foreach ( var def in list )
+                  ToXml( def );
                writer.Write( $"</{typeName}>" );
                writer.Flush();
             }
-            entry.Value.Clear();
+            list.Clear();
+            RecurringObject.Clear();
          }
       } catch ( Exception ex ) { Error( ex ); } }
 
@@ -90,57 +96,76 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          return aid.CompareTo( bid );
       }
 
-      private static void ToXml ( object subject, StreamWriter stream ) {
-         Obj2Xml( subject, 0, stream );
-         stream.Write( '\r' );
+      private static void ToXml ( object subject ) {
+         if ( subject == null ) return;
+         Mem2Xml( subject.GetType().Name, subject, 0 );
+         Writer.Write( '\r' );
       }
 
-      private static void Obj2Xml ( object subject, int level, StreamWriter txt ) {
-         if ( subject == null ) { txt.Write( "null" ); return; }
-         if ( subject is string str ) { txt.Write( EscXml( str ) ); return; }
-         if ( subject is LocalizedTextBind l10n ) { txt.Write( EscXml( l10n.ToString() ) ); return; }
+      private static void Mem2Xml ( string name, object val, int level ) {
+         if ( val == null ) { SimpleMem( name, "null" ); return; }
+         if ( val is string str ) { SimpleMem( name, str ); return; }
+         if ( val is LocalizedTextBind l10n ) { SimpleMem( name, EscXml( l10n.LocalizeEnglish() ) ); return; }
+         var type = val.GetType();
+         if ( type.IsValueType ) { SimpleMem( name, EscXml( val.ToString() ) ); return; }
+         if ( type.FullName.StartsWith( "UnityEngine.", StringComparison.InvariantCulture ) ) { StartTag( type.FullName, -1, true ); return; }
+         if ( RecurringObject.TryGetValue( val, out int id ) ) { StartTag( name, id, true ); return; }
+
+         id = RecurringObject.Count;
+         RecurringObject.Add( val, id );
+         StartTag( name, id, false );
+         if ( val is IEnumerable list ) {
+            foreach ( var e in list )
+               Mem2Xml( "Item", e, level + 1 );
+         } else
+            Obj2Xml( val, level + 1 );
+         EndTag( name );
+      }
+
+      private static void Obj2Xml ( object subject, int level ) {
          var type = subject.GetType();
-         if ( type.IsValueType ) { txt.Write( EscXml( subject.ToString() ) ); return; }
-         if ( level == 0 ) { Mem2Xml( type.Name, subject, 1, txt ); return; }
-         if ( level > 10 ) { txt.Write( "..." ); return; }
-         if ( type.FullName.StartsWith( "UnityEngine.", StringComparison.InvariantCulture ) ) { txt.Write( type.FullName ); return; }
-         if ( subject is IEnumerable list ) {
-            foreach ( var e in list ) {
-               var typeName = EscXml( e?.GetType().ToString() ?? "null" );
-               WriteTag( typeName, txt, true );
-               Obj2Xml( e, level + 1, txt );
-               WriteTag( typeName, txt, false );
-            }
-            return;
-         }
+         if ( level == 0 ) { Writer.Write( type.Name, subject, 1 ); return; }
+         if ( level > 15 ) { Writer.Write( "..." ); return; }
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
-            Mem2Xml( f.Name, f.GetValue( subject ), level + 1, txt );
+            Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
-            Mem2Xml( f.Name, ex.GetType().Name, level + 1, txt );
+            Mem2Xml( f.Name, ex.GetType().Name, level + 1 );
          }
          foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
-            Mem2Xml( f.Name, f.GetValue( subject ), level + 1, txt );
+            Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
-            Mem2Xml( f.Name, ex.GetType().Name, level + 1, txt );
+            Mem2Xml( f.Name, ex.GetType().Name, level + 1 );
          }
 //         } catch ( ApplicationException ex ) { Info( txt ); throw new InvalidOperationException( $"{type.FullName}.{f.Name}", ex ); }
-         return;
       }
 
-      private static void Mem2Xml ( string name, object val, int level, StreamWriter txt ) {
-         WriteTag( name, txt, true );
-         Obj2Xml( val, level + 1, txt );
-         WriteTag( name, txt, false );
+      private static void SimpleMem ( string name, string val ) {
+         StartTag( name );
+         Writer.Write( val );
+         EndTag( name );
       }
 
-      private static void WriteTag ( string name, StreamWriter txt, bool start ) {
-         txt.Write( start ? "<" : "</" );
-         txt.Write( EscXml( name ) );
-         txt.Write( '>' );
+      private static void StartTag ( string name ) {
+         Writer.Write( '<' );
+         Writer.Write( EscXml( name ) );
+         Writer.Write( '>' );
       }
 
-      private static string EscXml ( string txt ) =>
-         txt.Replace( "<", "&lt;" ).Replace( ">", "&gt;" ).Replace( "\"", "&quot;" );
+      private static void StartTag ( string name, int id, bool selfClose ) {
+         Writer.Write( '<' );
+         Writer.Write( EscXml( name ) );
+         Writer.Write( " id=\"" );
+         Writer.Write( id.ToString( "X" ) );
+         Writer.Write( selfClose ? "\"/>" : "/>" );
+      }
+      
+      private static void EndTag ( string name  ) {
+         Writer.Write( '<' );
+         Writer.Write( EscXml( name ) );
+         Writer.Write( '>' );
+      }
+
+      private static string EscXml ( string txt ) => SecurityElement.Escape( txt );
 
       public static void DumpWeapons ( GeoLevelController __instance ) { try {
          // Build keyword list and weapon list - heavy code, do once
