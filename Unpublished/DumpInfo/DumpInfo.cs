@@ -62,7 +62,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Info( "Scanning data" );
          Type[] wanted = new Type[] { typeof( ResearchDef ),
             typeof( TacticalItemDef ), typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ),
-            typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
+            typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( SpecializationDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
             typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( GeoAlienBaseDef ), typeof( GeoMistGeneratorDef ),
             typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ),
             typeof( AchievementDef ), typeof( GeoscapeEventDef ), typeof( TacMissionDef ),
@@ -129,7 +129,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             StartTag( name );
          if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
             foreach ( var e in list )
-               Mem2Xml( "LI." + e.GetType().Name, e, level + 1 );
+               if ( e == null ) SimpleMem( "LI", null );
+               else Mem2Xml( "LI." + e.GetType().Name, e, level + 1 );
          } else
             Obj2Xml( val, level + 1 );
          EndTag( name );
