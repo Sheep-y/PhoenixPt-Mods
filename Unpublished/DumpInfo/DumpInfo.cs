@@ -47,7 +47,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          ModDir = Path.GetDirectoryName( modPath );
          SetLogger( logger );
 
-         Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", null, postfix: nameof( DumpJson ) );
+         Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", null, postfix: nameof( DumpData ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogWeapons" );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogAbilities" );
          //Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: "DumpResearches" );
@@ -58,7 +58,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private static Dictionary< object, int > RecurringObject = new Dictionary< object, int >();
       private static StreamWriter Writer;
 
-      public static void DumpJson ( GeoLevelController __instance) { try {
+      public static void DumpData () { try {
          Info( "Scanning data" );
          Type[] wanted = new Type[] { typeof( ResearchDef ),
             typeof( TacticalItemDef ), typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ),
@@ -74,26 +74,28 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             ExportData[ type ].Add( e );
          }
          Info( "{0} entries found", ExportData.Values.Sum( e => e.Count ) );
-         foreach ( var entry in ExportData ) {
-            List<BaseDef> list = entry.Value;
-            Info( "Dumping {0} ({1})", entry.Key.Name, list.Count );
-            list.Sort( CompareDef );
-            var typeName = entry.Key.Name;
-            var path = Path.Combine( ModDir, "Data-" + typeName + ".xml" );
-            File.Delete( path );
-            using ( var writer = new StreamWriter( new BufferedStream( new FileStream( path, FileMode.Create ) ) ) ) {
-               Writer = writer;
-               writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>\r" );
-               foreach ( var def in list )
-                  ToXml( def );
-               writer.Write( $"</{typeName}>" );
-               writer.Flush();
-            }
-            Info( "{0} dumped, {1} bytes", entry.Key.Name, new FileInfo( path ).Length );
-            list.Clear();
-            RecurringObject.Clear();
-         }
+         foreach ( var entry in ExportData )
+            DumpList( entry.Key, entry.Value );
       } catch ( Exception ex ) { Error( ex ); } }
+
+      private static void DumpList ( Type key, List<BaseDef> list ) {
+         Info( "Dumping {0} ({1})", key.Name, list.Count );
+         list.Sort( CompareDef );
+         var typeName = key.Name;
+         var path = Path.Combine( ModDir, "Data-" + typeName + ".xml" );
+         File.Delete( path );
+         using ( var writer = new StreamWriter( new BufferedStream( new FileStream( path, FileMode.Create ) ) ) ) {
+            Writer = writer;
+            writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>\r" );
+            foreach ( var def in list )
+               ToXml( def );
+            writer.Write( $"</{typeName}>" );
+            writer.Flush();
+         }
+         Info( "{0} dumped, {1} bytes", key.Name, new FileInfo( path ).Length );
+         list.Clear();
+         RecurringObject.Clear();
+      }
 
       private static int CompareDef ( BaseDef a, BaseDef b ) {
          string aid = a.Guid, bid = b.Guid;
