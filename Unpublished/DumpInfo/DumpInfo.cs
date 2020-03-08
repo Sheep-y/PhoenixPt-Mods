@@ -33,16 +33,17 @@ using System.Linq;
 using System.Reflection;
 using System.Security;
 using System.Text;
+using System.Text.RegularExpressions;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    public class Mod : SheepyMod {
 
-      private static string ModsRoot;
+      private static string ModDir;
 
-      public void MainMod ( string modsRoot, Action< SourceLevels, object, object[] > logger = null ) {
-         ModsRoot = modsRoot;
+      public void MainMod ( string modPath, Action< SourceLevels, object, object[] > logger = null ) {
+         ModDir = Path.GetDirectoryName( modPath );
          SetLogger( logger );
 
          Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", null, postfix: nameof( DumpJson ) );
@@ -74,7 +75,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             List<BaseDef> list = entry.Value;
             list.Sort( CompareDef );
             var typeName = entry.Key.Name;
-            var path = Path.Combine( ModsRoot, typeName + ".xml" );
+            var path = Path.Combine( ModDir, "Data-" + typeName + ".xml" );
             File.Delete( path );
             using ( var writer = new StreamWriter( new BufferedStream( new FileStream( path, FileMode.Create ) ) ) ) {
                Writer = writer;
@@ -105,13 +106,19 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private static void Mem2Xml ( string name, object val, int level ) {
          if ( val == null ) { SimpleMem( name, "null" ); return; }
          if ( val is string str ) { SimpleMem( name, str ); return; }
-         if ( val is LocalizedTextBind l10n ) { SimpleMem( name, EscXml( l10n.LocalizeEnglish() ) ); return; }
+         if ( val is LocalizedTextBind l10n ) { SimpleMem( name, l10n.LocalizeEnglish() ); return; }
          var type = val.GetType();
-         if ( type.IsValueType ) { SimpleMem( name, EscXml( val.ToString() ) ); return; }
-         if ( type.FullName.StartsWith( "UnityEngine.", StringComparison.InvariantCulture ) ) { StartTag( type.FullName, -1, true ); return; }
-         if ( RecurringObject.TryGetValue( val, out int id ) ) { StartTag( name, id, true ); return; }
+         if ( type.IsValueType ) { SimpleMem( name, val.ToString() ); return; }
+         if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
+            { StartTag( type.FullName, -1, true ); return; }
+         try {
+            if ( RecurringObject.TryGetValue( val, out int id ) ) { StartTag( name, id, true ); return; }
+         } catch ( Exception ) { SimpleMem( name, val.GetType().FullName ); return; }
+         NewObject( name, val, level );
+      }
 
-         id = RecurringObject.Count;
+      private static void NewObject ( string name, object val, int level ) {
+         var id = RecurringObject.Count;
          RecurringObject.Add( val, id );
          StartTag( name, id, false );
          if ( val is IEnumerable list ) {
@@ -129,42 +136,44 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
-            Mem2Xml( f.Name, ex.GetType().Name, level + 1 );
+            SimpleMem( f.Name, ex.GetType().Name );
          }
          foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
-            Mem2Xml( f.Name, ex.GetType().Name, level + 1 );
+            SimpleMem( f.Name, ex.GetType().Name );
          }
 //         } catch ( ApplicationException ex ) { Info( txt ); throw new InvalidOperationException( $"{type.FullName}.{f.Name}", ex ); }
       }
 
       private static void SimpleMem ( string name, string val ) {
          StartTag( name );
-         Writer.Write( val );
+         Writer.Write( EscXml( val ) );
          EndTag( name );
       }
 
       private static void StartTag ( string name ) {
          Writer.Write( '<' );
-         Writer.Write( EscXml( name ) );
+         Writer.Write( EscTag( name ) );
          Writer.Write( '>' );
       }
 
       private static void StartTag ( string name, int id, bool selfClose ) {
          Writer.Write( '<' );
-         Writer.Write( EscXml( name ) );
+         Writer.Write( EscTag( name ) );
          Writer.Write( " id=\"" );
          Writer.Write( id.ToString( "X" ) );
-         Writer.Write( selfClose ? "\"/>" : "/>" );
+         Writer.Write( selfClose ? "\"/>" : "\">" );
       }
       
       private static void EndTag ( string name  ) {
-         Writer.Write( '<' );
-         Writer.Write( EscXml( name ) );
+         Writer.Write( "</" );
+         Writer.Write( EscTag( name ) );
          Writer.Write( '>' );
       }
 
+      private static Regex cleanTag = new Regex( "[^\\w.-]+", RegexOptions.Compiled );
+      private static string EscTag ( string txt ) => cleanTag.Replace( txt, ":" );
       private static string EscXml ( string txt ) => SecurityElement.Escape( txt );
 
       public static void DumpWeapons ( GeoLevelController __instance ) { try {
