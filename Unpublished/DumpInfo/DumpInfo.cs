@@ -147,12 +147,13 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          } catch ( ApplicationException ex ) {
             SimpleMem( f.Name, "Field get error " + ex.GetType().Name );
          }
-         foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
-            Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
-         } catch ( ApplicationException ex ) {
-            SimpleMem( f.Name, "Prop get error " + ex.GetType().Name );
+         if ( subject.GetType().IsClass ) {
+            foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
+               Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
+            } catch ( ApplicationException ex ) {
+               SimpleMem( f.Name, "Prop get error " + ex.GetType().Name );
+            }
          }
-//         } catch ( ApplicationException ex ) { Info( txt ); throw new InvalidOperationException( $"{type.FullName}.{f.Name}", ex ); }
       }
 
       private static void SimpleMem ( string name, string val ) {
