@@ -64,7 +64,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             typeof( TacticalItemDef ), typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ),
             typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( SpecializationDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
             typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( GeoAlienBaseDef ), typeof( GeoMistGeneratorDef ),
-            typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ),
+            typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ), typeof( GeoSiteSceneDef ),
             typeof( AchievementDef ), typeof( GeoscapeEventDef ), typeof( TacMissionDef ),
             typeof( DynamicDifficultySettingsDef ), typeof( GameDifficultyLevelDef ) };
          foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs ) {
