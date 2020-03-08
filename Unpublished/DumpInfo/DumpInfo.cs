@@ -41,7 +41,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private static string ModsRoot;
 
       public void MainMod ( string modsRoot, Action< SourceLevels, object, object[] > logger = null ) {
-         modsRoot = modsRoot;
+         ModsRoot = modsRoot;
          SetLogger( logger );
 
          Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", null, postfix: nameof( DumpJson ) );
@@ -73,12 +73,14 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             var typeName = entry.Key.Name;
             var path = Path.Combine( ModsRoot, typeName + ".xml" );
             File.Delete( path );
-            using ( var writer = new StreamWriter( new FileStream( path, FileMode.Create ) ) ) {
+            using ( var writer = new StreamWriter( new BufferedStream( new FileStream( path, FileMode.Create ) ) ) ) {
                writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>" );
                foreach ( var def in entry.Value )
                   writer.Write( ToXml( def, txt ).ToString() );
                writer.Write( $"</{typeName}>" );
+               writer.Flush();
             }
+            entry.Value.Clear();
          }
       } catch ( Exception ex ) { Error( ex ); } }
 
@@ -98,7 +100,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private static void Obj2Xml ( object subject, int level, StringBuilder txt ) {
          if ( subject == null ) { txt.Append( "null" ); return; }
          if ( subject is string str ) { txt.Append( str ); return; }
-         if ( subject is LocalizedTextBind l10n ) { txt.Append( txt.ToString() ); return; }
+         if ( subject is LocalizedTextBind l10n ) { txt.Append( l10n.ToString() ); return; }
          var type = subject.GetType();
          if ( type.IsValueType ) { txt.Append( EscXml( subject.ToString() ) ); return; }
          if ( level == 0 ) { Mem2Xml( type.Name, subject, 1, txt ); return; }
