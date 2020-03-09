@@ -35,13 +35,14 @@ using System.Reflection;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    public class Mod : SheepyMod {
 
-      private static string ModDir;
+      internal static string ModDir;
 
       public void MainMod ( string modPath, Action< SourceLevels, object, object[] > logger = null ) {
          ModDir = Path.GetDirectoryName( modPath );
@@ -55,8 +56,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
 
       private static Dictionary< Type, List<BaseDef> > ExportData = new Dictionary< Type, List<BaseDef> >();
-      private static Dictionary< object, int > RecurringObject = new Dictionary< object, int >();
-      private static StreamWriter Writer;
 
       public static void DumpData () { try {
          Info( "Scanning data" );
@@ -74,130 +73,17 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             ExportData[ type ].Add( e );
          }
          var sum = ExportData.Values.Sum( e => e.Count );
-         foreach ( var entry in ExportData )
-            DumpList( entry.Key, entry.Value );
+         var tasks = new List<Task>();
+         foreach ( var entry in ExportData ) { lock( entry.Value ) {
+            var dump = new Dumper( entry.Key, entry.Value );
+            var task = Task.Run( dump.DumpData );
+            tasks.Add( task );
+         } }
+         Task.WaitAll( tasks.ToArray() );
          Info( "{0} entries dumped", sum );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static void DumpList ( Type key, List<BaseDef> list ) {
-         Info( "Dumping {0} ({1})", key.Name, list.Count );
-         list.Sort( CompareDef );
-         var typeName = key.Name;
-         var path = Path.Combine( ModDir, "Data-" + typeName + ".xml" );
-         File.Delete( path );
-         using ( var writer = new StreamWriter( new BufferedStream( new FileStream( path, FileMode.Create ) ) ) ) {
-            Writer = writer;
-            writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>\r" );
-            foreach ( var def in list )
-               ToXml( def );
-            writer.Write( $"</{typeName}>" );
-            writer.Flush();
-         }
-         //Info( "{0} dumped, {1} bytes", key.Name, new FileInfo( path ).Length );
-         list.Clear();
-         RecurringObject.Clear();
-      }
-
-      private static int CompareDef ( BaseDef a, BaseDef b ) {
-         string aid = a.Guid, bid = b.Guid;
-         if ( aid == null ) return bid == null ? 0 : -1;
-         if ( bid == null ) return 1;
-         return aid.CompareTo( bid );
-      }
-
-      private static void ToXml ( object subject ) {
-         if ( subject == null ) return;
-         Mem2Xml( subject.GetType().Name, subject, 0 );
-         Writer.Write( '\r' );
-      }
-
-      private static void Mem2Xml ( string name, object val, int level ) {
-         if ( val == null ) { NullMem( name ); return; }
-         if ( val is string str ) { SimpleMem( name, str ); return; }
-         if ( val is LocalizedTextBind l10n ) { SimpleMem( name, l10n.LocalizeEnglish() ); return; }
-         var type = val.GetType();
-         if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
-         if ( type.IsClass ) {
-            if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
-               { SimpleMem( name, type.FullName ); return; }
-            try {
-               if ( RecurringObject.TryGetValue( val, out int link ) ) { StartTag( name, "ref", link.ToString( "X" ), true ); return; }
-            } catch ( Exception ex ) { SimpleMem( name, "Ref error " + ex.GetType().Name ); return; }
-            var id = RecurringObject.Count;
-            RecurringObject.Add( val, id );
-            StartTag( name, "id", id.ToString( "X" ), false );
-            if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
-               foreach ( var e in list )
-                  if ( e == null )
-                     NullMem( "LI" );
-                  else
-                     Mem2Xml( e.GetType() == type.GetElementType() ? "LI" : ( "LI." + e.GetType().Name ), e, level + 1 );
-               EndTag( name );
-               return;
-            }
-         } else
-            StartTag( name );
-         Obj2Xml( val, level + 1 );
-         EndTag( name );
-      }
-
-      private static void Obj2Xml ( object subject, int level ) {
-         var type = subject.GetType();
-         if ( level == 0 ) { Writer.Write( type.Name, subject, 1 ); return; }
-         if ( level > 20 ) { Writer.Write( "..." ); return; }
-         foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
-            Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
-         } catch ( ApplicationException ex ) {
-            SimpleMem( f.Name, "Field error " + ex.GetType().Name );
-         }
-         if ( subject.GetType().IsClass ) {
-            foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
-               if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), false ).Any() ) continue;
-               Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
-            } catch ( ApplicationException ex ) {
-               SimpleMem( f.Name, "Prop error " + ex.GetType().Name );
-            }
-         }
-      }
-
-      private static void SimpleMem ( string name, string val ) {
-         StartTag( name );
-         Writer.Write( EscXml( val ) );
-         EndTag( name );
-      }
-
-      private static void NullMem ( string name ) => StartTag( name, "null", "1", true );
-
-      private static void StartTag ( string name ) {
-         Writer.Write( '<' );
-         Writer.Write( EscTag( name ) );
-         Writer.Write( '>' );
-      }
-
-      private static void StartTag ( string tag, string attr, string aVal, bool selfClose ) {
-         Writer.Write( '<' );
-         Writer.Write( EscTag( tag ) );
-         Writer.Write( ' ' );
-         Writer.Write( attr );
-         Writer.Write( "=\"" );
-         Writer.Write( aVal );
-         Writer.Write( selfClose ? "\"/>" : "\">" );
-      }
-      
-      private static void EndTag ( string tag ) {
-         Writer.Write( "</" );
-         Writer.Write( EscTag( tag ) );
-         Writer.Write( '>' );
-      }
-
-      private static Regex cleanTag = new Regex( "[^\\w:-]+", RegexOptions.Compiled );
-      private static string EscTag ( string txt ) {
-         txt = cleanTag.Replace( txt, "." );
-         while ( txt.Length > 0 && txt[0] == '.' ) txt = txt.Substring( 1 );
-         return txt;
-      }
-      private static string EscXml ( string txt ) => SecurityElement.Escape( txt );
-
+      #region Manual dump code
       public static void DumpWeapons ( GeoLevelController __instance ) { try {
          // Build keyword list and weapon list - heavy code, do once
          var keywords = GameUtl.GameComponent<DefRepository>().GetAllDefs<DamageKeywordDef>().ToDictionary( e => e.name );
@@ -349,5 +235,138 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          } else
             return def.GetType().Name;
       }
+      #endregion
+   }
+
+   internal class Dumper {
+      private readonly Type DataType;
+      private readonly List<BaseDef> Data;
+
+      internal Dumper ( Type key, List<BaseDef> list ) {
+         DataType = key;
+         Data = list;
+      }
+
+      private StreamWriter Writer;
+      private static Dictionary< object, int > RecurringObject = new Dictionary< object, int >();
+
+      internal void DumpData () { lock ( Data ) {
+         SheepyMod.Info( "Dumping {0} ({1})", DataType.Name, Data.Count );
+         Data.Sort( CompareDef );
+         var typeName = DataType.Name;
+         var path = Path.Combine( Mod.ModDir, "Data-" + typeName + ".xml" );
+         File.Delete( path );
+         using ( var writer = new StreamWriter( new BufferedStream( new FileStream( path, FileMode.Create ) ) ) ) {
+            Writer = writer;
+            writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>\r" );
+            foreach ( var def in Data )
+               ToXml( def );
+            writer.Write( $"</{typeName}>" );
+            writer.Flush();
+         }
+         //Info( "{0} dumped, {1} bytes", key.Name, new FileInfo( path ).Length );
+         Data.Clear();
+         RecurringObject.Clear();
+      } }
+
+      private static int CompareDef ( BaseDef a, BaseDef b ) {
+         string aid = a.Guid, bid = b.Guid;
+         if ( aid == null ) return bid == null ? 0 : -1;
+         if ( bid == null ) return 1;
+         return aid.CompareTo( bid );
+      }
+
+      private void ToXml ( object subject ) {
+         if ( subject == null ) return;
+         Mem2Xml( subject.GetType().Name, subject, 0 );
+         Writer.Write( '\r' );
+      }
+
+      private void Mem2Xml ( string name, object val, int level ) {
+         if ( val == null ) { NullMem( name ); return; }
+         if ( val is string str ) { SimpleMem( name, str ); return; }
+         if ( val is LocalizedTextBind l10n ) { SimpleMem( name, l10n.LocalizeEnglish() ); return; }
+         var type = val.GetType();
+         if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
+         if ( type.IsClass ) {
+            if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
+               { SimpleMem( name, type.FullName ); return; }
+            try {
+               if ( RecurringObject.TryGetValue( val, out int link ) ) { StartTag( name, "ref", link.ToString( "X" ), true ); return; }
+            } catch ( Exception ex ) { SimpleMem( name, "Ref error " + ex.GetType().Name ); return; }
+            var id = RecurringObject.Count;
+            RecurringObject.Add( val, id );
+            StartTag( name, "id", id.ToString( "X" ), false );
+            if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
+               foreach ( var e in list )
+                  if ( e == null )
+                     NullMem( "LI" );
+                  else
+                     Mem2Xml( e.GetType() == type.GetElementType() ? "LI" : ( "LI." + e.GetType().Name ), e, level + 1 );
+               EndTag( name );
+               return;
+            }
+         } else
+            StartTag( name );
+         Obj2Xml( val, level + 1 );
+         EndTag( name );
+      }
+
+      private void Obj2Xml ( object subject, int level ) {
+         var type = subject.GetType();
+         if ( level == 0 ) { Writer.Write( type.Name, subject, 1 ); return; }
+         if ( level > 20 ) { Writer.Write( "..." ); return; }
+         foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
+            Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
+         } catch ( ApplicationException ex ) {
+            SimpleMem( f.Name, "Field error " + ex.GetType().Name );
+         }
+         if ( subject.GetType().IsClass ) {
+            foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
+               if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), false ).Any() ) continue;
+               Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
+            } catch ( ApplicationException ex ) {
+               SimpleMem( f.Name, "Prop error " + ex.GetType().Name );
+            }
+         }
+      }
+
+      private void SimpleMem ( string name, string val ) {
+         StartTag( name );
+         Writer.Write( EscXml( val ) );
+         EndTag( name );
+      }
+
+      private void NullMem ( string name ) => StartTag( name, "null", "1", true );
+
+      private void StartTag ( string name ) {
+         Writer.Write( '<' );
+         Writer.Write( EscTag( name ) );
+         Writer.Write( '>' );
+      }
+
+      private void StartTag ( string tag, string attr, string aVal, bool selfClose ) {
+         Writer.Write( '<' );
+         Writer.Write( EscTag( tag ) );
+         Writer.Write( ' ' );
+         Writer.Write( attr );
+         Writer.Write( "=\"" );
+         Writer.Write( aVal );
+         Writer.Write( selfClose ? "\"/>" : "\">" );
+      }
+      
+      private void EndTag ( string tag ) {
+         Writer.Write( "</" );
+         Writer.Write( EscTag( tag ) );
+         Writer.Write( '>' );
+      }
+
+      private static Regex cleanTag = new Regex( "[^\\w:-]+", RegexOptions.Compiled );
+      private static string EscTag ( string txt ) {
+         txt = cleanTag.Replace( txt, "." );
+         while ( txt.Length > 0 && txt[0] == '.' ) txt = txt.Substring( 1 );
+         return txt;
+      }
+      private static string EscXml ( string txt ) => SecurityElement.Escape( txt );
    }
 }
