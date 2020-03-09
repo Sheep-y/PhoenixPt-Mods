@@ -19,11 +19,11 @@ namespace Sheepy.PhoenixPt {
 
       protected internal HarmonyInstance Patcher;
 
-      protected internal IPatchRecord Patch ( Type target, string toPatch, string prefix = null, string postfix = null, string transpiler = null ) {
+      protected IPatchRecord Patch ( Type target, string toPatch, string prefix = null, string postfix = null, string transpiler = null ) {
          return Patch( target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix, transpiler );
       }
 
-      protected internal IPatchRecord Patch ( MethodInfo toPatch, string prefix = null, string postfix = null, string transpiler = null ) {
+      protected IPatchRecord Patch ( MethodInfo toPatch, string prefix = null, string postfix = null, string transpiler = null ) {
          if ( Patcher == null )
             Patcher = HarmonyInstance.Create( GetType().Namespace );
          Verbo( "Patching {0}.{1}, pre={2} post={3} trans={4}", toPatch.DeclaringType, toPatch.Name, prefix, postfix, transpiler );
@@ -53,7 +53,7 @@ namespace Sheepy.PhoenixPt {
          }
       }
 
-      protected static Action< SourceLevels, object, object[] > Logger;
+      protected internal static Action< SourceLevels, object, object[] > Logger;
       protected static string LogFile;
 
       protected void SetLogger ( Action< SourceLevels, object, object[] > logger ) {
@@ -66,7 +66,7 @@ namespace Sheepy.PhoenixPt {
       }
 
       // A simple file logger when one is not provided by the mod loader.
-      protected void DefaultLogger ( SourceLevels lv, object msg, object[] param ) { try {
+      private void DefaultLogger ( SourceLevels lv, object msg, object[] param ) { try {
          string line = msg?.ToString();
          try {
             if ( param != null ) line = string.Format( line, param );
@@ -76,10 +76,10 @@ namespace Sheepy.PhoenixPt {
          }  
       } catch ( Exception ex ) { Console.WriteLine( ex ); } }
 
-      protected static void Verbo ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Verbose, msg, augs );
-      protected static void Info  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Information, msg, augs );
-      protected static void Warn  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Warning, msg, augs );
-      protected static bool Error ( object msg, params object[] augs ) {
+      protected internal static void Verbo ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Verbose, msg, augs );
+      protected internal static void Info  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Information, msg, augs );
+      protected internal static void Warn  ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Warning, msg, augs );
+      protected internal static bool Error ( object msg, params object[] augs ) {
          Logger?.Invoke( SourceLevels.Error, msg, augs );
          return true;
       }
