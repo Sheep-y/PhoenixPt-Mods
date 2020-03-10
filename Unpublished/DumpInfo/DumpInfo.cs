@@ -11,7 +11,6 @@ using PhoenixPoint.Common.Entities.Characters;
 using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Common.Levels.Missions;
 using PhoenixPoint.Geoscape.Entities;
-using PhoenixPoint.Geoscape.Entities.DifficultySystem;
 using PhoenixPoint.Geoscape.Entities.Requirement;
 using PhoenixPoint.Geoscape.Entities.Research;
 using PhoenixPoint.Geoscape.Entities.Research.Requirement;
@@ -31,11 +30,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using UnityEngine;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
@@ -297,7 +296,13 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private void Mem2Xml ( string name, object val, int level ) {
          if ( val == null ) { NullMem( name ); return; }
          if ( val is string str ) { SimpleMem( name, str ); return; }
-         if ( val is LocalizedTextBind l10n ) { SimpleMem( name, l10n.LocalizeEnglish() ); return; }
+         if ( val is LocalizedTextBind l10n ) {
+            StartTag( name, "key", l10n.LocalizationKey, false );
+            Writer.Write( EscXml( l10n.Localize() ) );
+            EndTag( name );
+            return;
+         }
+         if ( val is GameObject obj ) { StartTag( name, "name", obj.name, true ); return; }
          var type = val.GetType();
          if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
          if ( type.IsClass ) {
