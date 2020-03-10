@@ -64,7 +64,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Type[] wanted = new Type[] { typeof( ResearchDef ),
             typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ), typeof( TacticalItemDef ),
             typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( SpecializationDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
-            typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( GeoAlienBaseDef ), typeof( GeoMistGeneratorDef ),
+            typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( TacticalActorDef ),
+            typeof( GeoAlienBaseDef ), typeof( GeoMistGeneratorDef ),
             typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ), typeof( GeoSiteSceneDef ),
             typeof( AchievementDef ), typeof( GeoscapeEventDef ), typeof( TacMissionDef ) };
          foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs ) {
@@ -263,7 +264,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
 
       private StreamWriter Writer;
-      private static Dictionary< object, int > RecurringObject = new Dictionary< object, int >();
+      private Dictionary< object, int > RecurringObject = new Dictionary< object, int >();
 
       internal void DumpData () { lock ( Data ) {
          SheepyMod.Info( "Dumping {0} ({1})", DataType.Name, Data.Count );
@@ -319,6 +320,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             return;
          }
          if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "name", faction.GetPPName(), true ); return; }
+         if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "name", tacChar.name, true ); return; }
          var type = val.GetType();
          if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
          if ( type.IsClass ) {
