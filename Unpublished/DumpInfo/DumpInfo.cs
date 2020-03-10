@@ -29,6 +29,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Security;
 using System.Text;
@@ -265,15 +266,19 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          SheepyMod.Info( "Dumping {0} ({1})", DataType.Name, Data.Count );
          Data.Sort( CompareDef );
          var typeName = DataType.Name;
-         var path = Path.Combine( Mod.ModDir, "Data-" + typeName + ".xml" );
+         var path = Path.Combine( Mod.ModDir, "Data-" + typeName + ".xml.gz" );
          File.Delete( path );
-         using ( var writer = new StreamWriter( new BufferedStream( new FileStream( path, FileMode.Create ) ) ) ) {
-            Writer = writer;
-            writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>\r" );
-            foreach ( var def in Data )
-               ToXml( def );
-            writer.Write( $"</{typeName}>" );
-            writer.Flush();
+         using ( var fstream = new FileStream( path, FileMode.Create ) ) {
+            //var buffer = new BufferedStream( fstream );
+            var buffer = new GZipStream( fstream, CompressionLevel.Optimal );
+            using ( var writer = new StreamWriter( buffer ) ) {
+               Writer = writer;
+               writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>\r" );
+               foreach ( var def in Data )
+                  ToXml( def );
+               writer.Write( $"</{typeName}>" );
+               writer.Flush();
+            }
          }
          //Info( "{0} dumped, {1} bytes", key.Name, new FileInfo( path ).Length );
          Data.Clear();
