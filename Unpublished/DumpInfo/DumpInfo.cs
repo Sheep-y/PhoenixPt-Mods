@@ -311,8 +311,13 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             return;
          }
          if ( val is GameObject obj ) { StartTag( name, "name", obj.name, true ); return; }
-         //if ( val is byte[] ary ) { StartTag( name, "length", ary.Length.ToString(), true ); return; }
-         if ( val is byte[] ary ) { SimpleMem( name, Convert.ToBase64String( ary ) ); return; }
+         if ( val is byte[] ary ) { 
+            if ( name == "NativeData" ) // MapParcelDef.NativeData
+               StartTag( name, "length", ary.Length.ToString(), true );
+            else
+               SimpleMem( name, Convert.ToBase64String( ary ) );
+            return;
+         }
          var type = val.GetType();
          if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
          if ( type.IsClass ) {
