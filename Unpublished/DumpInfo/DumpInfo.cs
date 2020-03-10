@@ -44,11 +44,13 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       internal static string ModDir;
 
+      private static IPatchRecord DumpPatch;
+
       public void MainMod ( string modPath, Action< SourceLevels, object, object[] > logger = null ) {
          ModDir = Path.GetDirectoryName( modPath );
          SetLogger( logger );
 
-         Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", null, postfix: nameof( DumpData ) );
+         DumpPatch = Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", null, postfix: nameof( DumpData ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogWeapons" );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogAbilities" );
          //Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: "DumpResearches" );
@@ -87,6 +89,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Task.WaitAll( tasks.ToArray() );
          Info( "{0} entries dumped", sum );
          ExportData.Clear();
+         DumpPatch.Unpatch();
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void AddDataToExport ( Type type, BaseDef obj ) {
