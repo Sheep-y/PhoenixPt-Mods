@@ -60,18 +60,23 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public static void DumpData () { try {
          Info( "Scanning data" );
          Type[] wanted = new Type[] { typeof( ResearchDef ),
-            typeof( TacticalItemDef ), typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ),
+            typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ), typeof( TacticalItemDef ),
             typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( SpecializationDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
             typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( GeoAlienBaseDef ), typeof( GeoMistGeneratorDef ),
             typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ), typeof( GeoSiteSceneDef ),
-            typeof( AchievementDef ), typeof( GeoscapeEventDef ), typeof( TacMissionDef ),
-            typeof( DynamicDifficultySettingsDef ), typeof( GameDifficultyLevelDef ) };
+            typeof( AchievementDef ), typeof( GeoscapeEventDef ), typeof( TacMissionDef ) };
          foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs ) {
-            var type = wanted.FirstOrDefault( cls => cls.IsInstanceOfType( e ) );
+            var type = Array.Find( wanted, cls => cls.IsInstanceOfType( e ) );
             if ( type == null ) continue;
-            if ( ! ExportData.ContainsKey( type ) ) ExportData.Add( type, new List<BaseDef>() );
-            ExportData[ type ].Add( e );
+            AddDataToExport( type, e );
          }
+         Info( "{0} entries from repository", ExportData.Values.Sum( e => e.Count ) );
+         var shared = SharedData.GetSharedDataFromGame();
+         foreach ( var e in shared.DifficultyLevels ) AddDataToExport( typeof( GameDifficultyLevelDef ), e );
+         AddDataToExport( typeof( BaseDef ), shared.AISettingsDef );
+         AddDataToExport( typeof( BaseDef ), shared.ContributionSettings );
+         AddDataToExport( typeof( BaseDef ), shared.DynamicDifficultySettings );
+         AddDataToExport( typeof( BaseDef ), shared.DiplomacySettings );
          var sum = ExportData.Values.Sum( e => e.Count );
          var tasks = new List<Task>();
          foreach ( var entry in ExportData ) { lock( entry.Value ) {
@@ -81,7 +86,14 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          } }
          Task.WaitAll( tasks.ToArray() );
          Info( "{0} entries dumped", sum );
+         ExportData.Clear();
       } catch ( Exception ex ) { Error( ex ); } }
+
+      private static void AddDataToExport ( Type type, object obj ) {
+         if ( ! ExportData.TryGetValue( type, out var list ) )
+            ExportData.Add( type, list = new List<BaseDef>() );
+         list.Add( obj );
+      }
 
       #region Manual dump code
       public static void DumpWeapons ( GeoLevelController __instance ) { try {
