@@ -74,7 +74,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          var shared = SharedData.GetSharedDataFromGame();
          foreach ( var e in shared.DifficultyLevels ) AddDataToExport( typeof( GameDifficultyLevelDef ), e );
          AddDataToExport( typeof( BaseDef ), shared.AISettingsDef );
-         AddDataToExport( typeof( BaseDef ), shared.ContributionSettings );
+         //AddDataToExport( typeof( BaseDef ), shared.ContributionSettings );
          AddDataToExport( typeof( BaseDef ), shared.DynamicDifficultySettings );
          AddDataToExport( typeof( BaseDef ), shared.DiplomacySettings );
          var sum = ExportData.Values.Sum( e => e.Count );
@@ -89,7 +89,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          ExportData.Clear();
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static void AddDataToExport ( Type type, object obj ) {
+      private static void AddDataToExport ( Type type, BaseDef obj ) {
          if ( ! ExportData.TryGetValue( type, out var list ) )
             ExportData.Add( type, list = new List<BaseDef>() );
          list.Add( obj );
