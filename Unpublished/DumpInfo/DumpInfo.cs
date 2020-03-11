@@ -326,7 +326,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "path", tacChar.ResourcePath, true ); return; }
             if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "path", tacItem.ResourcePath, true ); return; }
             if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
-               { SimpleMem( name, type.FullName ); return; }
+               { StartTag( name, "type=", type.FullName, true ); return; }
             try {
                if ( RecurringObject.TryGetValue( val, out int link ) ) { StartTag( name, "ref", link.ToString( "X" ), true ); return; }
             } catch ( Exception ex ) { SimpleMem( name, "Ref error " + ex.GetType().Name ); return; }
