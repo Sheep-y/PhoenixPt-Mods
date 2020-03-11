@@ -19,6 +19,8 @@ Published mods only
 
 * **Skip Intro** - Skip logos, openings, and landings.
 * * https://www.nexusmods.com/phoenixpoint/mods/17
+* **UI Tweaks** - Enhance Geoscape pausing and centering.
+* * https://www.nexusmods.com/phoenixpoint/mods/13
 
 ## PPML Compatibility
 
