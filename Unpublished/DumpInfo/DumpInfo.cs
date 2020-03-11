@@ -304,7 +304,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private void Mem2Xml ( string name, object val, int level ) {
          if ( val == null ) { NullMem( name ); return; }
-         if ( val is string str ) { SimpleMem( name, str ); return; }
+         if ( val is string str ) { StartTag( name, "val", str, true ); return; }
          if ( val is LocalizedTextBind l10n ) {
             StartTag( name, "key", l10n.LocalizationKey, false );
             Writer.Write( EscXml( l10n.Localize() ) );
@@ -319,9 +319,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                SimpleMem( name, Convert.ToBase64String( ary ) );
             return;
          }
-         if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "name", faction.ResourcePath, true ); return; }
-         if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "name", tacChar.ResourcePath, true ); return; }
-         if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "name", tacItem.ResourcePath, true ); return; }
+         if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "path", faction.ResourcePath, true ); return; }
+         if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "path", tacChar.ResourcePath, true ); return; }
+         if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "path", tacItem.ResourcePath, true ); return; }
+         if ( val is Color color ) { WriteColour( name, color ); return; }
          var type = val.GetType();
          if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
          if ( type.IsClass ) {
@@ -373,6 +374,20 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          EndTag( name );
       }
 
+      private void WriteColour ( string tag, Color val ) {
+         Writer.Write( '<' );
+         Writer.Write( EscTag( tag ) );
+         Writer.Write( " r=\"" );
+         Writer.Write( val.r );
+         Writer.Write( "\" g=\"" );
+         Writer.Write( val.g );
+         Writer.Write( "\" b=\"" );
+         Writer.Write( val.b );
+         Writer.Write( "\" a=\"" );
+         Writer.Write( val.a );
+         Writer.Write( "\"/>" );
+      }
+
       private void NullMem ( string name ) => StartTag( name, "null", "1", true );
 
       private void StartTag ( string name ) {
@@ -387,7 +402,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Writer.Write( ' ' );
          Writer.Write( attr );
          Writer.Write( "=\"" );
-         Writer.Write( aVal );
+         Writer.Write( EscXml( aVal ) );
          Writer.Write( selfClose ? "\"/>" : "\">" );
       }
       
