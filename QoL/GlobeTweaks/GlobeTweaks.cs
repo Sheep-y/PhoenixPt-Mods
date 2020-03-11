@@ -43,6 +43,9 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
             if ( ContextGetter != null )
                Patch( typeof( UIStateVehicleSelected ), "AddTravelSite", nameof( Prefix_AddTravelSite ), nameof( Postfix_AddTravelSite ) );
          }
+
+         if ( settings.PauseOnHeal )
+            Patch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeProcessQueuedEvents_Pause ) );
       }
 
       #region CenterOnNewBase
@@ -66,6 +69,20 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
       public static void Postfix_AddTravelSite ( UIStateVehicleSelected __instance, ref bool __state ) { try {
          getContext( __instance ).Level.Timing.Paused = __state;
+      } catch ( Exception ex ) { Error( ex ); } }
+      #endregion
+
+      #region PauseOnHeal      
+      public static void BeforeProcessQueuedEvents_Pause ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
+         foreach ( IGeoCharacterContainer container in ____justRestedContainer ) {
+            if ( container is GeoVehicle vehicle ) {
+               ____level.Timing.Paused = true;
+               if ( ____level.View.CurrentViewState is UIStateVehicleSelected state )
+                  typeof( UIStateVehicleSelected ).GetMethod( "SelectVehicle", NonPublic | Instance ).Invoke( state, new object[]{ vehicle, true } );
+               else
+                  ____level.View.ChaseTarget( vehicle.CurrentSite, false );
+            }
+         }
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
    }
