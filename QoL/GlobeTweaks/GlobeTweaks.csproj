@@ -50,7 +50,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CentreOnNewBase.cs" />
     <Compile Include="GlobeTweaks.cs" />
     <Compile Include="PauseOnHeal.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
