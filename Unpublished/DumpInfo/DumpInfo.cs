@@ -329,7 +329,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                { StartTag( name, "type=", type.FullName, true ); return; }
             try {
                if ( RecurringObject.TryGetValue( val, out int link ) ) { StartTag( name, "ref", link.ToString( "X" ), true ); return; }
-            } catch ( Exception ex ) { SimpleMem( name, "Ref error " + ex.GetType().Name ); return; }
+            } catch ( Exception ex ) { StartTag( name, "err_H", ex.GetType().Name, true ); return; } // Hash error
             var id = RecurringObject.Count;
             RecurringObject.Add( val, id );
             StartTag( name, "id", id.ToString( "X" ), false );
@@ -358,14 +358,14 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
-            SimpleMem( f.Name, "Field error " + ex.GetType().Name );
+            StartTag( f.Name, "err_F", ex.GetType().Name, true ); // Field.GetValue error
          }
          if ( subject.GetType().IsClass ) {
             foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
                if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), false ).Any() ) continue;
                Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
             } catch ( ApplicationException ex ) {
-               SimpleMem( f.Name, "Prop error " + ex.GetType().Name );
+               StartTag( f.Name, "err_P", ex.GetType().Name, true ); // Property.GetValue error
             }
          }
       }
