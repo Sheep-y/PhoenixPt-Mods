@@ -319,8 +319,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                SimpleMem( name, Convert.ToBase64String( ary ) );
             return;
          }
-         if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "name", faction.GetPPName(), true ); return; }
-         if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "name", tacChar.name, true ); return; }
+         if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "name", faction.ResourcePath, true ); return; }
+         if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "name", tacChar.ResourcePath, true ); return; }
+         if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "name", tacItem.ResourcePath, true ); return; }
          var type = val.GetType();
          if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
          if ( type.IsClass ) {
