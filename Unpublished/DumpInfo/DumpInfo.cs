@@ -319,13 +319,12 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                SimpleMem( name, Convert.ToBase64String( ary ) );
             return;
          }
-         if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "path", faction.ResourcePath, true ); return; }
-         if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "path", tacChar.ResourcePath, true ); return; }
-         if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "path", tacItem.ResourcePath, true ); return; }
-         if ( val is Color color ) { WriteColour( name, color ); return; }
          var type = val.GetType();
-         if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
          if ( type.IsClass ) {
+            if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
+            if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "path", faction.ResourcePath, true ); return; }
+            if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "path", tacChar.ResourcePath, true ); return; }
+            if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "path", tacItem.ResourcePath, true ); return; }
             if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
                { SimpleMem( name, type.FullName ); return; }
             try {
@@ -343,9 +342,12 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                EndTag( name );
                return;
             }
-         } else
-            StartTag( name );
-         Obj2Xml( val, level + 1 );
+         } else {
+            if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
+            if ( val is Color color ) { WriteColour( name, color ); return; }
+            StartTag( name ); // Other structs
+         }
+         Obj2Xml( val, level + 1 ); // Either structs or non-enum objects
          EndTag( name );
       }
 
