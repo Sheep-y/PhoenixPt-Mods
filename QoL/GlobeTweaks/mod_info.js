@@ -12,4 +12,10 @@
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/17",
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods"
    },
+   DefaultSettings: {
+      "Center_On_New_Base": true,
+      "Centre_On_Heal": true,
+      "No_Auto_Unpause": true,
+      "Pause_On_Heal": true
+   },
 })

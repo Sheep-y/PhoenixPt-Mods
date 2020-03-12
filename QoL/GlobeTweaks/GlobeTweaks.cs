@@ -17,10 +17,10 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt.GlobeTweaks {
    class ModSettings {
       public string Settings_Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-      public bool CenterOnNewBase = true;
-      public bool CentreOnHeal = true;
-      public bool NoAutoUnpause = true;
-      public bool PauseOnHeal = true;
+      public bool Center_On_New_Base = true;
+      public bool Centre_On_Heal = true;
+      public bool No_Auto_Unpause = true;
+      public bool Pause_On_Heal = true;
    }
 
    class Mod : SheepyMod {
@@ -34,21 +34,21 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          if ( settings == null ) settings = DefaultSettings;
          SetLogger( logger );
 
-         if ( settings.CenterOnNewBase ) {
+         if ( settings.Center_On_New_Base ) {
             Patch( typeof( GeoPhoenixFaction ), "ActivatePhoenixBase", postfix: nameof( AfterActivatePhoenixBase_Center ) );
             Patch( typeof( GeoFaction ), "OnVehicleSiteExplored", postfix: nameof( AfterExplore_Center ) );
          }
 
-         if ( settings.NoAutoUnpause ) {
+         if ( settings.No_Auto_Unpause ) {
             ContextGetter = typeof( GeoscapeViewState ).GetProperty( "Context", NonPublic | Instance );
             if ( ContextGetter != null )
                Patch( typeof( UIStateVehicleSelected ), "AddTravelSite", nameof( BeforeAddTravelSite_GetPause ), nameof( AfterAddTravelSite_RestorePause ) );
          }
 
-         if ( settings.CentreOnHeal )
+         if ( settings.Centre_On_Heal )
             Patch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeProcessQueuedEvents_Centre ) );
 
-         if ( settings.PauseOnHeal )
+         if ( settings.Pause_On_Heal )
             Patch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeProcessQueuedEvents_Pause ) );
       }
 
