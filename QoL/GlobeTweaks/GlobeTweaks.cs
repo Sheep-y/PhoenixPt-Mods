@@ -24,14 +24,12 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
    }
 
    class Mod : SheepyMod {
-      public static ModSettings DefaultSettings => new ModSettings();
-
       private static PropertyInfo ContextGetter;
 
       public void Init () => new Mod().MainMod();
 
       public void MainMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
-         if ( settings == null ) settings = DefaultSettings;
+         if ( settings == null ) settings = new ModSettings();
          SetLogger( logger );
 
          if ( settings.Center_On_New_Base ) {

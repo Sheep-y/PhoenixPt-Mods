@@ -25,15 +25,12 @@ namespace Sheepy.PhoenixPt.SkipIntro {
    }
 
    public class Mod : SheepyMod {
-      // Tell Modnix what type our settings is, and its default values
-      public static ModSettings DefaultSettings => new ModSettings();
-
       // PPML v0.1 entry point
       public static void Init () => new Mod().SplashMod();
 
       // Modnix entry point, splash phase
       public void SplashMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
-         if ( settings == null ) settings = DefaultSettings;
+         if ( settings == null ) settings = new ModSettings();
          SetLogger( logger );
 
          // I prefer doing manual patch for better control, such as reusing a method in patch.
