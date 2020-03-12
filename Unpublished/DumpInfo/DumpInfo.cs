@@ -277,7 +277,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             var buffer = new GZipStream( fstream, CompressionLevel.Optimal );
             using ( var writer = new StreamWriter( buffer ) ) {
                Writer = writer;
-               writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r<{typeName}>\r" );
+               writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r" );
+               StartTag( typeName, "count", Data.Count.ToString(), false );
                foreach ( var def in Data )
                   ToXml( def );
                writer.Write( $"</{typeName}>" );
