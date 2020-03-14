@@ -281,7 +281,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             var buffer = new GZipStream( fstream, CompressionLevel.Optimal );
             using ( var writer = new StreamWriter( buffer ) ) {
                Writer = writer;
-               writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r" );
+               writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
                StartTag( typeName, "count", Data.Count.ToString(), false );
                if ( Mod.Query != null )
                   StartTag( "Game", "Version", Mod.Query( "Phoenix Point" )?.ToString(), true );
@@ -307,7 +307,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private void ToXml ( object subject ) {
          if ( subject == null ) return;
          Mem2Xml( subject.GetType().Name, subject, 0 );
-         Writer.Write( '\r' );
+         Writer.Write( '\n' );
       }
 
       private void Mem2Xml ( string name, object val, int level ) {
