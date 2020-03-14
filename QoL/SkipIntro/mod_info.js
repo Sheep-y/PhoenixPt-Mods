@@ -12,7 +12,9 @@
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/17",
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods",
    },
-   DefaultSettings :  {
+   Conflicts : 
+      { Id: "PhoenixPt_SkipIntro", Max: "1.1.0.0" },
+   DefaultSettings : {
       "Skip_Logos" : true,
       "Skip_HottestYear" : true,
       "Skip_Landings" : true,
