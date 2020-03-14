@@ -73,7 +73,7 @@ namespace Sheepy.PhoenixPt {
          } catch ( FormatException ) { }
          using ( var stream = File.AppendText( LogFile ) ) {
             stream.WriteLineAsync( DateTime.Now.ToString( "T" ) + " " + GetType().Namespace + " " + line );
-         }  
+         }
       } catch ( Exception ex ) { Console.WriteLine( ex ); } }
 
       protected internal static void Verbo ( object msg, params object[] augs ) => Logger?.Invoke( SourceLevels.Verbose, msg, augs );

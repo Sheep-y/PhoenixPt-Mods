@@ -31,6 +31,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -284,6 +285,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                StartTag( typeName, "count", Data.Count.ToString(), false );
                if ( Mod.Query != null )
                   StartTag( "Game", "Version", Mod.Query( "Phoenix Point" )?.ToString(), true );
+               StartTag( "DumpInfo", "Version", Assembly.GetExecutingAssembly().GetName().Version.ToString(), true );
                foreach ( var def in Data )
                   ToXml( def );
                writer.Write( $"</{typeName}>" );
