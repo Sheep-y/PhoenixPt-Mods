@@ -41,14 +41,17 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    public class Mod : SheepyMod {
+      public void Init () => new Mod().MainMod( "." );
 
       internal static string ModDir;
 
       private static IPatchRecord DumpPatch;
+      internal static Func< string, Version > Query;
 
-      public void MainMod ( string modPath, Action< SourceLevels, object, object[] > logger = null ) {
+      public void MainMod ( string modPath, Action< SourceLevels, object, object[] > logger = null, Func< string, Version > query = null ) {
          ModDir = Path.GetDirectoryName( modPath );
          SetLogger( logger );
+         Query = query;
 
          DumpPatch = Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", null, postfix: nameof( DumpData ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogWeapons" );
@@ -279,6 +282,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                Writer = writer;
                writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r" );
                StartTag( typeName, "count", Data.Count.ToString(), false );
+               if ( Mod.Query != null )
+                  StartTag( "Game", "Version", Mod.Query( "Phoenix Point" )?.ToString(), true );
                foreach ( var def in Data )
                   ToXml( def );
                writer.Write( $"</{typeName}>" );
@@ -327,7 +332,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "path", tacChar.ResourcePath, true ); return; }
             if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "path", tacItem.ResourcePath, true ); return; }
             if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
-               { StartTag( name, "type=", type.FullName, true ); return; }
+               { StartTag( name, "type", type.FullName, true ); return; }
             try {
                if ( RecurringObject.TryGetValue( val, out int link ) ) { StartTag( name, "ref", link.ToString( "X" ), true ); return; }
             } catch ( Exception ex ) { StartTag( name, "err_H", ex.GetType().Name, true ); return; } // Hash error
