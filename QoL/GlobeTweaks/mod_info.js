@@ -1,6 +1,6 @@
 ({
    Id : "Sheepy.GlobeTweaks",
-   Lang : "n/a",
+   Lang : "-",
    Taint : false,
    Name : {
       en : "Globe UI Tweaks",
