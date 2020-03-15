@@ -1,11 +1,11 @@
 ({
    /* Please make sure id is unique! Same id = only one survives. */
    Id : "Sheepy.SkipIntro",
-   // Version is read from dll.  But you can override it here if you want to.
+   // Version is read from Assembly Information.  But you can override it here if you want to.
 
    /* Mod Declarations and Descriptions */
    Lang : "-", // Language-independent
-   Taint : false, // Does not taint savegames
+   Duration : "temp", // Effects are temporary and does not affect saves
    Name : {
       en : "Skip Intro",
       zh : "略過片頭" },

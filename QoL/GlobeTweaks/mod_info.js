@@ -1,7 +1,7 @@
 ({
    Id : "Sheepy.GlobeTweaks",
    Lang : "-",
-   Taint : false,
+   Duration : "temp",
    Name : {
       en : "Globe UI Tweaks",
       zh : "地球介面微調" },
