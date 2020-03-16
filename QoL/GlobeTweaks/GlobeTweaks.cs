@@ -26,7 +26,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
    class Mod : SheepyMod {
       private static PropertyInfo ContextGetter;
 
-      public void Init () => new Mod().MainMod();
+      public static void Init () => new Mod().MainMod();
 
       public void MainMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
          if ( settings == null ) settings = new ModSettings();
