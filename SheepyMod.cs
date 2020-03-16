@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -53,20 +54,31 @@ namespace Sheepy.PhoenixPt {
          }
       }
 
+      protected static string AssemblyLocation => Assembly.GetExecutingAssembly().Location;
+
+      protected static T ReadSettings < T > ( T supplied ) where T : class, new() {
+         if ( supplied != null ) return supplied;
+         try {
+            var file = Regex.Replace( AssemblyLocation, "\\.dll$", ".conf", RegexOptions.IgnoreCase );
+            if ( File.Exists( file ) ) return JsonConvert.DeserializeObject<T>( File.ReadAllText( file ) );
+         } catch ( SystemException ex ) { Warn( ex ); } catch ( JsonException ex ) { Warn( ex ); }
+         return new T();
+      }
+
       protected internal static Action< SourceLevels, object, object[] > Logger;
       protected static string LogFile;
 
       protected void SetLogger ( Action< SourceLevels, object, object[] > logger ) {
          if ( logger == null ) { // Use default
             Logger = DefaultLogger;
+            LogFile = Regex.Replace( AssemblyLocation, "\\.dll$", ".log", RegexOptions.IgnoreCase );
             Info( DateTime.Now.ToString( "D" ) + " " + GetType().Namespace + " " + Assembly.GetExecutingAssembly().GetName().Version );
-            LogFile = Regex.Replace( Assembly.GetExecutingAssembly().Location, "\\.dll$", ".log", RegexOptions.IgnoreCase );
          } else
             Logger = logger; // Logger provided by mod loader
       }
 
       // A simple file logger when one is not provided by the mod loader.
-      private void DefaultLogger ( SourceLevels lv, object msg, object[] param ) { try {
+      private static void DefaultLogger ( SourceLevels lv, object msg, object[] param ) { try {
          string line = msg?.ToString();
          try {
             if ( param != null ) line = string.Format( line, param );

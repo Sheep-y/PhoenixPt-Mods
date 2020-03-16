@@ -29,8 +29,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public static void Init () => new Mod().MainMod();
 
       public void MainMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
-         if ( settings == null ) settings = new ModSettings();
          SetLogger( logger );
+         settings = ReadSettings( settings );
 
          if ( settings.Center_On_New_Base ) {
             Patch( typeof( GeoPhoenixFaction ), "ActivatePhoenixBase", postfix: nameof( AfterActivatePhoenixBase_Center ) );

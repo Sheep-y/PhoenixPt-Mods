@@ -30,8 +30,8 @@ namespace Sheepy.PhoenixPt.SkipIntro {
 
       // Modnix entry point, splash phase
       public void SplashMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
-         if ( settings == null ) settings = new ModSettings();
          SetLogger( logger );
+         settings = ReadSettings( settings );
 
          // I prefer doing manual patch for better control, such as reusing a method in patch.
          // Most modders prefer the simpler Harmony Attributes / Annotation, and it'll work the same.
