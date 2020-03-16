@@ -4,6 +4,7 @@ Changelog of Skip Intro, a Phoenix Point Mod by Sheepy
 
 * New: Skip curtain animations on loading screens
 * New: Mod Configuration
+* Lighter footprint: partial unload after skipping logos and hottest year.
 
 # Version 2.0, 2020-02-29
 
