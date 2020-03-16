@@ -17,7 +17,7 @@
       { Id: "PhoenixPt_NoAutoUnpause", Max: "1.0.0.0" },
       { Id: "PhoenixPt_PauseOnHeal", Max: "1.0.1.0" },
    ],
-   DefaultSettings : {
+   DefaultConfig : {
       "Center_On_New_Base" : true,
       "Centre_On_Heal" : true,
       "No_Auto_Unpause" : true,

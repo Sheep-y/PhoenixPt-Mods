@@ -22,7 +22,7 @@
       { Id: "PhoenixPt_SkipIntro", Max: "1.1.0.0" },
 
    /* Config files will be created when users click "Reset". */
-   DefaultSettings : {
+   DefaultConfig : {
       "Skip_Logos" : true,
       "Skip_HottestYear" : true,
       "Skip_Landings" : true,
