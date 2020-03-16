@@ -1,68 +1,46 @@
-﻿using System;
+﻿using Base.Core;
+using Base.Defs;
+using Base.UI.MessageBox;
+using Harmony;
+using PhoenixPoint.Common.Core;
+using PhoenixPoint.Common.Entities;
+using PhoenixPoint.Common.Entities.Items;
+using PhoenixPoint.Common.View.ViewControllers;
+using PhoenixPoint.Geoscape.Entities;
+using PhoenixPoint.Geoscape.Entities.Sites;
+using PhoenixPoint.Geoscape.Levels;
+using PhoenixPoint.Geoscape.Levels.Factions;
+using PhoenixPoint.Geoscape.View;
+using PhoenixPoint.Geoscape.View.ViewControllers.Manufacturing;
+using PhoenixPoint.Geoscape.View.ViewModules;
+using PhoenixPoint.Tactical.Entities;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
+using UnityEngine;
+using UnityEngine.UI;
+using static System.Reflection.BindingFlags;
 
-namespace Sheepy.PhoenixPt_ScrapVehicle {
-   using Base.Core;
-   using Base.Defs;
-   using Base.UI.MessageBox;
-   using Harmony;
-   using PhoenixPoint.Common.Core;
-   using PhoenixPoint.Common.Entities;
-   using PhoenixPoint.Common.Entities.Items;
-   using PhoenixPoint.Common.View.ViewControllers;
-   using PhoenixPoint.Geoscape.Entities;
-   using PhoenixPoint.Geoscape.Entities.Sites;
-   using PhoenixPoint.Geoscape.Levels;
-   using PhoenixPoint.Geoscape.Levels.Factions;
-   using PhoenixPoint.Geoscape.View;
-   using PhoenixPoint.Geoscape.View.ViewControllers.Manufacturing;
-   using PhoenixPoint.Geoscape.View.ViewModules;
-   using PhoenixPoint.Tactical.Entities;
-   using System.Collections.Generic;
-   using UnityEngine;
-   using UnityEngine.UI;
-   using static System.Reflection.BindingFlags;
+namespace Sheepy.PhoenixPt.ScrapVehicle {
 
-   public class Mod {
-      //private static Logging.Logger Log = new Logging.Logger( "Mods/SheepyMods.log" );
+   public class Mod : SheepyMod {
+      public static void Init () => new Mod().MainMod();
 
       private static Type UiType;
 
-      public static void Init () {
-         HarmonyInstance harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
-
+      public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
+         SetLogger( logger );
          UiType = typeof( UIModuleManufacturing );
-         Patch( harmony, UiType, "SetupClassFilter", null, "AfterSetupClassFilter_CheckScrapMode" );
-         Patch( harmony, UiType, "SetupQueue", "BeforeSetupQueue_AddVehicleToScrap" );
-         Patch( harmony, UiType, "RefreshFilters", null, "AfterRefreshFilters_EnableVehicleTab" );
-         Patch( harmony, UiType, "RefreshItemList", "BeforeRefreshItemList_FillWithVehicle" );
-         Patch( harmony, UiType, "OnItemAction", "BeforeOnItemAction_ConfirmScrap" );
-         Patch( harmony, UiType, "Close", null, "AfterClose_Cleanup" );
-         Patch( harmony, typeof( GeoManufactureItem ), "Init", null, "AftereInit_SetName" );
-         Patch( harmony, typeof( ItemDef ), "get_ScrapPrice", null, "AftereScrapPrice_AddMutagen" );
+         Patch( UiType, "SetupClassFilter", postfix: "AfterSetupClassFilter_CheckScrapMode" );
+         Patch( UiType, "SetupQueue", "BeforeSetupQueue_AddVehicleToScrap" );
+         Patch( UiType, "RefreshFilters", postfix: "AfterRefreshFilters_EnableVehicleTab" );
+         Patch( UiType, "RefreshItemList", "BeforeRefreshItemList_FillWithVehicle" );
+         Patch( UiType, "OnItemAction", "BeforeOnItemAction_ConfirmScrap" );
+         Patch( UiType, "Close", postfix: "AfterClose_Cleanup" );
+         Patch( typeof( GeoManufactureItem ), "Init", postfix: "AftereInit_SetName" );
+         Patch( typeof( ItemDef ), "get_ScrapPrice", postfix: "AftereScrapPrice_AddMutagen" );
       }
-
-      #region Modding helpers
-      private static void Patch ( HarmonyInstance harmony, Type target, string toPatch, string prefix, string postfix = null ) {
-         Patch( harmony, target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix );
-      }
-
-      private static void Patch ( HarmonyInstance harmony, MethodInfo toPatch, string prefix, string postfix = null ) {
-         harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
-      }
-
-      private static HarmonyMethod ToHarmonyMethod ( string name ) {
-         if ( name == null ) return null;
-         MethodInfo func = typeof( Mod ).GetMethod( name );
-         if ( func == null ) throw new NullReferenceException( name + " is null" );
-         return new HarmonyMethod( func );
-      }
-
-      private static void LogError ( Exception ex ) {
-         //Log.Error( ex );
-      }
-      #endregion
 
       #region General helpers
       private static bool IsScrapping ( UIModuleManufacturing __instance ) {
@@ -93,7 +71,7 @@ namespace Sheepy.PhoenixPt_ScrapVehicle {
       // Check whether scrap list need to be populated
       public static void AfterSetupClassFilter_CheckScrapMode ( UIModuleManufacturing __instance, ItemStorage ____scrapStorage ) { try {
          NeedToAddVehicles = IsScrapping( __instance ) && ____scrapStorage.IsEmpty;
-      } catch ( Exception ex ) { LogError( ex ); } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       // If scrap list need to be populated, do it
       public static void BeforeSetupQueue_AddVehicleToScrap ( GeoscapeViewContext ____context, ItemStorage ____scrapStorage ) { try {
@@ -107,7 +85,7 @@ namespace Sheepy.PhoenixPt_ScrapVehicle {
          }
 
          NeedToAddVehicles = false;
-      } catch ( Exception ex ) { LogError( ex ); } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       // Enable vehicle scrap tab
       public static void AfterRefreshFilters_EnableVehicleTab ( UIModuleManufacturing __instance, PhoenixGeneralButton ____activeFilterButton ) { try {
@@ -117,7 +95,7 @@ namespace Sheepy.PhoenixPt_ScrapVehicle {
          /* // Show / hide class filters as appropiate - disabled because filter state is not restored correctly after toggle
          UiType.GetMethod( "SetClassFiltersAvailability", NonPublic | Instance )
             .Invoke( __instance, new object[]{ ____activeFilterButton != __instance.VehiclesFilterButton } ); */
-      } catch ( Exception ex ) { LogError( ex ); } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       // Replace scrap list with individual vehicles when applicable
       public static void BeforeRefreshItemList_FillWithVehicle ( UIModuleManufacturing __instance, ref IEnumerable<IManufacturable> availableItemRecipes,
@@ -144,7 +122,7 @@ namespace Sheepy.PhoenixPt_ScrapVehicle {
                vList.Add( new GeoGroundVehicleWrapper( tank ) );
 
          availableItemRecipes = from t in vList select t;
-      } catch ( Exception ex ) { LogError( ex ); } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       // Show confirmation popup which callback OnScrapConfirmation
       public static bool BeforeOnItemAction_ConfirmScrap ( UIModuleManufacturing __instance, GeoManufactureItem item,
@@ -159,7 +137,7 @@ namespace Sheepy.PhoenixPt_ScrapVehicle {
             return false;
          }
          return true;
-      } catch ( Exception ex ) { LogError( ex ); return true; } }
+      } catch ( Exception ex ) { Error( ex ); return true; } }
 
       // Do the scrap after user confirmation
       private static void OnScrapConfirmation ( UIModuleManufacturing me, MessageBoxCallbackResult answer, IManufacturable item, GeoscapeViewContext context ) { try {
@@ -184,7 +162,7 @@ namespace Sheepy.PhoenixPt_ScrapVehicle {
             }
          }
          UiType.GetMethod( "DoFilter", NonPublic | Instance ).Invoke( me, new object[]{ null, null } );
-      } catch ( Exception ex ) { LogError( ex ); } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       // Show vehicle name on scrap list
       public static void AftereInit_SetName ( GeoManufactureItem __instance, IManufacturable item ) { try {
@@ -194,7 +172,7 @@ namespace Sheepy.PhoenixPt_ScrapVehicle {
          } else {
             __instance.CurrentlyOwnedQuantityText.transform.parent.gameObject.SetActive( true );
          }
-      } catch ( Exception ex ) { LogError( ex ); } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       // Add mutagen to scrap value
       public static void AftereScrapPrice_AddMutagen ( ItemDef __instance, ResourcePack __result ) { try {
@@ -202,7 +180,7 @@ namespace Sheepy.PhoenixPt_ScrapVehicle {
          ResourceUnit res = __result.ByResourceType( ResourceType.Mutagen );
          if ( res != null && res.Value > 0 ) return;
          __result.Add( new ResourceUnit( ResourceType.Mutagen, Mathf.Floor( __instance.ManufactureMutagen / 2f ) ) );
-      } catch ( Exception ex ) { LogError( ex ); } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       // Clear ItemDef mappings on close
       public static void AfterClose_Cleanup () {
@@ -232,7 +210,7 @@ namespace Sheepy.PhoenixPt_ScrapVehicle {
                   planeDefs[ vDef ] = planeDef;
             }
          }
-      } catch ( Exception ex ) { LogError( ex ); } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       // General wrapper class that backs the scrap list
       public abstract class GeoUnitWrapper : GeoItem, IManufacturable {

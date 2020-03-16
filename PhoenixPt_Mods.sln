@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		SheepyMod.cs = SheepyMod.cs
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrapVehicles", "Geoscape\ScrapVehicle\ScrapVehicles.csproj", "{CC4DF468-A8D5-4588-BD92-8A06E9F0B3F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{B0FC42AF-69AD-492E-80A9-846FFAA84979}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0FC42AF-69AD-492E-80A9-846FFAA84979}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0FC42AF-69AD-492E-80A9-846FFAA84979}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC4DF468-A8D5-4588-BD92-8A06E9F0B3F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC4DF468-A8D5-4588-BD92-8A06E9F0B3F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC4DF468-A8D5-4588-BD92-8A06E9F0B3F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC4DF468-A8D5-4588-BD92-8A06E9F0B3F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
