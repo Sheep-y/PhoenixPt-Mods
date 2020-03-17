@@ -13,7 +13,8 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt {
 
    /// <summary>
-   /// Base mod class to supports manual patching and unpatch, default logger, and logging.
+   /// Base mod class to supports manual patching and unpatch with logging shortcuts.
+   /// Subclass must provide a logger for logging to functional.
    /// </summary>
    public class ZyMod {
 
@@ -21,19 +22,14 @@ namespace Sheepy.PhoenixPt {
 
       protected static internal HarmonyInstance Patcher;
 
-      protected virtual void _OnPatchError() { }
-
-      protected IPatch Patch ( Type target, string method, string prefix = null, string postfix = null, string transpiler = null ) { try {
+      protected virtual IPatch Patch ( Type target, string method, string prefix = null, string postfix = null, string transpiler = null ) { try {
          return Patch( target.GetMethod( method, Public | NonPublic | Instance | Static ), prefix, postfix, transpiler );
-      } catch ( AmbiguousMatchException ex ) { _OnPatchError(); throw new ApplicationException( $"Cannot patch {target}.{method}", ex ); } }
+      } catch ( AmbiguousMatchException ex ) { throw new ApplicationException( $"Cannot patch {target}.{method}", ex ); } }
 
-      protected IPatch Patch ( MethodInfo toPatch, string prefix = null, string postfix = null, string transpiler = null ) {
+      protected virtual IPatch Patch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) {
          lock ( _Lock ) if ( Patcher == null ) Patcher = HarmonyInstance.Create( GetType().Namespace );
-         return _CreatePatch( Patcher, toPatch, _ToHarmony( prefix ), _ToHarmony( postfix ), _ToHarmony( transpiler ) ).Patch();
-      }
-
-      protected virtual IPatch _CreatePatch ( HarmonyInstance patcher, MethodBase target, HarmonyMethod pre, HarmonyMethod post, HarmonyMethod tran ) {
-         return new PatchRecord { Patcher = patcher, Target = target, Pre = pre, Post = post, Tran = tran };
+         return new PatchRecord { Patcher = Patcher, Target = method,
+            Pre = _ToHarmony( prefix ), Post = _ToHarmony( postfix ), Tran = _ToHarmony( transpiler ) }.Patch();
       }
 
       protected static void Unpatch ( ref IPatch patch ) {
@@ -47,7 +43,7 @@ namespace Sheepy.PhoenixPt {
          return new HarmonyMethod( GetType().GetMethod( name ) ?? throw new NullReferenceException( name + " not found" ) );
       }
 
-      protected class PatchRecord : IPatch {
+      private class PatchRecord : IPatch {
          internal HarmonyInstance Patcher;
          internal MethodBase Target;
          internal HarmonyMethod Pre;
