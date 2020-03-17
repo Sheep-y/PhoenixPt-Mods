@@ -24,13 +24,14 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.ScrapVehicle {
 
-   public class Mod : ZyMod {
+   public class Mod : ZyAdvMod {
       public static void Init () => new Mod().MainMod();
 
       private static Type UiType;
 
       public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
+         StartPatch( "scrap vehicle" );
          UiType = typeof( UIModuleManufacturing );
          Patch( UiType, "SetupClassFilter", postfix: nameof( AfterSetupClassFilter_CheckScrapMode ) );
          Patch( UiType, "SetupQueue", nameof( BeforeSetupQueue_AddVehicleToScrap ) );
@@ -42,6 +43,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                e => e.Name == "Init" && e.GetParameters().Any( p => p.Name == "item" && p.ParameterType == typeof( IManufacturable ) ) ) )
             Patch( method, postfix: nameof( AftereInit_SetName ) );
          Patch( typeof( ItemDef ), "get_ScrapPrice", postfix: nameof( AftereScrapPrice_AddMutagen ) );
+         CommitPatch();
       }
 
       #region General helpers

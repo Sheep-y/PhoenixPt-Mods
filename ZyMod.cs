@@ -13,18 +13,24 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt {
 
    /// <summary>
-   /// Base mod class to supports manual patching and unpatch with logging shortcuts.
+   /// Base mod class to supports manual patching and unpatch, config parsing, and logging shortcuts.
    /// Subclass must provide a logger for logging to functional.
    /// </summary>
    public class ZyMod {
 
-      protected static object _Lock;
+      protected static object _Lock = new object();
 
       protected static internal HarmonyInstance Patcher;
 
-      protected virtual IPatch Patch ( Type target, string method, string prefix = null, string postfix = null, string transpiler = null ) { try {
-         return Patch( target.GetMethod( method, Public | NonPublic | Instance | Static ), prefix, postfix, transpiler );
-      } catch ( AmbiguousMatchException ex ) { throw new ApplicationException( $"Cannot patch {target}.{method}", ex ); } }
+      protected virtual MethodInfo _GetPatchSubject ( Type type, string method ) { try {
+         var result = type.GetMethod( method, Public | NonPublic | Instance | Static );
+         if ( result == null ) throw new ApplicationException( $"Not found: {type}.{method}" );
+         return result;
+      } catch ( AmbiguousMatchException ex ) { throw new ApplicationException( $"Multiple: {type}.{method}", ex ); } }
+
+      protected IPatch Patch ( Type type, string method, string prefix = null, string postfix = null, string transpiler = null ) {
+         return Patch( _GetPatchSubject( type, method ), prefix, postfix, transpiler );
+      }
 
       protected virtual IPatch Patch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) {
          lock ( _Lock ) if ( Patcher == null ) Patcher = HarmonyInstance.Create( GetType().Namespace );
@@ -72,7 +78,7 @@ namespace Sheepy.PhoenixPt {
       }
 
       protected internal static Action< SourceLevels, object, object[] > Logger;
-      protected static void SetLogger ( Action< SourceLevels, object, object[] > logger ) { lock ( _Lock ) Logger = logger; }
+      protected virtual void SetLogger ( Action< SourceLevels, object, object[] > logger ) { lock ( _Lock ) Logger = logger; }
       private static void Log ( SourceLevels level, object msg, object[] augs ) { lock ( _Lock ) Logger?.Invoke( level, msg, augs ); }
       protected internal static void Verbo ( object msg, params object[] augs ) => Log( SourceLevels.Verbose, msg, augs );
       protected internal static void Info  ( object msg, params object[] augs ) => Log( SourceLevels.Information, msg, augs );
