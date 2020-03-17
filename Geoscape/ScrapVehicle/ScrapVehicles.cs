@@ -38,7 +38,9 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          Patch( UiType, "RefreshItemList", "BeforeRefreshItemList_FillWithVehicle" );
          Patch( UiType, "OnItemAction", "BeforeOnItemAction_ConfirmScrap" );
          Patch( UiType, "Close", postfix: "AfterClose_Cleanup" );
-         Patch( typeof( GeoManufactureItem ), "Init", postfix: "AftereInit_SetName" );
+         foreach ( var method in typeof( GeoManufactureItem ).GetMethods().Where( 
+            e => e.Name == "Init" && e.GetParameters().Any( p => p.ParameterType == typeof( IManufacturable ) && p.Name == "item" ) ) )
+            Patch( method, postfix: "AftereInit_SetName" );
          Patch( typeof( ItemDef ), "get_ScrapPrice", postfix: "AftereScrapPrice_AddMutagen" );
       }
 
