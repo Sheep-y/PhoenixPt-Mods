@@ -32,16 +32,16 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
          UiType = typeof( UIModuleManufacturing );
-         Patch( UiType, "SetupClassFilter", postfix: "AfterSetupClassFilter_CheckScrapMode" );
-         Patch( UiType, "SetupQueue", "BeforeSetupQueue_AddVehicleToScrap" );
-         Patch( UiType, "RefreshFilters", postfix: "AfterRefreshFilters_EnableVehicleTab" );
-         Patch( UiType, "RefreshItemList", "BeforeRefreshItemList_FillWithVehicle" );
-         Patch( UiType, "OnItemAction", "BeforeOnItemAction_ConfirmScrap" );
-         Patch( UiType, "Close", postfix: "AfterClose_Cleanup" );
-         foreach ( var method in typeof( GeoManufactureItem ).GetMethods().Where( 
-            e => e.Name == "Init" && e.GetParameters().Any( p => p.ParameterType == typeof( IManufacturable ) && p.Name == "item" ) ) )
-            Patch( method, postfix: "AftereInit_SetName" );
-         Patch( typeof( ItemDef ), "get_ScrapPrice", postfix: "AftereScrapPrice_AddMutagen" );
+         Patch( UiType, "SetupClassFilter", postfix: nameof( AfterSetupClassFilter_CheckScrapMode ) );
+         Patch( UiType, "SetupQueue", nameof( BeforeSetupQueue_AddVehicleToScrap ) );
+         Patch( UiType, "RefreshFilters", postfix: nameof( AfterRefreshFilters_EnableVehicleTab ) );
+         Patch( UiType, "RefreshItemList", nameof( BeforeRefreshItemList_FillWithVehicle ) );
+         Patch( UiType, "OnItemAction", nameof( BeforeOnItemAction_ConfirmScrap ) );
+         Patch( UiType, "Close", postfix: nameof( AfterClose_Cleanup ) );
+         foreach ( var method in typeof( GeoManufactureItem ).GetMethods().Where(
+               e => e.Name == "Init" && e.GetParameters().Any( p => p.Name == "item" && p.ParameterType == typeof( IManufacturable ) ) ) )
+            Patch( method, postfix: nameof( AftereInit_SetName ) );
+         Patch( typeof( ItemDef ), "get_ScrapPrice", postfix: nameof( AftereScrapPrice_AddMutagen ) );
       }
 
       #region General helpers
