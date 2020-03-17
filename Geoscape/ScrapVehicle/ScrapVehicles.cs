@@ -39,13 +39,14 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          Patch( UiType, "Close", postfix: nameof( AfterClose_Cleanup ) );
          var GeoItemInits = typeof( GeoManufactureItem ).GetMethods().Where(
                e => e.Name == "Init" && e.GetParameters().Any( p => p.Name == "item" && p.ParameterType == typeof( IManufacturable ) ) );
+         if ( ! GeoItemInits.Any() ) {
+            RollbackPatch( "GeoManufactureItem.Init not found" );
+            return;
+         }
          foreach ( var method in GeoItemInits )
             Patch( method, postfix: nameof( AftereInit_SetName ) );
          Patch( typeof( ItemDef ), "get_ScrapPrice", postfix: nameof( AftereScrapPrice_AddMutagen ) );
-         if ( GeoItemInits.Any() )
-            CommitPatch();
-         else
-            RollbackPatch( "GeoManufactureItem.Init not found" );
+         CommitPatch();
       }
 
       #region General helpers
@@ -86,7 +87,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
 
          GeoPhoenixFaction faction = ____context.ViewerFaction as GeoPhoenixFaction;
          foreach ( GeoVehicle v in faction.Vehicles ) {
-            Info( "Add {0} to scrap list", v.Name );
+            Verbo( "Add {0} to item list", v.Name );
             ____scrapStorage.AddItem( new GeoVehicleWrapper( v ) );
          }
 
@@ -122,7 +123,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          foreach ( GeoPhoenixBase pxbase in faction.Bases ) {
             scrappableTanks.AddRange( pxbase.Site.TacUnits.Where( e => e.ClassDef.IsMutog ) );
             if ( CanScrapVehicles( pxbase ) ) {
-               Verbo( "Can scrap tank at {0}", pxbase.Site.Name );
+               Verbo( "Can scrap tanks at {0}", pxbase.Site.Name );
                scrappableTanks.AddRange( pxbase.Site.TacUnits.Where( e => e.ClassDef.IsVehicle ) );
             }
          }
@@ -131,6 +132,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                Verbo( "Can scrap tank {0}", tank.DisplayName );
                vList.Add( new GeoGroundVehicleWrapper( tank ) );
             }
+         Info( "Can scrap {0} vehicles", vList.Count );
          availableItemRecipes = from t in vList select t;
       } catch ( Exception ex ) { Error( ex ); } }
 
