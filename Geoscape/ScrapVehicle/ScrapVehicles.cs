@@ -86,7 +86,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
 
          GeoPhoenixFaction faction = ____context.ViewerFaction as GeoPhoenixFaction;
          foreach ( GeoVehicle v in faction.Vehicles ) {
-            // Log.Info( "Add {0} to scrap storage", v.Name );
+            Info( "Add {0} to scrap list", v.Name );
             ____scrapStorage.AddItem( new GeoVehicleWrapper( v ) );
          }
 
@@ -115,35 +115,40 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          List<GeoTacUnit> scrappableTanks = new List<GeoTacUnit>();
          foreach ( GeoVehicle plane in faction.Vehicles )
             if ( CanScrap( plane, true ) ) {
+               Verbo( "Can scrap airplane {0}", plane.Name );
                vList.Add( new GeoVehicleWrapper( plane ) );
                scrappableTanks.AddRange( plane.Characters.Where( e => e.ClassDef.IsVehicle || e.ClassDef.IsMutog ) );
             }
          foreach ( GeoPhoenixBase pxbase in faction.Bases ) {
             scrappableTanks.AddRange( pxbase.Site.TacUnits.Where( e => e.ClassDef.IsMutog ) );
-            if ( CanScrapVehicles( pxbase ) )
+            if ( CanScrapVehicles( pxbase ) ) {
+               Verbo( "Can scrap tank at {0}", pxbase.Site.Name );
                scrappableTanks.AddRange( pxbase.Site.TacUnits.Where( e => e.ClassDef.IsVehicle ) );
+            }
          }
          foreach ( GeoCharacter tank in faction.GroundVehicles )
-            if ( scrappableTanks.Contains( tank ) )
+            if ( scrappableTanks.Contains( tank ) ) {
+               Verbo( "Can scrap tank {0}", tank.DisplayName );
                vList.Add( new GeoGroundVehicleWrapper( tank ) );
-
+            }
          availableItemRecipes = from t in vList select t;
       } catch ( Exception ex ) { Error( ex ); } }
 
       // Show confirmation popup which callback OnScrapConfirmation
       public static bool BeforeOnItemAction_ConfirmScrap ( UIModuleManufacturing __instance, GeoManufactureItem item,
                                                            MessageBox ____confirmationBox, GeoscapeViewContext ____context ) { try {
-         if ( item.Manufacturable is GeoUnitWrapper ) {
+         if ( item.Manufacturable is GeoUnitWrapper unit ) {
+            Verbo( "Confirming scraping of {0}", unit.GetName() );
             string scrapTxt = TitleCase( __instance.ScrapModeButton.GetComponentInChildren<Text>()?.text ?? "Scrap" );
             if ( scrapTxt == "Scrap Item" ) scrapTxt = "Scrap";
-            string translation = scrapTxt + " " + item.ItemName.text + "?";
+            string translation = scrapTxt + " " + unit.GetName() + "?";
             ____confirmationBox.ShowModal(translation, MessageBoxIcon.Warning, MessageBoxButtons.YesNo,
-               answer => OnScrapConfirmation( __instance, answer, item.Manufacturable, ____context ),
+               answer => OnScrapConfirmation( __instance, answer, unit, ____context ),
                __instance, MessageBox.DialogMode.DialogBox);
             return false;
          }
          return true;
-      } catch ( Exception ex ) { Error( ex ); return true; } }
+      } catch ( Exception ex ) { return Error( ex ); } }
 
       // Do the scrap after user confirmation
       private static void OnScrapConfirmation ( UIModuleManufacturing me, MessageBoxCallbackResult answer, IManufacturable item, GeoscapeViewContext context ) { try {
@@ -153,6 +158,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
 
          if ( item is GeoUnitWrapper ) {
             if ( item is GeoVehicleWrapper plane ) {
+               Info( "Scraping airplane {0}", plane.GetName() );
                GeoVehicle vehicle = plane.Vehicle;
                GeoSite site = vehicle.CurrentSite;
                foreach ( GeoCharacter chr in vehicle.Characters.ToList() ) {
@@ -162,11 +168,13 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                faction.ScrapItem( plane );
                vehicle.Destroy();
             } else if ( item is GeoGroundVehicleWrapper tank ) {
+               Info( "Scraping tank {0}", tank.GetName() );
                faction.ScrapItem( tank );
                faction.RemoveCharacter( tank.GroundVehicle );
                geoLevel.DestroyTacUnit( tank.GroundVehicle );
             }
          }
+         Info( "Scrap done, refreshing list" );
          typeof( UIModuleManufacturing ).GetMethod( "DoFilter", NonPublic | Instance ).Invoke( me, new object[]{ null, null } );
       } catch ( Exception ex ) { Error( ex ); } }
 
@@ -184,7 +192,8 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       public static void AftereScrapPrice_AddMutagen ( ItemDef __instance, ResourcePack __result ) { try {
          if ( __instance.ManufactureMutagen <= 0 ) return;
          ResourceUnit res = __result.ByResourceType( ResourceType.Mutagen );
-         if ( res != null && res.Value > 0 ) return;
+         if ( res.Value > 0 ) return;
+         Verbo( "Awarding mutagen" );
          __result.Add( new ResourceUnit( ResourceType.Mutagen, Mathf.Floor( __instance.ManufactureMutagen / 2f ) ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
@@ -202,7 +211,8 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          if ( planeDefs != null ) return;
          planeDefs = new Dictionary<GeoVehicleDef, VehicleItemDef>( 3 );
          tankDefs = new Dictionary<TacUnitClassDef, GroundVehicleItemDef>( 3 );
-
+            
+         Verbo( "Loading vehicles for scrap screen" );
          DefRepository defRepo = GameUtl.GameComponent<DefRepository>();
          foreach ( BaseDef def in defRepo.GetAllDefs<BaseDef>() ) {
             if ( def is GroundVehicleItemDef tankDef ) {
@@ -216,37 +226,38 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                   planeDefs[ vDef ] = planeDef;
             }
          }
+         Info( "Found {0} airplanes, {1} tanks", planeDefs.Count, tankDefs.Count );
       } catch ( Exception ex ) { Error( ex ); } }
 
       // General wrapper class that backs the scrap list
-      public abstract class GeoUnitWrapper : GeoItem, IManufacturable {
-         protected GeoUnitWrapper ( ItemDef def ) : base( def ) {}
+      private abstract class GeoUnitWrapper : GeoItem, IManufacturable {
+         internal GeoUnitWrapper ( ItemDef def ) : base( def ) {}
+         /*
          private GeoUnitWrapper ( ItemUnit itemUnit ) : base( itemUnit ) { throw new NotSupportedException(); }
          private GeoUnitWrapper ( ItemData data ) : base( data ) { throw new NotSupportedException(); }
          private GeoUnitWrapper ( ItemDef def, CommonItemData commonData ) : base( def, commonData ) { throw new NotSupportedException(); }
          private GeoUnitWrapper ( ItemDef def, int count = 1, int charges = -1, AmmoManager ammo = null ) : base( def, count, charges, ammo ) { throw new NotSupportedException(); }
+         */
          public ResourcePack ManufacturePrice => ItemDef.ManufacturePrice;
          public ItemDef RelatedItemDef => ItemDef;
          public Sprite SmallIcon => ItemDef.GetSmallIcon();
          public Sprite DetailedImage => ItemDef.GetDetailedImage();
          public bool IsInstant => false;
          public ItemManufacturing.ManufactureFailureReason CanManufacture ( GeoFaction faction ) => ItemManufacturing.ManufactureFailureReason.NotManufacturable;
-         public void OnManufacture ( GeoFaction faction ) => throw new NotImplementedException();
-         public float GetCostInManufacturePoints ( GeoFaction faction ) {
-            return faction.Def.UseHavenManufacturing ? GetCostInManufacturePoints( faction ) : GetFactoryManufactureCost();
-         }
+         public void OnManufacture ( GeoFaction faction ) => ZyMod.Warn( "Attempting to manufacture {0}", GetName() );
+         public float GetCostInManufacturePoints ( GeoFaction faction ) => faction.Def.UseHavenManufacturing ? GetCostInManufacturePoints( faction ) : GetFactoryManufactureCost();
          protected abstract float GetFactoryManufactureCost();
          public abstract string GetName();
       }
 
-      public class GeoVehicleWrapper : GeoUnitWrapper {
+      private class GeoVehicleWrapper : GeoUnitWrapper {
          public readonly GeoVehicle Vehicle;
          public GeoVehicleWrapper ( GeoVehicle vehicle ) : base( planeDefs[ vehicle.VehicleDef ] ) { this.Vehicle = vehicle; }
          public override string GetName () => Vehicle.Name;
          protected override float GetFactoryManufactureCost () => ( ItemDef as VehicleItemDef ).FactoryManufactureCost;
       }
 
-      public class GeoGroundVehicleWrapper : GeoUnitWrapper {
+      private class GeoGroundVehicleWrapper : GeoUnitWrapper {
          public readonly GeoCharacter GroundVehicle;
          public GeoGroundVehicleWrapper ( GeoCharacter vehicle ) : base( tankDefs[ vehicle.ClassDef ] ) { this.GroundVehicle = vehicle; }
          public override string GetName () => GroundVehicle.DisplayName;
