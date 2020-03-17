@@ -17,53 +17,67 @@ namespace Sheepy.PhoenixPt {
    /// </summary>
    public class SheepyMod {
 
-      protected internal HarmonyInstance Patcher;
+      protected static object _Lock;
 
-      protected IPatchRecord Patch ( Type target, string toPatch, string prefix = null, string postfix = null, string transpiler = null ) { try {
-         return Patch( target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix, transpiler );
-      } catch ( AmbiguousMatchException ex ) { Error( new ApplicationException( $"Cannot patch {target}.{toPatch}", ex ) ); return null; } }
+      protected static internal HarmonyInstance Patcher;
 
-      protected IPatchRecord Patch ( MethodInfo toPatch, string prefix = null, string postfix = null, string transpiler = null ) {
-         if ( Patcher == null ) Patcher = HarmonyInstance.Create( GetType().Namespace );
-         Verbo( "Patching {0}.{1}, pre={2} post={3} trans={4}", toPatch.DeclaringType, toPatch.Name, prefix, postfix, transpiler );
-         var patch = new PatchRecord{ Patcher = Patcher, Target = toPatch, Prefix = ToHarmonyMethod( prefix ), Postfix = ToHarmonyMethod( postfix ), Transpiler = ToHarmonyMethod( transpiler ) };
-         Patcher.Patch( toPatch, patch.Prefix, patch.Postfix, patch.Transpiler );
-         return patch;
+      protected virtual void _OnPatchError() { }
+
+      protected IPatch Patch ( Type target, string method, string prefix = null, string postfix = null, string transpiler = null ) { try {
+         return Patch( target.GetMethod( method, Public | NonPublic | Instance | Static ), prefix, postfix, transpiler );
+      } catch ( AmbiguousMatchException ex ) { _OnPatchError(); throw new ApplicationException( $"Cannot patch {target}.{method}", ex ); } }
+
+      protected IPatch Patch ( MethodInfo toPatch, string prefix = null, string postfix = null, string transpiler = null ) {
+         lock ( _Lock ) if ( Patcher == null ) Patcher = HarmonyInstance.Create( GetType().Namespace );
+         return _CreatePatch( Patcher, toPatch, _ToHarmony( prefix ), _ToHarmony( postfix ), _ToHarmony( transpiler ) ).Patch();
       }
 
-      protected HarmonyMethod ToHarmonyMethod ( string name ) {
+      protected virtual IPatch _CreatePatch ( HarmonyInstance patcher, MethodBase target, HarmonyMethod pre, HarmonyMethod post, HarmonyMethod tran ) {
+         return new PatchRecord { Patcher = patcher, Target = target, Pre = pre, Post = post, Tran = tran };
+      }
+
+      protected static void Unpatch ( ref IPatch patch ) {
+         if ( patch == null ) return;
+         patch.Unpatch();
+         patch = null;
+      }
+
+      protected HarmonyMethod _ToHarmony ( string name ) {
          if ( name == null ) return null;
          return new HarmonyMethod( GetType().GetMethod( name ) ?? throw new NullReferenceException( name + " not found" ) );
       }
 
-      private class PatchRecord : IPatchRecord {
+      protected class PatchRecord : IPatch {
          internal HarmonyInstance Patcher;
          internal MethodBase Target;
-         internal HarmonyMethod Prefix;
-         internal HarmonyMethod Postfix;
-         internal HarmonyMethod Transpiler;
+         internal HarmonyMethod Pre;
+         internal HarmonyMethod Post;
+         internal HarmonyMethod Tran;
+         public IPatch Patch () {
+            Verbo( "Patching {0}, pre={2} post={3} trans={4}", Target, Pre, Post, Tran );
+            Patcher.Patch( Target, Pre, Post, Tran );
+            return this;
+         }
          public void Unpatch () {
-            Verbo( "Unpatching {0}, pre={1} post={2} trans={3}", Target, Prefix, Postfix, Transpiler );
-            if ( Prefix     != null ) Patcher.Unpatch( Target, Prefix.method );
-            if ( Postfix    != null ) Patcher.Unpatch( Target, Postfix.method );
-            if ( Transpiler != null ) Patcher.Unpatch( Target, Transpiler.method );
+            Verbo( "Unpatching {0}, pre={1} post={2} trans={3}", Target, Pre, Post, Tran );
+            if ( Pre  != null ) Patcher.Unpatch( Target, Pre.method );
+            if ( Post != null ) Patcher.Unpatch( Target, Post.method );
+            if ( Tran != null ) Patcher.Unpatch( Target, Tran.method );
          }
       }
-
-      protected static readonly string AssemblyLocation = Assembly.GetExecutingAssembly().Location;
 
       protected static T ReadSettings < T > ( T supplied ) where T : class, new() {
          if ( supplied != null ) return supplied;
          try {
-            var file = AssemblyLocation.Replace( ".dll", ".conf" );
+            var file = Assembly.GetExecutingAssembly().Location.Replace( ".dll", ".conf" );
             if ( File.Exists( file ) ) return JsonConvert.DeserializeObject<T>( File.ReadAllText( file ) );
          } catch ( Exception ex ) { Warn( ex ); }
          return new T();
       }
 
       protected internal static Action< SourceLevels, object, object[] > Logger;
-      protected void SetLogger ( Action< SourceLevels, object, object[] > logger ) { lock ( AssemblyLocation ) Logger = logger; }
-      private static void Log ( SourceLevels level, object msg, object[] augs ) { lock ( AssemblyLocation ) Logger?.Invoke( level, msg, augs ); }
+      protected static void SetLogger ( Action< SourceLevels, object, object[] > logger ) { lock ( _Lock ) Logger = logger; }
+      private static void Log ( SourceLevels level, object msg, object[] augs ) { lock ( _Lock ) Logger?.Invoke( level, msg, augs ); }
       protected internal static void Verbo ( object msg, params object[] augs ) => Log( SourceLevels.Verbose, msg, augs );
       protected internal static void Info  ( object msg, params object[] augs ) => Log( SourceLevels.Information, msg, augs );
       protected internal static void Warn  ( object msg, params object[] augs ) => Log( SourceLevels.Warning, msg, augs );
@@ -73,7 +87,8 @@ namespace Sheepy.PhoenixPt {
       }
    }
 
-   public interface IPatchRecord {
+   public interface IPatch {
+      IPatch Patch();
       void Unpatch();
    }
 }

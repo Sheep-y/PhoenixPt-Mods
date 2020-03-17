@@ -61,7 +61,7 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       }
 
       // For manual unpatching
-      private static IPatchRecord LogoPatch, IntroEnterPatch, IntroLoadPatch;
+      private static IPatch LogoPatch, IntroEnterPatch, IntroLoadPatch;
 
       public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
          if ( def == null ) return false;
@@ -74,7 +74,7 @@ namespace Sheepy.PhoenixPt.SkipIntro {
          if ( levelSceneBinding != __instance.Def.IntroLevelSceneDef.Binding ) return true;
          Info( "Skipping Logos" );
          __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
-         LogoPatch.Unpatch();
+         Unpatch( ref LogoPatch );
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
 
@@ -83,8 +83,8 @@ namespace Sheepy.PhoenixPt.SkipIntro {
          Info( "Skipping Intro" );
          typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance ).Invoke( __instance, null );
          Info( "Intro skipped. Unpatching home cutscene." );
-         IntroEnterPatch.Unpatch();
-         IntroLoadPatch.Unpatch();
+         Unpatch( ref IntroEnterPatch );
+         Unpatch( ref IntroLoadPatch );
       } catch ( Exception ex ) { Error( ex ); } }
 
       public static void AfterTacCutscene_Skip ( UIStateTacticalCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {

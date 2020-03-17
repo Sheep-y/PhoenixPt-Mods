@@ -46,7 +46,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       internal static string ModDir;
 
-      private static IPatchRecord DumpPatch;
+      private static IPatch DumpPatch;
       internal static Func< string, Version > Query;
 
       public void MainMod ( string modPath, Action< SourceLevels, object, object[] > logger = null, Func< string, Version > query = null ) {
@@ -94,7 +94,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Task.WaitAll( tasks.ToArray() );
          Info( "{0} entries dumped", sum );
          ExportData.Clear();
-         DumpPatch.Unpatch();
+         Unpatch( ref DumpPatch );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void AddDataToExport ( Type type, BaseDef obj ) {
