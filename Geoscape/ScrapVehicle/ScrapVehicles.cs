@@ -24,7 +24,7 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.ScrapVehicle {
 
-   public class Mod : SheepyMod {
+   public class Mod : ZyMod {
       public static void Init () => new Mod().MainMod();
 
       private static Type UiType;

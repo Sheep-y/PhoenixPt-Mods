@@ -53,7 +53,7 @@
   <ItemGroup>
     <Compile Include="FlatDifficulty.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SheepyMod.cs" />
+    <Compile Include="ZyMod.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="mod_info.js" />
@@ -70,6 +70,6 @@ copy /y $(ProjectDir)$(OutDir)$(TargetFileName) .</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>cd $(SolutionDir)
-copy SheepyMod.cs $(ProjectDir)</PreBuildEvent>
+copy ZyMod.cs $(ProjectDir)</PreBuildEvent>
   </PropertyGroup>
 </Project>

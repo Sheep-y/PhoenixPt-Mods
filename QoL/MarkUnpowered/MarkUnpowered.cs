@@ -13,7 +13,7 @@ namespace Sheepy.PhoenixPt_MarkUnpowered {
    using static System.Reflection.BindingFlags;
 
    public class Mod {
-      //private static Logging.Logger Log = new Logging.Logger( "Mods/SheepyMods.log" );
+      //private static Logging.Logger Log = new Logging.Logger( "Mods/ZyMods.log" );
 
       private static HarmonyInstance harmony;
       public static void Init () { try {

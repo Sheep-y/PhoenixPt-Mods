@@ -41,7 +41,7 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
-   public class Mod : SheepyMod {
+   public class Mod : ZyMod {
       public void Init () => new Mod().MainMod( "." );
 
       internal static string ModDir;
@@ -271,7 +271,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private Dictionary< object, int > RecurringObject = new Dictionary< object, int >();
 
       internal void DumpData () { lock ( Data ) {
-         SheepyMod.Info( "Dumping {0} ({1})", DataType.Name, Data.Count );
+         ZyMod.Info( "Dumping {0} ({1})", DataType.Name, Data.Count );
          Data.Sort( CompareDef );
          var typeName = DataType.Name;
          var path = Path.Combine( Mod.ModDir, "Data-" + typeName + ".xml.gz" );

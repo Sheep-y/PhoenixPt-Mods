@@ -8,7 +8,7 @@ using System.Linq;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhotnixPt.FlatDifficulty {
-   public class Mod : PhoenixPt.SheepyMod {
+   public class Mod : PhoenixPt.ZyMod {
       public static void Init () => new Mod().MainMod();
 
       public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {

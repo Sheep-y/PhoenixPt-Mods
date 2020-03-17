@@ -24,7 +24,7 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       public bool Skip_CurtainLift = true;
    }
 
-   public class Mod : SheepyMod {
+   public class Mod : ZyMod {
       // PPML v0.1 entry point
       public static void Init () => new Mod().SplashMod();
 
