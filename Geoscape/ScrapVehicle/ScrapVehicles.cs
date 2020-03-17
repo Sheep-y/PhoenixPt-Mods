@@ -27,12 +27,10 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
    public class Mod : ZyAdvMod {
       public static void Init () => new Mod().MainMod();
 
-      private static Type UiType;
-
       public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
          StartPatch( "scrap vehicle" );
-         UiType = typeof( UIModuleManufacturing );
+         var UiType = typeof( UIModuleManufacturing );
          Patch( UiType, "SetupClassFilter", postfix: nameof( AfterSetupClassFilter_CheckScrapMode ) );
          Patch( UiType, "SetupQueue", nameof( BeforeSetupQueue_AddVehicleToScrap ) );
          Patch( UiType, "RefreshFilters", postfix: nameof( AfterRefreshFilters_EnableVehicleTab ) );
@@ -169,7 +167,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                geoLevel.DestroyTacUnit( tank.GroundVehicle );
             }
          }
-         UiType.GetMethod( "DoFilter", NonPublic | Instance ).Invoke( me, new object[]{ null, null } );
+         typeof( UIModuleManufacturing ).GetMethod( "DoFilter", NonPublic | Instance ).Invoke( me, new object[]{ null, null } );
       } catch ( Exception ex ) { Error( ex ); } }
 
       // Show vehicle name on scrap list
