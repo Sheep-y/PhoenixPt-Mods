@@ -56,7 +56,7 @@ namespace Sheepy.PhoenixPt {
          internal HarmonyMethod Post;
          internal HarmonyMethod Tran;
          public IPatch Patch () {
-            Verbo( "Patching {0}, pre={2} post={3} trans={4}", Target, Pre, Post, Tran );
+            Verbo( "Patching {0}, pre={1} post={2} trans={3}", Target, Pre, Post, Tran );
             Patcher.Patch( Target, Pre, Post, Tran );
             return this;
          }

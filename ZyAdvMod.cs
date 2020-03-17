@@ -31,15 +31,15 @@ namespace Sheepy.PhoenixPt {
       } catch ( Exception ex ) { RollbackPatch( ex ); throw; } }
 
       protected void StartPatch ( string id = "patches" ) { lock( Trans ) {
-         id = id ?? "null";
          if ( TransId != null ) return;
+         id = id ?? "null";
          Verbo( "Start {0}", id );
          TransId = id;
       } }
 
       protected void RollbackPatch ( object reason = null ) { lock( Trans ) {
          if ( TransId == null ) return;
-         Warn( "Rollback {0} ({1}) {2}", TransId, Trans.Count, reason ?? "" );
+         Warn( "Rollback {0} ({1} patches) {2}", TransId, Trans.Count, reason ?? "" );
          foreach ( var patch in Trans )
             patch.Unpatch();
          Trans.Clear();
@@ -48,7 +48,7 @@ namespace Sheepy.PhoenixPt {
 
       protected void CommitPatch () { lock( Trans ) {
          if ( TransId == null ) return;
-         Info( "Commit {0} ({1})", TransId, Trans.Count );
+         Info( "Commit {0} ({1} patches)", TransId, Trans.Count );
          Trans.Clear();
          TransId = null;
       } }
