@@ -13,7 +13,6 @@ using PhoenixPoint.Geoscape.Levels.Factions;
 using PhoenixPoint.Geoscape.View;
 using PhoenixPoint.Geoscape.View.ViewControllers.Manufacturing;
 using PhoenixPoint.Geoscape.View.ViewModules;
-using PhoenixPoint.Tactical.Entities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,6 +28,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
 
       public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
+
          StartPatch( "scrap vehicle" );
          var UiType = typeof( UIModuleManufacturing );
          Patch( UiType, "SetupClassFilter", postfix: nameof( AfterSetupClassFilter_CheckScrapMode ) );
@@ -59,7 +59,8 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       }
 
       private static string TitleCase ( string txt ) {
-         return txt.Split( new char[]{ ' ' } ).Join( e => e.Substring(0,1).ToUpper() + e.Substring(1).ToLower(), " " );
+         return txt.Split( new char[]{ ' ' }, StringSplitOptions.RemoveEmptyEntries )
+            .Join( e => char.ToUpper( e[0] ) + e.Substring(1).ToLower(), " " );
       }
 
       private static bool CanScrap ( GeoVehicle plane, bool checkVehicleBay ) {
@@ -121,17 +122,19 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                scrappableTanks.AddRange( plane.Characters.Where( e => e.ClassDef.IsVehicle || e.ClassDef.IsMutog ) );
             }
          foreach ( GeoPhoenixBase pxbase in faction.Bases ) {
-            scrappableTanks.AddRange( pxbase.Site.TacUnits.Where( e => e.ClassDef.IsMutog ) );
+            var units = pxbase.Site.TacUnits;
+            if ( ! units.Any() ) continue;
+            scrappableTanks.AddRange( units.Where( e => e.ClassDef.IsMutog ) );
             if ( CanScrapVehicles( pxbase ) ) {
                Verbo( "Can scrap tanks at {0}", pxbase.Site.Name );
-               scrappableTanks.AddRange( pxbase.Site.TacUnits.Where( e => e.ClassDef.IsVehicle ) );
+               scrappableTanks.AddRange( units.Where( e => e.ClassDef.IsVehicle ) );
             }
          }
-         foreach ( GeoCharacter tank in faction.GroundVehicles )
-            if ( scrappableTanks.Contains( tank ) ) {
-               Verbo( "Can scrap tank {0}", tank.DisplayName );
-               vList.Add( new GeoGroundVehicleWrapper( tank ) );
-            }
+         foreach ( GeoCharacter tank in faction.GroundVehicles ) {
+            if ( ! scrappableTanks.Contains( tank ) ) continue;
+            Verbo( "Can scrap tank {0}", tank.DisplayName );
+            vList.Add( new GeoGroundVehicleWrapper( tank ) );
+         }
          Info( "Can scrap {0} vehicles", vList.Count );
          availableItemRecipes = from t in vList select t;
       } catch ( Exception ex ) { Error( ex ); } }
@@ -164,10 +167,13 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                GeoVehicle vehicle = plane.Vehicle;
                GeoSite site = vehicle.CurrentSite;
                foreach ( GeoCharacter chr in vehicle.Characters.ToList() ) {
+                  Info( "Moving {0} to {1}", chr.DisplayName, site.Name );
                   vehicle.RemoveCharacter( chr );
                   site.AddCharacter( chr );
                }
                faction.ScrapItem( plane );
+               //site.VehicleLeft( vehicle );
+               //vehicle.Owner.UnregisterVehicle( vehicle ); // included in .Destroy
                vehicle.Destroy();
             } else if ( item is GeoGroundVehicleWrapper tank ) {
                Info( "Scraping tank {0}", tank.GetName() );
@@ -228,7 +234,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                   planeDefs[ vDef ] = planeDef;
             }
          }
-         Info( "Found {0} airplanes, {1} tanks", planeDefs.Count, tankDefs.Count );
+         Verbo( "Mapped {0} types of airplanes, {1} types of tanks", planeDefs.Count, tankDefs.Count );
       } catch ( Exception ex ) { Error( ex ); } }
 
       // General wrapper class that backs the scrap list
