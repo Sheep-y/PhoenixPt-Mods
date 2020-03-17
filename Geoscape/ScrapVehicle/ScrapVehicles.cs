@@ -39,11 +39,15 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          Patch( UiType, "RefreshItemList", nameof( BeforeRefreshItemList_FillWithVehicle ) );
          Patch( UiType, "OnItemAction", nameof( BeforeOnItemAction_ConfirmScrap ) );
          Patch( UiType, "Close", postfix: nameof( AfterClose_Cleanup ) );
-         foreach ( var method in typeof( GeoManufactureItem ).GetMethods().Where(
-               e => e.Name == "Init" && e.GetParameters().Any( p => p.Name == "item" && p.ParameterType == typeof( IManufacturable ) ) ) )
+         var GeoItemInits = typeof( GeoManufactureItem ).GetMethods().Where(
+               e => e.Name == "Init" && e.GetParameters().Any( p => p.Name == "item" && p.ParameterType == typeof( IManufacturable ) ) );
+         foreach ( var method in GeoItemInits )
             Patch( method, postfix: nameof( AftereInit_SetName ) );
          Patch( typeof( ItemDef ), "get_ScrapPrice", postfix: nameof( AftereScrapPrice_AddMutagen ) );
-         CommitPatch();
+         if ( GeoItemInits.Any() )
+            CommitPatch();
+         else
+            RollbackPatch( "GeoManufactureItem.Init not found" );
       }
 
       #region General helpers
