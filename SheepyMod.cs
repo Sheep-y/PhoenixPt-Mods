@@ -19,9 +19,9 @@ namespace Sheepy.PhoenixPt {
 
       protected internal HarmonyInstance Patcher;
 
-      protected IPatchRecord Patch ( Type target, string toPatch, string prefix = null, string postfix = null, string transpiler = null ) {
+      protected IPatchRecord Patch ( Type target, string toPatch, string prefix = null, string postfix = null, string transpiler = null ) { try {
          return Patch( target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix, transpiler );
-      }
+      } catch ( AmbiguousMatchException ex ) { Error( new ApplicationException( $"Cannot patch {target}.{toPatch}", ex ) ); return null; } }
 
       protected IPatchRecord Patch ( MethodInfo toPatch, string prefix = null, string postfix = null, string transpiler = null ) {
          if ( Patcher == null ) Patcher = HarmonyInstance.Create( GetType().Namespace );
