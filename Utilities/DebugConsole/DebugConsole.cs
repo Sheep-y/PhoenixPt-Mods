@@ -8,9 +8,9 @@ using UnityEngine;
 
 namespace Sheepy.PhoenixPt.DebugConsole {
    public class Mod {
-      public static void Init () => new Mod().SplashMod();
+      public static void Init () => SplashMod();
 
-      public void SplashMod () {
+      public static void SplashMod () {
          Application.logMessageReceived += UnityToConsole;
          GameConsoleWindow.DisableConsoleAccess = false;
       }
