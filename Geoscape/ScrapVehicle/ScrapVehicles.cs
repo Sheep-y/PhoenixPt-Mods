@@ -1,5 +1,6 @@
 ﻿using Base.Core;
 using Base.Defs;
+using Base.Serialization.General;
 using Base.UI.MessageBox;
 using Harmony;
 using PhoenixPoint.Common.Core;
@@ -7,6 +8,7 @@ using PhoenixPoint.Common.Entities;
 using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Common.View.ViewControllers;
 using PhoenixPoint.Geoscape.Entities;
+using PhoenixPoint.Geoscape.Entities.PhoenixBases.FacilityComponents;
 using PhoenixPoint.Geoscape.Entities.Sites;
 using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Geoscape.Levels.Factions;
@@ -28,7 +30,10 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
 
       public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
-
+         Application.logMessageReceivedThreaded += LogCallback;
+         //Patch( typeof( FunctorWriteSection ), "GetContentsToWrite", nameof( BeforeGetContent_Log ) );
+         //Patch( typeof( VehicleSlotFacilityComponent ), "UnassignAircraft", nameof( BeforeLeft ), nameof( AfterLeft ) );
+         //Patch( typeof( SerializationType ), "ShouldWriteMember", postfix: nameof( LogWrite ) );
          StartPatch( "scrap vehicle" );
          var UiType = typeof( UIModuleManufacturing );
          Patch( UiType, "SetupClassFilter", postfix: nameof( AfterSetupClassFilter_CheckScrapMode ) );
@@ -45,8 +50,9 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          }
          foreach ( var method in GeoItemInits )
             Patch( method, postfix: nameof( AftereInit_SetName ) );
-         Patch( typeof( ItemDef ), "get_ScrapPrice", postfix: nameof( AftereScrapPrice_AddMutagen ) );
          CommitPatch();
+         // This one is relatively minor, so putting out of transaction.
+         Patch( typeof( ItemDef ), "get_ScrapPrice", postfix: nameof( AftereScrapPrice_AddMutagen ) );
       }
 
       #region General helpers
@@ -73,6 +79,28 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          return pxBase.Stats.RepairVehiclesHP > 0;
       }
       #endregion
+
+      public static void LogCallback( string condition, string stackTrace, LogType type ) {
+         Info( "{0} {1} {2}", type, condition, stackTrace );
+      }
+      /*
+      public static void BeforeGetContent_Log ( FunctorWriteSection __instance ) {
+         Info( __instance.GetName() );
+      }
+      public static void BeforeLeft ( VehicleSlotFacilityComponent __instance, GeoVehicle aircraft ) {
+         Info( "Before: {0} {1}", __instance.FreeAircraftSlots, aircraft.Name );
+      }
+      public static void AfterLeft ( VehicleSlotFacilityComponent __instance, GeoVehicle aircraft ) {
+         Info( "After: {0} {1}", __instance.FreeAircraftSlots, aircraft.Name );
+      }
+      */
+
+      public static void LogWrite ( object o, SerializationMember member, ref bool __result ) {
+         if ( ! __result ) return;
+         Info( "{0} {1}", o?.GetType(), member.OwnName );
+         if ( o is GeoVehicle vehicle && member.OwnName == "ActorCreateData" && vehicle.gameObject == null )
+            __result = false;
+      }
 
       private static bool NeedToAddVehicles = false;
 
@@ -172,7 +200,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                   site.AddCharacter( chr );
                }
                faction.ScrapItem( plane );
-               //site.VehicleLeft( vehicle );
+               site.VehicleLeft( vehicle );
                //vehicle.Owner.UnregisterVehicle( vehicle ); // included in .Destroy
                vehicle.Destroy();
             } else if ( item is GeoGroundVehicleWrapper tank ) {
