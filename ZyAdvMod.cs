@@ -17,6 +17,18 @@ namespace Sheepy.PhoenixPt {
    /// </summary>
    public class ZyAdvMod : ZyMod {
 
+      protected IPatch TryPatch ( Type type, string method, string prefix = null, string postfix = null, string transpiler = null ) { try {
+         return base.Patch( type, method, prefix, postfix, transpiler );
+      } catch ( Exception ex ) {
+         return null;
+      } }
+
+      protected virtual IPatch TryPatch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) { try {
+         return base.Patch( method, prefix, postfix, transpiler );
+      } catch ( Exception ex ) {
+         return null;
+      } }
+
       private string TransId = null;
       private List< IPatch > Trans = new List<IPatch>();
 
@@ -52,6 +64,20 @@ namespace Sheepy.PhoenixPt {
          Trans.Clear();
          TransId = null;
       } }
+
+      protected Exception BatchPatch ( Action patcher ) => BatchPatch( "patches", patcher );
+
+      protected Exception BatchPatch ( string id, Action patcher ) {
+         StartPatch( id );
+         try {
+            patcher();
+            CommitPatch();
+            return null;
+         } catch ( Exception ex ) {
+            RollbackPatch( ex );
+            return ex;
+         }
+      }
 
       protected static string LogFile;
 
