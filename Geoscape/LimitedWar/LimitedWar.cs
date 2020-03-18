@@ -45,10 +45,10 @@ namespace Sheepy.PhoenixPt.NoWar {
 
          if ( settings.Faction_Attack_Zone || settings.Alien_Attack_Zone ) {
             BatchPatch( "Zoned attacks", () => {
-               Patch( typeof( GeoHavenDefenseMission ), "UpdateGeoscapeMissionState", nameof( Prefix_UpdateSite ), nameof( Postfix_UpdateSite ) );
+               Patch( typeof( GeoHavenDefenseMission ), "UpdateGeoscapeMissionState", nameof( BeforeGeoMission_StoreMission ), nameof( AfterGeoMission_Cleanup ) );
                Patch( typeof( GeoSite ), "DestroySite", nameof( Override_DestroySite ) );
-               Patch( typeof( GeoscapeLog ), "Map_SiteMissionStarted", postfix: nameof( Postfix_SiteMission ) );
-               Patch( typeof( GeoscapeLog ), "Map_SiteMissionEnded", postfix: nameof( Postfix_SiteMission ) );
+               Patch( typeof( GeoscapeLog ), "Map_SiteMissionStarted", postfix: nameof( AfterSiteMission_AmendLog ) );
+               Patch( typeof( GeoscapeLog ), "Map_SiteMissionEnded", postfix: nameof( AfterSiteMission_AmendLog ) );
                CommitPatch();
             } );
          }
@@ -56,16 +56,13 @@ namespace Sheepy.PhoenixPt.NoWar {
          if ( settings.Attack_Raise_Alertness || settings.Attack_Raise_Faction_Alertness )
                Patch( typeof( GeoSite ), "DestroySite", nameof( AfterDestroySite_RaiseAlertness ) );
 
-         if ( settings.Faction_Attack_Zone || settings.Alien_Attack_Zone )
-               Patch( typeof( GeoSite ), "DestroySite", nameof( Override_DestroySite ) );
-
          if ( settings.Defense_Boost != null )
-            Patch( typeof( GeoHavenDefenseMission ), "GetDefenseDeployment", postfix: nameof( Postfix_GetDeployment ) );
+            Patch( typeof( GeoHavenDefenseMission ), "GetDefenseDeployment", postfix: nameof( AfterDefDeploy_BoostDef ) );
 
          if ( settings.Has_Less_Attack ) {
             BatchPatch( "Less attacks", () => {
-               Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( GetDifficulty ) );
-               Patch( typeof( VehicleFactionController ), "UpdateNavigation", nameof( Prefix_Navigate ), nameof( Postfix_Navigate ) );
+               Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( AfterLevelStart_StoreDiff ) );
+               Patch( typeof( VehicleFactionController ), "UpdateNavigation", nameof( BeforeNav_Drop_Attack ), nameof( AfterNav_Restore ) );
                Patch( typeof( GeoFaction ), "AttackHavenFromVehicle", nameof( Override_Attack ) );
             } );
          }
@@ -79,7 +76,7 @@ namespace Sheepy.PhoenixPt.NoWar {
       private static int difficulty = 1; // Default to Vet if anything goes wrong
       private static IGeoFactionMissionParticipant lastAttacker = null;
 
-      public static void GetDifficulty ( GeoLevelController __instance ) { try {
+      public static void AfterLevelStart_StoreDiff ( GeoLevelController __instance ) { try {
          GameDifficultyLevelDef diff = __instance.CurrentDifficultyLevel;
          difficulty = __instance.DynamicDifficultySystem.DifficultyLevels.ToList().IndexOf( diff );
          lastAttacker = null;
@@ -115,7 +112,7 @@ namespace Sheepy.PhoenixPt.NoWar {
       } catch ( Exception ex ) { return ! Error( ex ); } }
 
       [ HarmonyPriority( Priority.Low ) ]
-      public static void Prefix_Navigate ( VehicleFactionController __instance, ref float? __state ) { try {
+      public static void BeforeNav_Drop_Attack ( VehicleFactionController __instance, ref float? __state ) { try {
          if ( ShouldStopFight( __instance.Vehicle?.GeoLevel, __instance.Vehicle?.Owner ) ) {
             __state = __instance.ControllerDef.FactionInWarWeightMultiplier;
             __instance.ControllerDef.FactionInWarWeightMultiplier = -2f;
@@ -125,7 +122,7 @@ namespace Sheepy.PhoenixPt.NoWar {
       } catch ( Exception ex ) { Error( ex ); } }
 
       [ HarmonyPriority( Priority.High ) ]
-      public static void Postfix_Navigate ( VehicleFactionController __instance, float? __state ) {
+      public static void AfterNav_Restore ( VehicleFactionController __instance, float? __state ) {
          if ( __state != null ) __instance.ControllerDef.FactionInWarWeightMultiplier = __state.Value;
       }
 
@@ -160,8 +157,8 @@ namespace Sheepy.PhoenixPt.NoWar {
       private static GeoHavenDefenseMission DefenseMission = null;
 
       [ HarmonyPriority( Priority.VeryHigh ) ]
-      public static void Prefix_UpdateSite  ( GeoHavenDefenseMission __instance ) { DefenseMission = __instance; }
-      public static void Postfix_UpdateSite () { DefenseMission = null; }
+      public static void BeforeGeoMission_StoreMission  ( GeoHavenDefenseMission __instance ) { DefenseMission = __instance; }
+      public static void AfterGeoMission_Cleanup () { DefenseMission = null; }
 
       [ HarmonyPriority( Priority.High ) ]
       public static bool Override_DestroySite ( GeoSite __instance ) { try {
@@ -177,7 +174,7 @@ namespace Sheepy.PhoenixPt.NoWar {
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
 
-      public static void Postfix_SiteMission ( GeoSite site, GeoMission mission, List<GeoscapeLogEntry> ____entries ) { try {
+      public static void AfterSiteMission_AmendLog ( GeoSite site, GeoMission mission, List<GeoscapeLogEntry> ____entries ) { try {
          if ( ! ( mission is GeoHavenDefenseMission defense ) ) return;
          var attacker = DefenseMission.GetEnemyFaction();
          if ( IsPhoenixPt( attacker ) ||
@@ -195,7 +192,7 @@ namespace Sheepy.PhoenixPt.NoWar {
 
       #region Defense Boost
       [ HarmonyPriority( Priority.High ) ]
-      public static void Postfix_GetDeployment ( GeoHavenDefenseMission __instance, ref int __result, GeoHaven haven ) { try {
+      public static void AfterDefDeploy_BoostDef ( GeoHavenDefenseMission __instance, ref int __result, GeoHaven haven ) { try {
          Info( "{0} deploy {1} vs {2}x{3}", haven.Site.Name, __result, __instance.AttackerDeployment, haven.Site.Owner.FactionStatModifiers.HavenAttackerStrengthModifier );
          float deploy = __result;
          switch ( haven?.AlertLevel ) {
