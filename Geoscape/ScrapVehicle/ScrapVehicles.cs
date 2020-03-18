@@ -118,12 +118,14 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          GeoPhoenixFaction faction = ____context.ViewerFaction as GeoPhoenixFaction;
 
          List<GeoTacUnit> scrappableTanks = new List<GeoTacUnit>();
-         foreach ( GeoVehicle plane in faction.Vehicles )
-            if ( CanScrap( plane, true ) ) {
-               Verbo( "Can scrap airplane {0}", plane.Name );
-               vList.Add( new GeoVehicleWrapper( plane ) );
-               scrappableTanks.AddRange( plane.Characters.Where( e => e.ClassDef.IsVehicle || e.ClassDef.IsMutog ) );
-            }
+         if ( faction.Vehicles.Count() > 1 ) {
+            foreach ( GeoVehicle plane in faction.Vehicles )
+               if ( CanScrap( plane, true ) ) {
+                  Verbo( "Can scrap airplane {0}", plane.Name );
+                  vList.Add( new GeoVehicleWrapper( plane ) );
+                  scrappableTanks.AddRange( plane.Characters.Where( e => e.ClassDef.IsVehicle || e.ClassDef.IsMutog ) );
+               }
+         }
          foreach ( GeoPhoenixBase pxbase in faction.Bases ) {
             var units = pxbase.Site.TacUnits;
             if ( ! units.Any() ) continue;
@@ -177,16 +179,6 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                faction.ScrapItem( plane );
                vehicle.Travelling = true; // Unset vehicle.CurrentSite and triggers site.VehicleLeft
                vehicle.Destroy();
-               foreach ( var pxbase in context.Level.PhoenixFaction.Bases ) {
-                  Info( "Checking {0} ({1})", pxbase.Site.Name, string.Join( ", ", pxbase.VehiclesAtBase.Select( e => e?.Name ) ) );
-                  foreach ( var bay in pxbase.Layout.Facilities.OfType<VehicleSlotFacilityComponent>() ) {
-                     if ( bay.IsAssigned( vehicle ) ) {
-                        Info( "Found assigned" );
-                        bay.UnassignAircraft( vehicle );
-                     }
-                  }
-                  pxbase.AutoAssignVehicles();
-               }
             } else if ( item is GeoGroundVehicleWrapper tank ) {
                Info( "Scraping tank {0}", tank.GetName() );
                faction.ScrapItem( tank );
@@ -231,7 +223,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          if ( planeDefs != null ) return;
          planeDefs = new Dictionary<GeoVehicleDef, VehicleItemDef>( 3 );
          tankDefs = new Dictionary<TacUnitClassDef, GroundVehicleItemDef>( 3 );
-            
+
          Verbo( "Loading vehicles for scrap screen" );
          DefRepository defRepo = GameUtl.GameComponent<DefRepository>();
          foreach ( BaseDef def in defRepo.GetAllDefs<BaseDef>() ) {
