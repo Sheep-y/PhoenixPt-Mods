@@ -7,8 +7,8 @@
     <ProjectGuid>{2AF49999-95E9-4282-B2B7-D72EC16425FC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sheepy.PhoenixPt.DiagnosticConsole</RootNamespace>
-    <AssemblyName>PhoenixPt_DiagnosticConsole</AssemblyName>
+    <RootNamespace>Sheepy.PhoenixPt.DebugConsole</RootNamespace>
+    <AssemblyName>PhoenixPt_DebugConsole</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -53,7 +53,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DiagnosticConsole.cs" />
+    <Compile Include="DebugConsole.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

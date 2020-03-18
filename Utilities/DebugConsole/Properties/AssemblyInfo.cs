@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle( "Diagnostic Console" )]
-[assembly: AssemblyDescription( "Phoenix Point mod - Log error to file and in-game console. Enable console." )]
+[assembly: AssemblyTitle( "Debug Console" )]
+[assembly: AssemblyDescription( "Phoenix Point mod - Enable in-game console and log error to it." )]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany( "Sheepy" )]
 [assembly: AssemblyProduct( "" )]

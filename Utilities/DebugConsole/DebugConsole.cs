@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Sheepy.PhoenixPt.DiagnosticConsole {
+namespace Sheepy.PhoenixPt.DebugConsole {
    public class Mod {
       public static void Init () => new Mod().SplashMod();
 
