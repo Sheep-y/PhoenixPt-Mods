@@ -226,12 +226,11 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
 
          Verbo( "Loading vehicles for scrap screen" );
          DefRepository defRepo = GameUtl.GameComponent<DefRepository>();
-         foreach ( BaseDef def in defRepo.GetAllDefs<BaseDef>() ) {
+         foreach ( BaseDef def in defRepo.GetAllDefs<ItemDef>() ) {
             if ( def is GroundVehicleItemDef tankDef ) {
                TacUnitClassDef chrDef = tankDef.VehicleClassDef;
                if ( chrDef != null && ( chrDef.IsVehicle || chrDef.IsMutog ) )
                   tankDefs[ chrDef ] = tankDef;
-
             } else if ( def is VehicleItemDef planeDef ) {
                GeoVehicleDef vDef = planeDef.ComponentSetDef?.GetComponentDef<GeoVehicleDef>();
                if ( vDef != null )
