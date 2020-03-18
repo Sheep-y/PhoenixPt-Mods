@@ -31,12 +31,6 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
 
       public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
-         Application.logMessageReceivedThreaded += UnityLog;
-         Patch( typeof( FunctorWriteSection ), "GetContentsToWrite", nameof( LogSection ) );
-         //Patch( typeof( SerializationType ), "ShouldWriteMember", postfix: nameof( LogWriteMem ) );
-         Patch( typeof( SerializationType ), "Write", postfix: nameof( LogWrite ) );
-         //Patch( typeof( SerializationComponent ), "WriteSavegame", nameof( LogObjects ) );
-         Patch( typeof( SerializationWriter ), "AddToQueueAndGetID", nameof( LogObjectAdd ) );
          StartPatch( "scrap vehicle" );
          var UiType = typeof( UIModuleManufacturing );
          Patch( UiType, "SetupClassFilter", postfix: nameof( AfterSetupClassFilter_CheckScrapMode ) );
@@ -82,59 +76,6 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          return pxBase.Stats.RepairVehiclesHP > 0;
       }
       #endregion
-
-      public static void UnityLog ( string condition, string stackTrace, LogType type ) {
-         Info( "{0} {1} {2}", type, condition, stackTrace );
-      }
-
-      public static void LogSection ( FunctorWriteSection __instance ) {
-         Info( "Section {0}", __instance.GetName() );
-      }
-
-      public static void LogObjectAdd ( object obj ) {
-         if ( obj is VehicleSlotFacilityComponent fac  ) {
-            Info( "Add Bay at {0}", fac?.Context?.Facility?.PxBase.Site.Name );
-            var list = (GeoVehicle[]) obj.GetType().GetField( "_aircraftSlots", NonPublic | Instance ).GetValue( obj );
-            if ( list.Any( e => e?.Name == "MANTICORE 2" ) )
-               Info( "FOUND REFERENCE" );
-         }
-         else if ( obj is GeoVehicle[] ary && ary.Any( e => e?.Name == "MANTICORE 2" ) ) {
-            Info( "Add Array {0}", ary.Length );
-            Info( "FOUND REFERENCE" );
-         }
-         else if ( obj is GeoVehicle plane && plane.Name == "MANTICORE 2" ) {
-            Info( "Add {0}", plane.Name );
-            Info( "FOUND REFERENCE" );
-         }
-      }
-
-      public static void LogWrite ( object o ) {
-         if ( o is VehicleSlotFacilityComponent fac  ) {
-            Info( "Writing Bay at {0}", fac?.Context?.Facility?.PxBase.Site.Name );
-            var list = (GeoVehicle[]) o.GetType().GetField( "_aircraftSlots", NonPublic | Instance ).GetValue( o );
-            if ( list.Any( e => e?.Name == "MANTICORE 2" ) )
-               Info( new StackTrace() );
-         }
-         else if ( o is GeoVehicle[] ary && ary.Any( e => e?.Name == "MANTICORE 2" ) ) {
-            Info( "Writing Array {0}", ary.Length );
-            Info( "FOUND REFERENCE" );
-         }
-         else if ( o is GeoVehicle plane && plane.Name == "MANTICORE 2" ) {
-            Info( "Writing {0}", plane.Name );
-            Info( "FOUND REFERENCE" );
-         }
-      }
-
-      //public static void LogObjects ( IEnumerable<object> objects ) {
-      //   Info( "Saving {0} objects", objects.Count() );
-      //   foreach ( var plane in objects.OfType<GeoVehicle>().Select( e => e.Name ) )
-      //      Info( plane );
-      //}
-
-      public static void LogWriteMem ( object o, SerializationMember member, ref bool __result ) {
-         if ( ! __result ) return;
-         Info( "Member {0} {1}", o?.GetType(), member.OwnName );
-      }
 
       private static bool NeedToAddVehicles = false;
 
@@ -234,7 +175,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                   site.AddCharacter( chr );
                }
                faction.ScrapItem( plane );
-               site.VehicleLeft( vehicle );
+               vehicle.Travelling = true; // Unset vehicle.CurrentSite and triggers site.VehicleLeft
                vehicle.Destroy();
                foreach ( var pxbase in context.Level.PhoenixFaction.Bases ) {
                   Info( "Checking {0} ({1})", pxbase.Site.Name, string.Join( ", ", pxbase.VehiclesAtBase.Select( e => e?.Name ) ) );
@@ -311,12 +252,6 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       // General wrapper class that backs the scrap list
       private abstract class GeoUnitWrapper : GeoItem, IManufacturable {
          internal GeoUnitWrapper ( ItemDef def ) : base( def ) {}
-         /*
-         private GeoUnitWrapper ( ItemUnit itemUnit ) : base( itemUnit ) { throw new NotSupportedException(); }
-         private GeoUnitWrapper ( ItemData data ) : base( data ) { throw new NotSupportedException(); }
-         private GeoUnitWrapper ( ItemDef def, CommonItemData commonData ) : base( def, commonData ) { throw new NotSupportedException(); }
-         private GeoUnitWrapper ( ItemDef def, int count = 1, int charges = -1, AmmoManager ammo = null ) : base( def, count, charges, ammo ) { throw new NotSupportedException(); }
-         */
          public ResourcePack ManufacturePrice => ItemDef.ManufacturePrice;
          public ItemDef RelatedItemDef => ItemDef;
          public Sprite SmallIcon => ItemDef.GetSmallIcon();
