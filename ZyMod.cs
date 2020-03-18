@@ -77,6 +77,12 @@ namespace Sheepy.PhoenixPt {
          return new T();
       }
 
+      public static string TitleCase ( string txt ) {
+         // return CultureInfo.CurrentCulture.TextInfo.ToTitleCase( txt );
+         return txt.Split( new char[]{ ' ' }, StringSplitOptions.RemoveEmptyEntries )
+            .Join( e => char.ToUpper( e[0] ) + e.Substring(1).ToLower(), " " );
+      }
+
       protected internal static Action< SourceLevels, object, object[] > Logger;
       protected virtual void SetLogger ( Action< SourceLevels, object, object[] > logger ) { lock ( _Lock ) Logger = logger; }
       private static void Log ( SourceLevels level, object msg, object[] augs ) { lock ( _Lock ) Logger?.Invoke( level, msg, augs ); }

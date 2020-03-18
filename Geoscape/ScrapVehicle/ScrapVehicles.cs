@@ -61,11 +61,6 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          return IsScrapping( __instance ) && _activeFilterButton == __instance.VehiclesFilterButton;
       }
 
-      private static string TitleCase ( string txt ) {
-         return txt.Split( new char[]{ ' ' }, StringSplitOptions.RemoveEmptyEntries )
-            .Join( e => char.ToUpper( e[0] ) + e.Substring(1).ToLower(), " " );
-      }
-
       private static bool CanScrap ( GeoVehicle plane, bool checkVehicleBay ) {
          GeoSite site = plane.CurrentSite;
          if ( plane.Travelling || site == null || site.Type != GeoSiteType.PhoenixBase ) return false;
