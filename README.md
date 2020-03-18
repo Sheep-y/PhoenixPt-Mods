@@ -17,6 +17,10 @@ usually custom jobs or for self use, can be found here.
 
 Published mods only 
 
+* **Debug Console** - Enable console and direct unity log and game log to it
+* * https://www.nexusmods.com/phoenixpoint/mods/44/
+* **Scrap Vehicle** - Make it possible to recycle vehicles and mutogs.
+* * https://www.nexusmods.com/phoenixpoint/mods/26
 * **Skip Intro** - Skip logos, openings, and landings.
 * * https://www.nexusmods.com/phoenixpoint/mods/17
 * **UI Tweaks** - Enhance Geoscape pausing and centering.
