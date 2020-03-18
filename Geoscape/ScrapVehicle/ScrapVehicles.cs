@@ -1,5 +1,6 @@
 ﻿using Base.Core;
 using Base.Defs;
+using Base.Serialization;
 using Base.Serialization.General;
 using Base.UI.MessageBox;
 using Harmony;
@@ -30,10 +31,12 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
 
       public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
-         Application.logMessageReceivedThreaded += LogCallback;
-         //Patch( typeof( FunctorWriteSection ), "GetContentsToWrite", nameof( BeforeGetContent_Log ) );
-         //Patch( typeof( VehicleSlotFacilityComponent ), "UnassignAircraft", nameof( BeforeLeft ), nameof( AfterLeft ) );
-         //Patch( typeof( SerializationType ), "ShouldWriteMember", postfix: nameof( LogWrite ) );
+         Application.logMessageReceivedThreaded += UnityLog;
+         Patch( typeof( FunctorWriteSection ), "GetContentsToWrite", nameof( LogSection ) );
+         //Patch( typeof( SerializationType ), "ShouldWriteMember", postfix: nameof( LogWriteMem ) );
+         Patch( typeof( SerializationType ), "Write", postfix: nameof( LogWrite ) );
+         //Patch( typeof( SerializationComponent ), "WriteSavegame", nameof( LogObjects ) );
+         Patch( typeof( SerializationWriter ), "AddToQueueAndGetID", nameof( LogObjectAdd ) );
          StartPatch( "scrap vehicle" );
          var UiType = typeof( UIModuleManufacturing );
          Patch( UiType, "SetupClassFilter", postfix: nameof( AfterSetupClassFilter_CheckScrapMode ) );
@@ -80,26 +83,57 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       }
       #endregion
 
-      public static void LogCallback( string condition, string stackTrace, LogType type ) {
+      public static void UnityLog ( string condition, string stackTrace, LogType type ) {
          Info( "{0} {1} {2}", type, condition, stackTrace );
       }
-      /*
-      public static void BeforeGetContent_Log ( FunctorWriteSection __instance ) {
-         Info( __instance.GetName() );
-      }
-      public static void BeforeLeft ( VehicleSlotFacilityComponent __instance, GeoVehicle aircraft ) {
-         Info( "Before: {0} {1}", __instance.FreeAircraftSlots, aircraft.Name );
-      }
-      public static void AfterLeft ( VehicleSlotFacilityComponent __instance, GeoVehicle aircraft ) {
-         Info( "After: {0} {1}", __instance.FreeAircraftSlots, aircraft.Name );
-      }
-      */
 
-      public static void LogWrite ( object o, SerializationMember member, ref bool __result ) {
+      public static void LogSection ( FunctorWriteSection __instance ) {
+         Info( "Section {0}", __instance.GetName() );
+      }
+
+      public static void LogObjectAdd ( object obj ) {
+         if ( obj is VehicleSlotFacilityComponent fac  ) {
+            Info( "Add Bay at {0}", fac?.Context?.Facility?.PxBase.Site.Name );
+            var list = (GeoVehicle[]) obj.GetType().GetField( "_aircraftSlots", NonPublic | Instance ).GetValue( obj );
+            if ( list.Any( e => e?.Name == "MANTICORE 2" ) )
+               Info( "FOUND REFERENCE" );
+         }
+         else if ( obj is GeoVehicle[] ary && ary.Any( e => e?.Name == "MANTICORE 2" ) ) {
+            Info( "Add Array {0}", ary.Length );
+            Info( "FOUND REFERENCE" );
+         }
+         else if ( obj is GeoVehicle plane && plane.Name == "MANTICORE 2" ) {
+            Info( "Add {0}", plane.Name );
+            Info( "FOUND REFERENCE" );
+         }
+      }
+
+      public static void LogWrite ( object o ) {
+         if ( o is VehicleSlotFacilityComponent fac  ) {
+            Info( "Writing Bay at {0}", fac?.Context?.Facility?.PxBase.Site.Name );
+            var list = (GeoVehicle[]) o.GetType().GetField( "_aircraftSlots", NonPublic | Instance ).GetValue( o );
+            if ( list.Any( e => e?.Name == "MANTICORE 2" ) )
+               Info( new StackTrace() );
+         }
+         else if ( o is GeoVehicle[] ary && ary.Any( e => e?.Name == "MANTICORE 2" ) ) {
+            Info( "Writing Array {0}", ary.Length );
+            Info( "FOUND REFERENCE" );
+         }
+         else if ( o is GeoVehicle plane && plane.Name == "MANTICORE 2" ) {
+            Info( "Writing {0}", plane.Name );
+            Info( "FOUND REFERENCE" );
+         }
+      }
+
+      //public static void LogObjects ( IEnumerable<object> objects ) {
+      //   Info( "Saving {0} objects", objects.Count() );
+      //   foreach ( var plane in objects.OfType<GeoVehicle>().Select( e => e.Name ) )
+      //      Info( plane );
+      //}
+
+      public static void LogWriteMem ( object o, SerializationMember member, ref bool __result ) {
          if ( ! __result ) return;
-         Info( "{0} {1}", o?.GetType(), member.OwnName );
-         if ( o is GeoVehicle vehicle && member.OwnName == "ActorCreateData" && vehicle.gameObject == null )
-            __result = false;
+         Info( "Member {0} {1}", o?.GetType(), member.OwnName );
       }
 
       private static bool NeedToAddVehicles = false;
@@ -201,8 +235,17 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                }
                faction.ScrapItem( plane );
                site.VehicleLeft( vehicle );
-               //vehicle.Owner.UnregisterVehicle( vehicle ); // included in .Destroy
                vehicle.Destroy();
+               foreach ( var pxbase in context.Level.PhoenixFaction.Bases ) {
+                  Info( "Checking {0} ({1})", pxbase.Site.Name, string.Join( ", ", pxbase.VehiclesAtBase.Select( e => e?.Name ) ) );
+                  foreach ( var bay in pxbase.Layout.Facilities.OfType<VehicleSlotFacilityComponent>() ) {
+                     if ( bay.IsAssigned( vehicle ) ) {
+                        Info( "Found assigned" );
+                        bay.UnassignAircraft( vehicle );
+                     }
+                  }
+                  pxbase.AutoAssignVehicles();
+               }
             } else if ( item is GeoGroundVehicleWrapper tank ) {
                Info( "Scraping tank {0}", tank.GetName() );
                faction.ScrapItem( tank );
