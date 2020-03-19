@@ -17,19 +17,15 @@ usually custom jobs or for self use, can be found here.
 
 Published mods only 
 
-* **Debug Console** - Enable console and direct unity log and game log to it
-* * https://www.nexusmods.com/phoenixpoint/mods/44/
-* **Scrap Vehicle** - Make it possible to recycle vehicles and mutogs.
-* * https://www.nexusmods.com/phoenixpoint/mods/26
-* **Skip Intro** - Skip logos, openings, and landings.
-* * https://www.nexusmods.com/phoenixpoint/mods/17
-* **UI Tweaks** - Enhance Geoscape pausing and centering.
-* * https://www.nexusmods.com/phoenixpoint/mods/13
+* [**Debug Console**](https://www.nexusmods.com/phoenixpoint/mods/44/) - Enable console and direct unity log and game log to it
+* [**Scrap Vehicle**](https://www.nexusmods.com/phoenixpoint/mods/26) - Make it possible to recycle vehicles and mutogs.
+* [**Skip Intro**](https://www.nexusmods.com/phoenixpoint/mods/17) - Skip logos, openings, and landings.
+* [**UI Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centering.
 
-## PPML Compatibility
+## Loader Compatibility
 
-All published mods works with both [PPML v0.1](https://github.com/RealityMachina/PhoenixPointModInjector/#readme) and [Modnix](https://github.com/Sheep-y/Modnix),
-and are released to the Public Domain.
+All published mods are tested with [Modnix](https://github.com/Sheep-y/Modnix),
+and should be compatible with [PPML v0.1](https://github.com/RealityMachina/PhoenixPointModInjector/#readme).
 
 All my mods are *incompatible* with [PPML v0.2](https://github.com/Ijwu/PhoenixPointModLoader/#readme) found on [NexusMods](https://www.nexusmods.com/phoenixpoint/mods/38).
 Because of how PPML v0.2 is designed, mods must choice one to support.
@@ -39,10 +35,6 @@ Because of how PPML v0.2 is designed, mods must choice one to support.
 
 Since 0.1 is still used by old mods, and many players are not experts in mod management,
 I opt for having my mods not work rather than crashing the game, when they are used incorrectly.
-
-Could have make two versions for each and every mods, of course.
-But I'd rather spend time on mods and tools, than supporting a tool that back itself into a corner and is not being updated.
-
 Thanks for your understanding.
 
 ## Tech Tree
