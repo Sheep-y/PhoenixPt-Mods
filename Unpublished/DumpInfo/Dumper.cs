@@ -90,17 +90,15 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             return;
          }
          var type = val.GetType();
-         if ( val is Array ary ) {
-            StartTag( name, "count", ary.Length.ToString(), false );
-            DumpList( name, ary, level );
-            return;
-         } else if ( type.IsClass ) {
-            if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
-            if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "path", faction.ResourcePath, true ); return; }
-            if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "path", tacChar.ResourcePath, true ); return; }
-            if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "path", tacItem.ResourcePath, true ); return; }
-            if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
-               { StartTag( name, "type", type.FullName, true ); return; }
+         if ( type.IsClass ) {
+            if ( ! ( val is Array ) ) {
+               if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
+               if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "path", faction.ResourcePath, true ); return; }
+               if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "path", tacChar.ResourcePath, true ); return; }
+               if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "path", tacItem.ResourcePath, true ); return; }
+               if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
+                  { StartTag( name, "type", type.FullName, true ); return; }
+            }
             try {
                if ( RecurringObject.TryGetValue( val, out int link ) ) { StartTag( name, "ref", link.ToString( "X" ), true ); return; }
             } catch ( Exception ex ) { StartTag( name, "err_H", ex.GetType().Name, true ); return; } // Hash error
@@ -126,7 +124,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( e == null )
                NullMem( "LI" );
             else
-               Mem2Xml( e.GetType() == itemType ? "LI" : ( "LI." + e.GetType().Name ), e, level + 1 );
+               Mem2Xml( e.GetType() == itemType ? "LI" : ( "LI." + e.GetType().Name ), e, level );
          }
          EndTag( name );
          return true;
