@@ -82,15 +82,19 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             return;
          }
          if ( val is GameObject obj ) { StartTag( name, "name", obj.name, true ); return; }
-         if ( val is byte[] ary ) {
+         if ( val is byte[] bary ) {
             if ( name == "NativeData" ) // MapParcelDef.NativeData
-               StartTag( name, "length", ary.Length.ToString(), true );
+               StartTag( name, "length", bary.Length.ToString(), true );
             else
-               SimpleMem( name, Convert.ToBase64String( ary ) );
+               SimpleMem( name, Convert.ToBase64String( bary ) );
             return;
          }
          var type = val.GetType();
-         if ( type.IsClass ) {
+         if ( val is Array ary ) {
+            StartTag( name, "count", ary.Length.ToString(), false );
+            DumpList( name, ary, level );
+            return;
+         } else if ( type.IsClass ) {
             if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
             if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "path", faction.ResourcePath, true ); return; }
             if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "path", tacChar.ResourcePath, true ); return; }
@@ -104,12 +108,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             RecurringObject.Add( val, id );
             StartTag( name, "id", id.ToString( "X" ), false );
             if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
-               foreach ( var e in list )
-                  if ( e == null )
-                     NullMem( "LI" );
-                  else
-                     Mem2Xml( e.GetType() == type.GetElementType() ? "LI" : ( "LI." + e.GetType().Name ), e, level + 1 );
-               EndTag( name );
+               DumpList( name, list, level );
                return;
             }
          } else {
@@ -119,6 +118,18 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          }
          Obj2Xml( val, level + 1 ); // Either structs or non-enum objects
          EndTag( name );
+      }
+
+      private bool DumpList ( string name, IEnumerable list, int level ) {
+         var itemType = list.GetType().GetElementType();
+         foreach ( var e in list ) {
+            if ( e == null )
+               NullMem( "LI" );
+            else
+               Mem2Xml( e.GetType() == itemType ? "LI" : ( "LI." + e.GetType().Name ), e, level + 1 );
+         }
+         EndTag( name );
+         return true;
       }
 
       private void Obj2Xml ( object subject, int level ) {
