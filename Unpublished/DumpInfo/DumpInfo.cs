@@ -55,10 +55,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Query = query;
 
          DumpPatch = Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", null, postfix: nameof( DumpData ) );
-         //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogWeapons" );
-         //Patch( typeof( GeoLevelController ), "OnLevelStart", null, "LogAbilities" );
-         //Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: "DumpResearches" );
-         //Patch( typeof( ItemManufacturing ), "AddAvailableItem", "LogItem" );
+         //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogWeapons ) );
+         //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogAbilities ) );
+         //Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: nameof( DumpResearches ) );
+         //Patch( typeof( ItemManufacturing ), "AddAvailableItem", nameof( LogItem ) );
       }
 
       private static Dictionary< Type, List<BaseDef> > ExportData = new Dictionary< Type, List<BaseDef> >();
@@ -102,7 +102,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             ExportData.Add( type, list = new List<BaseDef>() );
          list.Add( obj );
       }
-
+      /*
       #region Manual dump code
       public static void DumpWeapons ( GeoLevelController __instance ) { try {
          // Build keyword list and weapon list - heavy code, do once
@@ -256,6 +256,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             return def.GetType().Name;
       }
       #endregion
+      */
    }
 
    internal class Dumper {
@@ -385,41 +386,45 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
 
       private void WriteColour ( string tag, Color val ) {
-         Writer.Write( '<' );
-         Writer.Write( EscTag( tag ) );
-         Writer.Write( " r=\"" );
-         Writer.Write( val.r );
-         Writer.Write( "\" g=\"" );
-         Writer.Write( val.g );
-         Writer.Write( "\" b=\"" );
-         Writer.Write( val.b );
-         Writer.Write( "\" a=\"" );
-         Writer.Write( val.a );
-         Writer.Write( "\"/>" );
+         var w = Writer;
+         w.Write( '<' );
+         w.Write( EscTag( tag ) );
+         w.Write( " r=\"" );
+         w.Write( val.r );
+         w.Write( "\" g=\"" );
+         w.Write( val.g );
+         w.Write( "\" b=\"" );
+         w.Write( val.b );
+         w.Write( "\" a=\"" );
+         w.Write( val.a );
+         w.Write( "\"/>" );
       }
 
       private void NullMem ( string name ) => StartTag( name, "null", "1", true );
 
       private void StartTag ( string name ) {
-         Writer.Write( '<' );
-         Writer.Write( EscTag( name ) );
-         Writer.Write( '>' );
+         var w = Writer;
+         w.Write( '<' );
+         w.Write( EscTag( name ) );
+         w.Write( '>' );
       }
 
       private void StartTag ( string tag, string attr, string aVal, bool selfClose ) {
-         Writer.Write( '<' );
-         Writer.Write( EscTag( tag ) );
-         Writer.Write( ' ' );
-         Writer.Write( attr );
-         Writer.Write( "=\"" );
-         Writer.Write( EscXml( aVal ) );
-         Writer.Write( selfClose ? "\"/>" : "\">" );
+         var w = Writer;
+         w.Write( '<' );
+         w.Write( EscTag( tag ) );
+         w.Write( ' ' );
+         w.Write( attr );
+         w.Write( "=\"" );
+         w.Write( EscXml( aVal ) );
+         w.Write( selfClose ? "\"/>" : "\">" );
       }
       
       private void EndTag ( string tag ) {
-         Writer.Write( "</" );
-         Writer.Write( EscTag( tag ) );
-         Writer.Write( '>' );
+         var w = Writer;
+         w.Write( "</" );
+         w.Write( EscTag( tag ) );
+         w.Write( '>' );
       }
 
       private static Regex cleanTag = new Regex( "[^\\w:-]+", RegexOptions.Compiled );
