@@ -15,7 +15,7 @@ namespace Sheepy.PhoenixPt {
    /// <summary>
    /// Advanced base mod class with patch transaction and default logger.
    /// </summary>
-   public class ZyAdvMod : ZyMod {
+   public abstract class ZyAdvMod : ZyMod {
 
       protected IPatch TryPatch ( Type type, string method, string prefix = null, string postfix = null, string transpiler = null ) { try {
          return base.Patch( type, method, prefix, postfix, transpiler );

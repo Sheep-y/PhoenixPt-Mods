@@ -16,7 +16,7 @@ namespace Sheepy.PhoenixPt {
    /// Base mod class to supports manual patching and unpatch, config parsing, and logging shortcuts.
    /// Subclass must provide a logger for logging to functional.
    /// </summary>
-   public class ZyMod {
+   public abstract class ZyMod {
 
       protected static object _Lock = new object();
 
