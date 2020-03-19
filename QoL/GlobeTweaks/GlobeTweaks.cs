@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.GlobeTweaks {
+
    class ModSettings {
       public string Settings_Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
       public bool Center_On_New_Base = true;

@@ -1,5 +1,6 @@
 ﻿using Base.UI;
 using Harmony;
+using Newtonsoft.Json;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.Entities.Missions;
@@ -19,19 +20,19 @@ namespace Sheepy.PhoenixPt.NoWar {
 
    public class ModSettings {
       public bool Faction_Attack_Zone = true;
-      public bool Alien_Attack_Zone = false;
+      public bool Pandora_Attack_Zone = false;
       public bool Attack_Raise_Alertness = true;
       public bool Attack_Raise_Faction_Alertness = true;
 
-      public bool Stop_Continuous_Attack = true;
+      public bool Stop_OneSided_War = true;
       public int No_Attack_When_Sieged_Difficulty = 2;
       public int One_Global_Attack_Difficulty = 0;
       public int One_Attack_Per_Faction_Difficulty = 1;
 
-      internal bool Has_Less_Attack => Stop_Continuous_Attack ||
+      internal bool Has_Less_Attack => Stop_OneSided_War ||
               No_Attack_When_Sieged_Difficulty >= 0 || One_Global_Attack_Difficulty >= 0 || One_Attack_Per_Faction_Difficulty >= 0;
 
-      public string Defense_Boost = "{ Default: 0.5, Alert: 0.2, HighAlert: 0.1, AttackerNewJericho: 0.5 }";
+      public string Defense_Boost = "{ Default: 0, Alert: 0.3, HighAlert: 0.2, AttackerNewJericho: 0.3 }";
    }
 
    public class Mod : ZyAdvMod {
@@ -42,8 +43,9 @@ namespace Sheepy.PhoenixPt.NoWar {
       public void MainMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
          Settings = settings = ReadSettings( settings );
+         Info( "Setting = {0}", (Func<string>) JsonifySettings );
 
-         if ( settings.Faction_Attack_Zone || settings.Alien_Attack_Zone ) {
+         if ( settings.Faction_Attack_Zone || settings.Pandora_Attack_Zone ) {
             BatchPatch( "Zoned attacks", () => {
                Patch( typeof( GeoHavenDefenseMission ), "UpdateGeoscapeMissionState", nameof( BeforeGeoMission_StoreMission ), nameof( AfterGeoMission_Cleanup ) );
                Patch( typeof( GeoSite ), "DestroySite", nameof( Override_DestroySite ) );
@@ -68,6 +70,8 @@ namespace Sheepy.PhoenixPt.NoWar {
          }
       }
 
+      private static string JsonifySettings () => JsonConvert.SerializeObject( Settings );
+
       private static bool IsAlien ( IGeoFactionMissionParticipant f ) => f is GeoAlienFaction;
       private static bool IsPhoenixPt ( IGeoFactionMissionParticipant f ) => f is GeoPhoenixFaction;
       private static bool IsAlienOrPP ( IGeoFactionMissionParticipant f ) => IsAlien( f ) || IsPhoenixPt( f );
@@ -80,7 +84,7 @@ namespace Sheepy.PhoenixPt.NoWar {
          GameDifficultyLevelDef diff = __instance.CurrentDifficultyLevel;
          difficulty = __instance.DynamicDifficultySystem.DifficultyLevels.ToList().IndexOf( diff );
          lastAttacker = null;
-         Info( "Attacker reset. Difficulty is {0}", difficulty ); // 0 = Rookie, 1 = Veteran, 2 = Hero, 3 = Legend
+         Info( "Attacker reset. Difficulty level is {0}.", difficulty ); // 0 = Rookie, 1 = Veteran, 2 = Hero, 3 = Legend
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static bool AtMaxFight ( GeoLevelController geoLevel, IGeoFactionMissionParticipant attacker ) { try {
@@ -88,15 +92,15 @@ namespace Sheepy.PhoenixPt.NoWar {
          foreach ( GeoSite site in geoLevel.Map.AllSites ) {
             if ( ! ( site.ActiveMission is GeoHavenDefenseMission mission ) ) continue;
             if ( Settings.No_Attack_When_Sieged_Difficulty >= difficulty && IsAlien( mission.GetEnemyFaction() ) && site.Owner == attacker ) {
-               Info( "Attack prevented; attacker is being sieged by alian", site.Name );
+               Verbo( "{0} is being sieged by alien at {0}.", site.Name );
                return true;
             }
             if ( Settings.One_Global_Attack_Difficulty >= difficulty ) {
-               Info( "Attack prevented; {0} already under siege", site.Name );
+               Verbo( "Global attack limit: {0} already under siege.", site.Name );
                return true; // Rokkie and Veteran limits to 1 faction war on globe
             }
             if ( Settings.One_Attack_Per_Faction_Difficulty >= difficulty && mission.GetEnemyFaction() == attacker ) {
-               Info( "Attack prevented; {0} already sieging {1}", attacker.GetPPName(), site.Name );
+               Verbo( "Faction attack limit: {0} already sieging {1}.", attacker.GetPPName(), site.Name );
                return true; // Hero and Legend limits to 1 attack per faction
             }
          }
@@ -104,8 +108,8 @@ namespace Sheepy.PhoenixPt.NoWar {
       } catch ( Exception ex ) { return ! Error( ex ); } }
 
       private static bool ShouldStopFight ( GeoLevelController geoLevel, IGeoFactionMissionParticipant from ) { try {
-         if ( Settings.Stop_Continuous_Attack && lastAttacker != null && from == lastAttacker ) {
-            Info( "Attack prevented; {0} has already attacked", from.GetPPName() );
+         if ( Settings.Stop_OneSided_War && lastAttacker != null && from == lastAttacker ) {
+            Verbo( "One sided war; {0} has already attacked.", from.GetPPName() );
             return true;
          }
          return AtMaxFight( geoLevel, from );
@@ -114,7 +118,7 @@ namespace Sheepy.PhoenixPt.NoWar {
       [ HarmonyPriority( Priority.Low ) ]
       public static void BeforeNav_Drop_Attack ( VehicleFactionController __instance, ref float? __state ) { try {
          if ( ShouldStopFight( __instance.Vehicle?.GeoLevel, __instance.Vehicle?.Owner ) ) {
-            Info( "Discouraging {0} from faction war", __instance.Vehicle.Name );
+            Verbo( "Discouraging {0} from faction war.", __instance.Vehicle.Name );
             __state = __instance.ControllerDef.FactionInWarWeightMultiplier;
             __instance.ControllerDef.FactionInWarWeightMultiplier = -2f;
          } else {
@@ -129,9 +133,9 @@ namespace Sheepy.PhoenixPt.NoWar {
 
       [ HarmonyPriority( Priority.High ) ]
       public static bool Override_Attack ( GeoFaction __instance, GeoVehicle vehicle, GeoSite site, GeoLevelController ____level ) { try {
-         Info( "{0} wants to attack {1}", vehicle.Name, site.Name );
+         Verbo( "{0} wants to attack {1}.", vehicle.Name, site.Name );
          if ( ShouldStopFight( ____level, vehicle?.Owner ) ) {
-            Info( "{0} attack prevented at {2}", __instance.Name.Localize(), vehicle.Name, site.Name );
+            Info( "{0} attack prevented at {2}.", __instance.Name.Localize(), vehicle.Name, site.Name );
             return false;
          }
          lastAttacker = vehicle.Owner;
@@ -141,15 +145,16 @@ namespace Sheepy.PhoenixPt.NoWar {
 
       #region Alertness
       public static void AfterDestroySite_RaiseAlertness ( GeoSite __instance ) { try {
-         var owner = __instance.Owner;
-         if ( IsAlienOrPP( owner ) ) return;
-         if ( Settings.Attack_Raise_Faction_Alertness ) {
-            Info( "{0} has loss. Raising alertness of {0}", owner.GetPPName() );
-            foreach ( var site in owner.Sites )
-               typeof( GeoHaven ).GetMethod( "IncreaseAlertness", NonPublic | Instance ).Invoke( site, null );
-         } else if ( __instance.IsActive ) {
-            typeof( GeoHaven ).GetMethod( "IncreaseAlertness", NonPublic | Instance ).Invoke( __instance, null );
-            Info( "{0} has loss. It is now on {1}", owner.Name, DefenseMission.Haven.AlertLevel );
+         var haven = DefenseMission?.Haven;
+         var owner = haven?.Site?.Owner;
+         if ( haven == null || IsAlienOrPP( owner ) ) return;
+         if ( Settings.Attack_Raise_Faction_Alertness && owner != null ) {
+            Info( "{0} has loss. Raising alertness of {0}", haven.Site.Name, owner.GetPPName() );
+            foreach ( var e in owner.Havens )
+               typeof( GeoHaven ).GetMethod( "IncreaseAlertness", NonPublic | Instance ).Invoke( e, null );
+         } else if ( haven.Site?.State == GeoSiteState.Functioning ) {
+            typeof( GeoHaven ).GetMethod( "IncreaseAlertness", NonPublic | Instance ).Invoke( haven, null );
+            Info( "{0} has loss. It is now on {1}", haven.Site.Name, haven.AlertLevel );
          }
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
@@ -161,17 +166,17 @@ namespace Sheepy.PhoenixPt.NoWar {
       public static void BeforeGeoMission_StoreMission  ( GeoHavenDefenseMission __instance ) { DefenseMission = __instance; }
       public static void AfterGeoMission_Cleanup () { DefenseMission = null; }
 
-      private static bool SkipConvertToZone ( IGeoFactionMissionParticipant attacker ) {
-         return IsPhoenixPt( attacker ) &&
-              ( ! Settings.Alien_Attack_Zone && IsAlien( attacker ) ) ||
-              ( ! Settings.Faction_Attack_Zone && ! IsAlien( attacker ) );
+      private static bool CauseZoneDamage ( IGeoFactionMissionParticipant attacker ) {
+         return ! IsPhoenixPt( attacker ) &&
+              ( Settings.Pandora_Attack_Zone && IsAlien( attacker ) ) ||
+              ( Settings.Faction_Attack_Zone && ! IsAlien( attacker ) );
       }
 
       [ HarmonyPriority( Priority.High ) ]
       public static bool Override_DestroySite ( GeoSite __instance ) { try {
          if ( DefenseMission == null ) return true;
-         Info( "{0} loss.", __instance.Name );
-         if ( SkipConvertToZone( DefenseMission?.GetEnemyFaction() ) ) return true;
+         Verbo( "{0} loss to {1}.", __instance.Name, DefenseMission.GetEnemyFaction().GetPPName() );
+         if ( ! CauseZoneDamage( DefenseMission?.GetEnemyFaction() ) ) return true;
          GeoHavenZone zone = DefenseMission.AttackedZone;
          zone.AddDamage( zone.Health.IntValue );
          Info( "Fall of {0} converted to {1} destruction.", __instance.Name, zone.Def.ViewElementDef.DisplayName1 );
@@ -180,7 +185,7 @@ namespace Sheepy.PhoenixPt.NoWar {
 
       public static void AfterSiteMission_AmendLog ( GeoSite site, GeoMission mission, List<GeoscapeLogEntry> ____entries ) { try {
          if ( ! ( mission is GeoHavenDefenseMission defense ) ) return;
-         if ( SkipConvertToZone( DefenseMission?.GetEnemyFaction() ) ) return;
+         if ( ! CauseZoneDamage( DefenseMission?.GetEnemyFaction() ) ) return;
          LocalizedTextBind zoneName = defense.AttackedZone?.Def?.ViewElementDef?.DisplayName1;
          if ( zoneName == null || ____entries == null || ____entries.Count < 1 ) return;
          GeoscapeLogEntry entry = ____entries[ ____entries.Count - 1 ];
@@ -192,7 +197,7 @@ namespace Sheepy.PhoenixPt.NoWar {
       #region Defense Boost
       [ HarmonyPriority( Priority.High ) ]
       public static void AfterDefDeploy_BoostDef ( GeoHavenDefenseMission __instance, ref int __result, GeoHaven haven ) { try {
-         Info( "{0} deploy {1} vs {2}x{3}", haven.Site.Name, __result, __instance.AttackerDeployment, haven.Site.Owner.FactionStatModifiers.HavenAttackerStrengthModifier );
+         Info( "{0} under attack, defense strength {1}", haven.Site.Name, __result, __instance.AttackerDeployment, haven.Site.Owner.FactionStatModifiers.HavenAttackerStrengthModifier );
          float deploy = __result;
          switch ( haven?.AlertLevel ) {
             case GeoHaven.HavenAlertLevel.Alert : deploy *= 1.2f; break;
@@ -206,7 +211,7 @@ namespace Sheepy.PhoenixPt.NoWar {
             deploy *= 2f;
          }
          __result = (int) Math.Round( deploy );
-         Info( "Bumping defender to {0}", __result );
+         Info( "Bumping defender strength by {0} to {1}", deploy, __result );
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
    }
