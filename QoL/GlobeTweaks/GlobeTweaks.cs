@@ -24,7 +24,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public bool Pause_On_Heal = true;
    }
 
-   class Mod : ZyMod {
+   public class Mod : ZyMod {
       private static PropertyInfo ContextGetter;
 
       public static void Init () => new Mod().MainMod();
