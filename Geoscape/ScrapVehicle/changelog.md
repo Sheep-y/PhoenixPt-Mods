@@ -1,4 +1,4 @@
-Changelog of Skip Intro, a Phoenix Point Mod by Sheepy
+Changelog of Scrap Vehicle, a Phoenix Point Mod by Sheepy
 
 # Version 2.0, 2020-03-18
 

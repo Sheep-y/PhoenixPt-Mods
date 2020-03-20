@@ -53,6 +53,9 @@
   <ItemGroup>
     <EmbeddedResource Include="mod_info.js" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="changelog.md" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

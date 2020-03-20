@@ -63,6 +63,7 @@
     <EmbeddedResource Include="mod_info.js" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="changelog.md" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
