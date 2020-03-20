@@ -23,6 +23,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
    internal class Dumper {
       private readonly Type DataType;
       private readonly List<BaseDef> Data;
+      private const int MaxLevel = 20;
 
       internal Dumper ( Type key, List<BaseDef> list ) {
          DataType = key;
@@ -91,7 +92,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          }
          var type = val.GetType();
          if ( type.IsClass ) {
-            if ( ! ( val is Array ) ) {
+            if ( ! ( val is Array ) ) { // Simple objects
                if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
                if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "path", faction.ResourcePath, true ); return; }
                if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "path", tacChar.ResourcePath, true ); return; }
@@ -99,15 +100,26 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
                   { StartTag( name, "type", type.FullName, true ); return; }
             }
+            if ( level >= MaxLevel ) { SimpleMem( name, "..." ); return; }
             try {
-               if ( RecurringObject.TryGetValue( val, out int link ) ) { StartTag( name, "ref", link.ToString( "X" ), true ); return; }
+               if ( RecurringObject.TryGetValue( val, out int link ) ) {
+                  if ( val is BaseDef def )
+                     StartTag( name, "path", def.ResourcePath, true );
+                  else
+                     StartTag( name, "ref", link.ToString( "X" ), true );
+                  return;
+               }
             } catch ( Exception ex ) { StartTag( name, "err_H", ex.GetType().Name, true ); return; } // Hash error
             var id = RecurringObject.Count;
             RecurringObject.Add( val, id );
-            StartTag( name, "id", id.ToString( "X" ), false );
-            if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
-               DumpList( name, list, level );
-               return;
+            if ( val is BaseDef )
+               StartTag( name );
+            else {
+               StartTag( name, "id", id.ToString( "X" ), false );
+               if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
+                  DumpList( name, list, level );
+                  return;
+               }
             }
          } else {
             if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
@@ -133,7 +145,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private void Obj2Xml ( object subject, int level ) {
          var type = subject.GetType();
          if ( level == 0 ) { Writer.Write( type.Name, subject, 1 ); return; }
-         if ( level > 20 ) { Writer.Write( "..." ); return; }
+         if ( level > MaxLevel ) { Writer.Write( "..." ); return; }
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
