@@ -29,16 +29,16 @@
       One_Attack_Per_Faction_Difficulty : 1,
       Defense_Multiplier : {
           Default : 1,
-          Alert    : 1.1,
-          High_Alert : 1.05,
-          Attacker_Alien : 1,
+          Alert    : 1.2,
+          High_Alert : 1.1,
+          Attacker_Pandora : 1.2,
           Attacker_Anu : 1,
-          Attacker_NewJericho : 1.2,
+          Attacker_NewJericho : 1,
           Attacker_Synedrion : 1,
-          Defender_Alien : 1,
-          Defender_Anu : 1,
+          Defender_Pandora : 1,
+          Defender_Anu : 1.2,
           Defender_NewJericho : 1,
-          Defender_Synedrion : 1,
+          Defender_Synedrion : 1.2,
 	  }
    }
 })

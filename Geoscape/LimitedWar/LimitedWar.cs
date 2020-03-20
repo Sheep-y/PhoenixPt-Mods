@@ -38,17 +38,18 @@ namespace Sheepy.PhoenixPt.LimitedWar {
       public float Default = 1;
       public float Alert    = 1.2f;
       public float High_Alert = 1.1f;
-      public float Attacker_Alien = 1;
+      public float Attacker_Pandora = 1.2f;
       public float Attacker_Anu = 1;
       public float Attacker_NewJericho = 1f;
       public float Attacker_Synedrion = 1;
-      public float Defender_Alien = 1;
+      public float Defender_Pandora = 1;
       public float Defender_Anu = 1.2f;
       public float Defender_NewJericho = 1;
       public float Defender_Synedrion = 1.2f;
 
-      internal bool IsEmpty => Default == 1 && Alert == 1 && High_Alert == 1 && Attacker_Anu == 1 && Attacker_NewJericho == 1 && Attacker_Synedrion == 1
-         && Defender_Anu == 1 && Defender_NewJericho == 1 && Defender_Synedrion == 1;
+      internal bool IsEmpty => Default == 1 && Alert == 1 && High_Alert == 1
+         && Attacker_Pandora == 1 && Attacker_Anu == 1 && Attacker_NewJericho == 1 && Attacker_Synedrion == 1
+         && Defender_Pandora == 1 && Defender_Anu == 1 && Defender_NewJericho == 1 && Defender_Synedrion == 1;
    }
 
    public class Mod : ZyAdvMod {
@@ -165,7 +166,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          var owner = haven?.Site?.Owner;
          if ( haven == null || IsAlienOrPP( owner ) ) return;
          if ( Settings.Attack_Raise_Faction_Alertness && owner != null ) {
-            Info( "{0} has loss. Raising alertness of {0}", haven.Site.Name, owner.GetPPName() );
+            Info( "{0} has loss. Raising alertness of {1}", haven.Site.Name, owner.GetPPName() );
             foreach ( var e in owner.Havens )
                typeof( GeoHaven ).GetMethod( "IncreaseAlertness", NonPublic | Instance ).Invoke( e, null );
          } else if ( haven.Site?.State == GeoSiteState.Functioning ) {
@@ -191,22 +192,24 @@ namespace Sheepy.PhoenixPt.LimitedWar {
       [ HarmonyPriority( Priority.High ) ]
       private static bool Override_DestroySite ( GeoSite __instance ) { try {
          if ( DefenseMission == null ) return true;
-         Verbo( "{0} loss to {1}.", __instance.Name, DefenseMission.GetEnemyFaction().GetPPName() );
-         if ( ! CauseZoneDamage( DefenseMission?.GetEnemyFaction() ) ) return true;
+         var attacker = DefenseMission.GetEnemyFaction();
+         Verbo( "{0} loss to {1}.", __instance.Name, attacker.GetPPName() );
+         if ( ! CauseZoneDamage( attacker ) ) return true;
          GeoHavenZone zone = DefenseMission.AttackedZone;
          zone.AddDamage( zone.Health.IntValue );
          zone.AddProduction( 0 );
-         Info( "Fall of {0} converted to {1} destruction.", __instance.Name, zone.Def.ViewElementDef.DisplayName1 );
+         Info( "Fall of {0} converted to {1} destruction.", __instance.Name, zone.Def.ViewElementDef.DisplayName1.LocalizeEnglish() );
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
 
       private static void AfterSiteMission_AmendLog ( GeoSite site, GeoMission mission, List<GeoscapeLogEntry> ____entries ) { try {
-         if ( ! ( mission is GeoHavenDefenseMission defense ) ) return;
-         if ( ! CauseZoneDamage( DefenseMission?.GetEnemyFaction() ) ) return;
+         if ( ! ( mission is GeoHavenDefenseMission defense ) || DefenseMission == null  ) return;
+         var attacker = DefenseMission.GetEnemyFaction();
+         if ( ! CauseZoneDamage( attacker ) ) return;
          LocalizedTextBind zoneName = defense.AttackedZone?.Def?.ViewElementDef?.DisplayName1;
          if ( zoneName == null || ____entries == null || ____entries.Count < 1 ) return;
          GeoscapeLogEntry entry = ____entries[ ____entries.Count - 1 ];
-         Verbo( "Converting site invasion message to zone invasion." );
+         Verbo( "Converting {0} invasion message to zone invasion.", attacker.GetPPName() );
          entry.Parameters[0] = new LocalizedTextBind( site.SiteName.Localize() + " " + TitleCase( zoneName.Localize() ), true );
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
@@ -216,37 +219,39 @@ namespace Sheepy.PhoenixPt.LimitedWar {
       private static void AfterDefDeploy_BoostDef ( GeoHavenDefenseMission __instance, ref int __result, GeoHaven haven ) { try {
          Info( "{0} under attack, defense strength {1}", haven.Site.Name, __result, __instance.AttackerDeployment );
 
-         var boost = Settings.Defense_Multiplier;
-         float deploy = boost.Default;
+         var conf = Settings.Defense_Multiplier;
+         float multiply = conf.Default;
          switch ( haven?.AlertLevel ) {
-            case GeoHaven.HavenAlertLevel.Alert : deploy *= boost.Alert; break;
-            case GeoHaven.HavenAlertLevel.HighAlert : deploy *= boost.High_Alert; break;
+            case GeoHaven.HavenAlertLevel.Alert : multiply *= conf.Alert; break;
+            case GeoHaven.HavenAlertLevel.HighAlert : multiply *= conf.High_Alert; break;
          }
 
          GeoFaction attacker = __instance.GetEnemyFaction() is GeoSubFaction sub 
                ? attacker = sub.BaseFaction : __instance.GetEnemyFaction() as GeoFaction;
          var geoLevel = haven?.Site?.GeoLevel;
          if ( IsAlien( attacker ) )
-            deploy *= boost.Attacker_Alien;
+            multiply *= conf.Attacker_Pandora;
          else if ( attacker == geoLevel.AnuFaction )
-            deploy *= boost.Attacker_Anu;
+            multiply *= conf.Attacker_Anu;
          else if ( attacker == geoLevel.SynedrionFaction )
-            deploy *= boost.Attacker_Synedrion;
+            multiply *= conf.Attacker_Synedrion;
          else if ( attacker == geoLevel.NewJerichoFaction )
-            deploy *= boost.Attacker_NewJericho;
+            multiply *= conf.Attacker_NewJericho;
 
          var defender = haven.Site.Owner;
          if ( IsAlien( defender ) )
-            deploy *= boost.Defender_Alien;
+            multiply *= conf.Defender_Pandora;
          else if ( attacker == geoLevel.AnuFaction )
-            deploy *= boost.Defender_Anu;
+            multiply *= conf.Defender_Anu;
          else if ( attacker == geoLevel.SynedrionFaction )
-            deploy *= boost.Defender_Synedrion;
+            multiply *= conf.Defender_Synedrion;
          else if ( attacker == geoLevel.NewJerichoFaction )
-            deploy *= boost.Defender_NewJericho;
+            multiply *= conf.Defender_NewJericho;
 
-         __result = (int) Math.Round( __result * deploy );
-         Info( "Multiplying defender strength by {0} to {1}", deploy, __result );
+         if ( multiply != 1 ) {
+            __result = (int) Math.Round( __result * multiply );
+            Info( "Multiplying defender strength by {0} to {1}", multiply, __result );
+         }
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
    }
