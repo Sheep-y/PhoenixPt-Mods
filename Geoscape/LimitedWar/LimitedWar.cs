@@ -32,7 +32,22 @@ namespace Sheepy.PhoenixPt.NoWar {
       internal bool Has_Less_Attack => Stop_OneSided_War ||
               No_Attack_When_Sieged_Difficulty >= 0 || One_Global_Attack_Difficulty >= 0 || One_Attack_Per_Faction_Difficulty >= 0;
 
-      public string Defense_Boost = "{ Default: 0, Alert: 0.3, HighAlert: 0.2, AttackerNewJericho: 0.3 }";
+      public DefenseMultiplier Defense_Multiplier = new DefenseMultiplier();
+   }
+
+   public class DefenseMultiplier {
+      public float Default = 1;
+      public float Alert    = 1.1f;
+      public float High_Alert = 1.05f;
+      public float Attacker_Anu = 1;
+      public float Attacker_NewJericho = 1.2f;
+      public float Attacker_Synedrion = 1;
+      public float Defender_Anu = 1;
+      public float Defender_NewJericho = 1;
+      public float Defender_Synedrion = 1;
+
+      internal bool IsEmpty => Default == 0 && Alert == 0 && High_Alert == 0 && Attacker_Anu == 0 && Attacker_NewJericho == 0 && Attacker_Synedrion == 0
+         && Defender_Anu == 0 && Defender_NewJericho == 0 && Defender_Synedrion == 0;
    }
 
    public class Mod : ZyAdvMod {
@@ -58,7 +73,7 @@ namespace Sheepy.PhoenixPt.NoWar {
          if ( settings.Attack_Raise_Alertness || settings.Attack_Raise_Faction_Alertness )
                Patch( typeof( GeoSite ), "DestroySite", postfix: nameof( AfterDestroySite_RaiseAlertness ) );
 
-         if ( settings.Defense_Boost != null )
+         if ( settings.Defense_Multiplier?.IsEmpty != false )
             Patch( typeof( GeoHavenDefenseMission ), "GetDefenseDeployment", postfix: nameof( AfterDefDeploy_BoostDef ) );
 
          if ( settings.Has_Less_Attack ) {
@@ -198,19 +213,33 @@ namespace Sheepy.PhoenixPt.NoWar {
       #region Defense Boost
       [ HarmonyPriority( Priority.High ) ]
       private static void AfterDefDeploy_BoostDef ( GeoHavenDefenseMission __instance, ref int __result, GeoHaven haven ) { try {
-         Info( "{0} under attack, defense strength {1}", haven.Site.Name, __result, __instance.AttackerDeployment, haven.Site.Owner.FactionStatModifiers.HavenAttackerStrengthModifier );
-         float deploy = __result;
+         Info( "{0} under attack, defense strength {1}", haven.Site.Name, __result, __instance.AttackerDeployment );
+
+         var boost = Settings.Defense_Multiplier;
+         float deploy = boost.Default;
          switch ( haven?.AlertLevel ) {
-            case GeoHaven.HavenAlertLevel.Alert : deploy *= 1.2f; break;
-            case GeoHaven.HavenAlertLevel.HighAlert : deploy *= 1.3f; break;
+            case GeoHaven.HavenAlertLevel.Alert : deploy *= boost.Alert; break;
+            case GeoHaven.HavenAlertLevel.HighAlert : deploy *= boost.High_Alert; break;
          }
-         GeoFaction attacker = __instance?.GetEnemyFaction() as GeoFaction;
-         GeoLevelController geoLevel = haven?.Site?.GeoLevel;
-         if ( attacker == geoLevel.AnuFaction || attacker == geoLevel.SynedrionFaction ) {
-            deploy *= 1.5f;
-         } else if ( attacker == geoLevel.NewJerichoFaction ) {
-            deploy *= 2f;
-         }
+
+         GeoFaction attacker = __instance.GetEnemyFaction() is GeoSubFaction sub 
+               ? attacker = sub.BaseFaction : __instance.GetEnemyFaction() as GeoFaction;
+         var geoLevel = haven?.Site?.GeoLevel;
+         if ( attacker == geoLevel.AnuFaction )
+            deploy *= boost.Attacker_Anu;
+         else if ( attacker == geoLevel.SynedrionFaction )
+            deploy *= boost.Attacker_Synedrion;
+         else if ( attacker == geoLevel.NewJerichoFaction )
+            deploy *= boost.Attacker_NewJericho;
+
+         var defender = haven.Site.Owner;
+         if ( attacker == geoLevel.AnuFaction )
+            deploy *= boost.Defender_Anu;
+         else if ( attacker == geoLevel.SynedrionFaction )
+            deploy *= boost.Defender_Synedrion;
+         else if ( attacker == geoLevel.NewJerichoFaction )
+            deploy *= boost.Defender_NewJericho;
+
          __result = (int) Math.Round( deploy );
          Info( "Bumping defender strength by {0} to {1}", deploy, __result );
       } catch ( Exception ex ) { Error( ex ); } }

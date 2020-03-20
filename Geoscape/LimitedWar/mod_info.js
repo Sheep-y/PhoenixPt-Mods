@@ -14,14 +14,32 @@
    },
 
    /* Disable pre-modnix version, which has filename-based id. */
-   Conflicts :
-      { Id: "PhoenixPt_SkipIntro", Max: "1.1.0.0" },
+   Conflicts : [
+      { Id: "PhoenixPt_BetterDefence", Max: "1.0.0.0" },
+      { Id: "PhoenixPt_LessWar", Max: "1.0.0.0" },
+      { Id: "PhoenixPt_LimitWarToZone", Max: "1.0.0.0" },
+      { Id: "PhoenixPt_NoWar", Max: "1.0.0.0" },
+   ],
 
    DefaultConfig : {
-      "Skip_Logos" : true,
-      "Skip_HottestYear" : true,
-      "Skip_Landings" : true,
-      "Skip_CurtainDrop" : true,
-      "Skip_CurtainLift" : true,
-   },
+      Faction_Attack_Zone : true,
+      Pandora_Attack_Zone : false,
+      Attack_Raise_Alertness : true,
+      Attack_Raise_Faction_Alertness : true,
+      Stop_OneSided_War : true,
+      No_Attack_When_Sieged_Difficulty : 2,
+      One_Global_Attack_Difficulty : 0,
+      One_Attack_Per_Faction_Difficulty : 1,
+      Defense_Multiplier : {
+          Default : 1,
+          Alert    : 1.1,
+          High_Alert : 1.05,
+          Attacker_Anu : 1,
+          Attacker_NewJericho : 1.2,
+          Attacker_Synedrion : 1,
+          Defender_Anu : 1,
+          Defender_NewJericho : 1,
+          Defender_Synedrion : 1,
+	  }
+   }
 })
