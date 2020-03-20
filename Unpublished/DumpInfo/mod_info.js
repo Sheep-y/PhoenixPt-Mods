@@ -1,7 +1,7 @@
 ({
    Id: "Sheepy.DumpInfo",
    Lang: "*",
-   Taint: false,
+   Duration : "temp",
    Name: "Dump Info",
    Description: "Dump specific data from the first loaded campaign or new campaign into xml.",
    Url: {

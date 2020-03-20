@@ -1,7 +1,7 @@
 ({
    Id: "Sheepy.FlatDifficulty",
    Lang: "n/a",
-   Taint: false,
+   Duration : "temp",
    Name: {
       en: "Flat Difficulty",
       zh: "平坦難度" },

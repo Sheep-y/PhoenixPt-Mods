@@ -1,7 +1,7 @@
 ({
    Id: "Sheepy.DebugConsole",
    Lang: "-",
-   Taint: false,
+   Duration : "temp",
    Name: {
       en : "Debug Console",
       zh : "除錯指令行" },
