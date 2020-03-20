@@ -18,10 +18,10 @@
    },
 
    /* Disable pre-modnix version, which has filename-based id. */
-   Conflicts :
+   Disables :
       { Id: "PhoenixPt_SkipIntro", Max: "1.1.0.0" },
 
-   /* Config files will be created when users click "Reset". */
+   /* Config files will be created when user click "Reset". */
    DefaultConfig : {
       "Skip_Logos" : true,
       "Skip_HottestYear" : true,

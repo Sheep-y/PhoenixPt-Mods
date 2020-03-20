@@ -12,7 +12,6 @@
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/26",
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods",
    },
-   Conflicts : [
+   Disables :
       { Id: "PhoenixPt_ScrapVehicle", Max: "1.0.0.0" },
-   ],
 })

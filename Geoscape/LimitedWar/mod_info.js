@@ -12,15 +12,12 @@
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/24",
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods",
    },
-
-   /* Disable pre-modnix version, which has filename-based id. */
-   Conflicts : [
+   Disables : [
       { Id: "PhoenixPt_BetterDefence", Max: "1.0.0.0" },
       { Id: "PhoenixPt_LessWar", Max: "1.0.0.0" },
       { Id: "PhoenixPt_LimitWarToZone", Max: "1.0.0.0" },
       { Id: "PhoenixPt_NoWar", Max: "1.0.0.0" },
    ],
-
    DefaultConfig : {
       Faction_Attack_Zone : true,
       Pandora_Attack_Zone : false,

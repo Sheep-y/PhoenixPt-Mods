@@ -12,7 +12,7 @@
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/17",
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods",
    },
-   Conflicts : [
+   Disables : [
       { Id: "PhoenixPt_CentreOnNewBase", Max: "1.0.0.0" },
       { Id: "PhoenixPt_NoAutoUnpause", Max: "1.0.0.0" },
       { Id: "PhoenixPt_PauseOnHeal", Max: "1.0.1.0" },
