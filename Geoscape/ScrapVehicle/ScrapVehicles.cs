@@ -75,12 +75,12 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       private static bool NeedToAddVehicles = false;
 
       // Check whether scrap list need to be populated
-      public static void AfterSetupClassFilter_CheckScrapMode ( UIModuleManufacturing __instance, ItemStorage ____scrapStorage ) { try {
+      private static void AfterSetupClassFilter_CheckScrapMode ( UIModuleManufacturing __instance, ItemStorage ____scrapStorage ) { try {
          NeedToAddVehicles = IsScrapping( __instance ) && ____scrapStorage.IsEmpty;
       } catch ( Exception ex ) { Error( ex ); } }
 
       // If scrap list need to be populated, do it
-      public static void BeforeSetupQueue_AddVehicleToScrap ( GeoscapeViewContext ____context, ItemStorage ____scrapStorage ) { try {
+      private static void BeforeSetupQueue_AddVehicleToScrap ( GeoscapeViewContext ____context, ItemStorage ____scrapStorage ) { try {
          if ( ! NeedToAddVehicles ) return;
          LoadVehicleDefs();
 
@@ -94,7 +94,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       } catch ( Exception ex ) { Error( ex ); } }
 
       // Enable vehicle scrap tab
-      public static void AfterRefreshFilters_EnableVehicleTab ( UIModuleManufacturing __instance, PhoenixGeneralButton ____activeFilterButton ) { try {
+      private static void AfterRefreshFilters_EnableVehicleTab ( UIModuleManufacturing __instance, PhoenixGeneralButton ____activeFilterButton ) { try {
          if ( __instance.Mode != UIModuleManufacturing.UIMode.Scrap ) return;
          __instance.VehiclesFilterButton.SetInteractable( true );
          __instance.VehiclesFilterButton.GetComponent<UITooltipText>().TipKey = __instance.VehiclesTooltipText;
@@ -104,7 +104,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       } catch ( Exception ex ) { Error( ex ); } }
 
       // Replace scrap list with individual vehicles when applicable
-      public static void BeforeRefreshItemList_FillWithVehicle ( UIModuleManufacturing __instance, ref IEnumerable<IManufacturable> availableItemRecipes,
+      private static void BeforeRefreshItemList_FillWithVehicle ( UIModuleManufacturing __instance, ref IEnumerable<IManufacturable> availableItemRecipes,
                                                                  PhoenixGeneralButton ____activeFilterButton, GeoscapeViewContext ____context ) { try {
          if ( availableItemRecipes == null || availableItemRecipes.GetType() == typeof( List<IManufacturable> ) ) return;
          if ( ! IsScrappingVehicles( __instance, ____activeFilterButton ) ) return;
@@ -140,7 +140,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       } catch ( Exception ex ) { Error( ex ); } }
 
       // Show confirmation popup which callback OnScrapConfirmation
-      public static bool BeforeOnItemAction_ConfirmScrap ( UIModuleManufacturing __instance, GeoManufactureItem item,
+      private static bool BeforeOnItemAction_ConfirmScrap ( UIModuleManufacturing __instance, GeoManufactureItem item,
                                                            MessageBox ____confirmationBox, GeoscapeViewContext ____context ) { try {
          if ( item.Manufacturable is GeoUnitWrapper unit ) {
             Verbo( "Confirming scraping of {0}", unit.GetName() );
@@ -186,7 +186,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       } catch ( Exception ex ) { Error( ex ); } }
 
       // Show vehicle name on scrap list
-      public static void AftereInit_SetName ( GeoManufactureItem __instance, IManufacturable item ) { try {
+      private static void AftereInit_SetName ( GeoManufactureItem __instance, IManufacturable item ) { try {
          if ( item is GeoUnitWrapper unit ) {
             __instance.ItemName.text = unit.GetName();
             __instance.CurrentlyOwnedQuantityText.transform.parent.gameObject.SetActive( false );
@@ -196,7 +196,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       } catch ( Exception ex ) { Error( ex ); } }
 
       // Add mutagen to scrap value
-      public static void AftereScrapPrice_AddMutagen ( ItemDef __instance, ResourcePack __result ) { try {
+      private static void AftereScrapPrice_AddMutagen ( ItemDef __instance, ResourcePack __result ) { try {
          if ( __instance.ManufactureMutagen <= 0 ) return;
          ResourceUnit res = __result.ByResourceType( ResourceType.Mutagen );
          if ( res.Value > 0 ) return;
@@ -205,7 +205,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
       } catch ( Exception ex ) { Error( ex ); } }
 
       // Clear ItemDef mappings on close
-      public static void AfterClose_Cleanup () {
+      private static void AfterClose_Cleanup () {
          planeDefs = null;
          tankDefs = null;
       }

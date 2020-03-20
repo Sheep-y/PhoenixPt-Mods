@@ -15,7 +15,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          GameConsoleWindow.DisableConsoleAccess = false;
       }
 
-      public static void UnityToConsole ( string condition, string stackTrace, LogType type ) {
+      private static void UnityToConsole ( string condition, string stackTrace, LogType type ) {
          GameConsoleWindow.Create().WriteLine( "{0} {1} {2}", type, condition, stackTrace );
       }
    }

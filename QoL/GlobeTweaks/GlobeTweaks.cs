@@ -52,11 +52,11 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       }
 
       #region CenterOnNewBase
-      public static void AfterActivatePhoenixBase_Center ( GeoSite site, GeoLevelController ____level ) { try {
+      private static void AfterActivatePhoenixBase_Center ( GeoSite site, GeoLevelController ____level ) { try {
          ____level.View.ChaseTarget( site, false );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      public static void AfterExplore_Center ( GeoFaction __instance, GeoVehicle vehicle, GeoLevelController ____level ) { try {
+      private static void AfterExplore_Center ( GeoFaction __instance, GeoVehicle vehicle, GeoLevelController ____level ) { try {
          if ( __instance != ____level.PhoenixFaction ) return;
          ____level.View.ChaseTarget( vehicle.CurrentSite, false );
       } catch ( Exception ex ) { Error( ex ); } }
@@ -66,17 +66,17 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       private static GeoscapeViewContext getContext ( UIStateVehicleSelected __instance ) => (GeoscapeViewContext) ContextGetter.GetValue( __instance );
 
       [ HarmonyPriority( Priority.VeryHigh ) ]
-      public static void BeforeAddTravelSite_GetPause ( UIStateVehicleSelected __instance, ref bool __state ) { try {
+      private static void BeforeAddTravelSite_GetPause ( UIStateVehicleSelected __instance, ref bool __state ) { try {
          __state = getContext( __instance ).Level.Timing.Paused;
       } catch ( Exception ex ) { Error( ex ); } }
 
-      public static void AfterAddTravelSite_RestorePause ( UIStateVehicleSelected __instance, ref bool __state ) { try {
+      private static void AfterAddTravelSite_RestorePause ( UIStateVehicleSelected __instance, ref bool __state ) { try {
          getContext( __instance ).Level.Timing.Paused = __state;
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
 
       #region CentreOnHeal
-      public static void BeforeProcessQueuedEvents_Centre ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
+      private static void BeforeProcessQueuedEvents_Centre ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
          var container = ____justRestedContainer?.FirstOrDefault();
          if ( container is GeoVehicle vehicle && ____level.View.CurrentViewState is UIStateVehicleSelected state )
             typeof( UIStateVehicleSelected ).GetMethod( "SelectVehicle", NonPublic | Instance ).Invoke( state, new object[]{ vehicle, true } );
@@ -86,7 +86,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       #endregion
 
       #region PauseOnHeal
-      public static void BeforeProcessQueuedEvents_Pause ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
+      private static void BeforeProcessQueuedEvents_Pause ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
          if ( ____justRestedContainer?.Any() == true )
             ____level.Timing.Paused = true;
       } catch ( Exception ex ) { Error( ex ); } }

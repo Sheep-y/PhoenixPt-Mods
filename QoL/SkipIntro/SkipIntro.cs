@@ -63,14 +63,14 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       // For manual unpatching
       private static IPatch LogoPatch, IntroEnterPatch, IntroLoadPatch;
 
-      public static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
+      private static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
          if ( def == null ) return false;
          string path = def.ResourcePath;
          Verbo( "Checking video {0}", path );
          return path.Contains( "Game_Intro_Cutscene" ) || path.Contains( "LandingSequences" );
       }
 
-      public static bool BeforeRunGameLevel_Skip ( PhoenixGame __instance, LevelSceneBinding levelSceneBinding, ref IEnumerator<NextUpdate> __result ) { try {
+      private static bool BeforeRunGameLevel_Skip ( PhoenixGame __instance, LevelSceneBinding levelSceneBinding, ref IEnumerator<NextUpdate> __result ) { try {
          if ( levelSceneBinding != __instance.Def.IntroLevelSceneDef.Binding ) return true;
          Info( "Skipping Logos" );
          __result = Enumerable.Empty<NextUpdate>().GetEnumerator();
@@ -78,7 +78,7 @@ namespace Sheepy.PhoenixPt.SkipIntro {
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
 
-      public static void AfterHomeCutscene_Skip ( UIStateHomeScreenCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
+      private static void AfterHomeCutscene_Skip ( UIStateHomeScreenCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
          if ( ! ShouldSkip( ____sourcePlaybackDef ) ) return;
          Info( "Skipping Intro" );
          typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance ).Invoke( __instance, null );
@@ -87,19 +87,19 @@ namespace Sheepy.PhoenixPt.SkipIntro {
          Unpatch( ref IntroLoadPatch );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      public static void AfterTacCutscene_Skip ( UIStateTacticalCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
+      private static void AfterTacCutscene_Skip ( UIStateTacticalCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
          if ( ! ShouldSkip( ____sourcePlaybackDef ) ) return;
          Info( "Skipping Combat Video" );
          typeof( UIStateTacticalCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      public static bool BeforeOnLoad_Skip ( VideoPlaybackSourceDef ____sourcePlaybackDef ) {
+      private static bool BeforeOnLoad_Skip ( VideoPlaybackSourceDef ____sourcePlaybackDef ) {
          return ! ShouldSkip( ____sourcePlaybackDef );
       }
 
       private const float SKIP_FRAME = 0.00001f;
 
-      public static void InkOpen_Skip ( ref float ____progress, object __instance ) { try {
+      private static void InkOpen_Skip ( ref float ____progress, object __instance ) { try {
          Verbo( "Skipping Curtain Drop" );
          float ____endFrame = (float) typeof( UseInkUI ).GetProperty( "_endFrame", NonPublic | Instance ).GetValue( __instance );
          var target = ____endFrame - SKIP_FRAME;
@@ -107,13 +107,10 @@ namespace Sheepy.PhoenixPt.SkipIntro {
             ____progress = target;
       } catch ( Exception ex ) { Error( ex ); } }
 
-      public static void InkClose_Skip ( ref float ____progress ) {
+      private static void InkClose_Skip ( ref float ____progress ) {
          Verbo( "Skipping Curtain Lift" );
          if ( ____progress > SKIP_FRAME )
             ____progress = SKIP_FRAME;
       }
-
-      #region Modding helpers
-      #endregion
    }
 }

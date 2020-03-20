@@ -48,7 +48,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private static Dictionary< Type, List<BaseDef> > ExportData = new Dictionary< Type, List<BaseDef> >();
 
-      public static void DumpData () { try {
+      private static void DumpData () { try {
          Info( "Scanning data" );
          Type[] wanted = new Type[] { typeof( ResearchDef ),
             typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ), typeof( TacticalItemDef ),
@@ -89,7 +89,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
       /*
       #region Manual dump code
-      public static void DumpWeapons ( GeoLevelController __instance ) { try {
+      private static void DumpWeapons ( GeoLevelController __instance ) { try {
          // Build keyword list and weapon list - heavy code, do once
          var keywords = GameUtl.GameComponent<DefRepository>().GetAllDefs<DamageKeywordDef>().ToDictionary( e => e.name );
          var weapons = GameUtl.GameComponent<DefRepository>().GetAllDefs<WeaponDef>().ToDictionary( e => e.name );
@@ -116,7 +116,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          }
       } catch ( Exception ex ) { Error( ex ); } }
 
-      public static void LogAbilities ( GeoLevelController __instance ) {
+      private static void LogAbilities ( GeoLevelController __instance ) {
          try {
             foreach ( var ability in GameUtl.GameComponent<DefRepository>().GetAllDefs<TacticalAbilityDef>() ) {
                Info( "{0} {1} {2}", ability.ViewElementDef?.DisplayName1.Localize(), ability.name, ability.Guid );
@@ -125,7 +125,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
 
 
-      public static void DumpResearches ( GeoPhoenixFaction __instance ) { try {
+      private static void DumpResearches ( GeoPhoenixFaction __instance ) { try {
          //foreach ( var item in GameUtl.GameComponent<DefRepository>().GetAllDefs<ItemDef>() ) {
          //   if ( item.UnlockRequirements == null ) continue;
          //   Info( item.GetDisplayName().Localize() );
@@ -157,7 +157,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          }
       } catch ( Exception ex ) { Error( ex ); } }
 
-      public static string ReqToString ( SimpleRequirementDef req ) {
+      private static string ReqToString ( SimpleRequirementDef req ) {
          if ( req is ItemResearchedRequirementDef res ) {
             return $"Item Researched";
          } else if ( req is AndRequirementDef and ) {
@@ -170,7 +170,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             return req.GetType().ToString();
       }
 
-      public static string ReqToString ( ResearchRequirement req ) {
+      private static string ReqToString ( ResearchRequirement req ) {
          if ( req is ExistingResearchRequirement && req.RequirementDef is ExistingResearchRequirementDef resDef ) {
             return (resDef.Faction?.GetPPName() ?? "") + " " + (resDef.Research?.name ?? "") + " " + (resDef.Tag?.name ?? "");
          } else if ( req is FactionDiplomacyRequirement && req.RequirementDef is FactionDiplomacyRequirementDef dipDef ) {
@@ -209,11 +209,11 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             return $"??? {req.GetType().Name}.{req.RequirementDef?.GetType().Name ?? "(null)"} ???";
       }
 
-      public static string ReqToString ( ResearchReward req ) {
+      private static string ReqToString ( ResearchReward req ) {
          return ReqToString( req.Def );
       }
 
-      public static string ReqToString ( ResearchRewardDef def ) {
+      private static string ReqToString ( ResearchRewardDef def ) {
          if ( def is ManufactureResearchRewardDef man ) {
             return "Items [" + man.Items.Join( e => e.GetDisplayName()?.Localize() ?? e.name ) + "]";
          } else if ( def is ClassResearchRewardDef cls ) {

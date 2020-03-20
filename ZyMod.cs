@@ -46,7 +46,7 @@ namespace Sheepy.PhoenixPt {
 
       protected HarmonyMethod _ToHarmony ( string name ) {
          if ( name == null ) return null;
-         return new HarmonyMethod( GetType().GetMethod( name ) ?? throw new NullReferenceException( name + " not found" ) );
+         return new HarmonyMethod( GetType().GetMethod( name, Public | NonPublic | Static ) ?? throw new NullReferenceException( name + " not found" ) );
       }
 
       private class PatchRecord : IPatch {

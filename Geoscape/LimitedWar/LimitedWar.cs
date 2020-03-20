@@ -36,7 +36,7 @@ namespace Sheepy.PhoenixPt.NoWar {
    }
 
    public class Mod : ZyAdvMod {
-      public static ModSettings Settings;
+      private static ModSettings Settings;
 
       public static void Init () => new Mod().MainMod();
 
@@ -80,7 +80,7 @@ namespace Sheepy.PhoenixPt.NoWar {
       private static int difficulty = 1; // Default to Vet if anything goes wrong
       private static IGeoFactionMissionParticipant lastAttacker = null;
 
-      public static void AfterLevelStart_StoreDiff ( GeoLevelController __instance ) { try {
+      private static void AfterLevelStart_StoreDiff ( GeoLevelController __instance ) { try {
          GameDifficultyLevelDef diff = __instance.CurrentDifficultyLevel;
          difficulty = __instance.DynamicDifficultySystem.DifficultyLevels.ToList().IndexOf( diff );
          lastAttacker = null;
@@ -116,7 +116,7 @@ namespace Sheepy.PhoenixPt.NoWar {
       } catch ( Exception ex ) { return ! Error( ex ); } }
 
       [ HarmonyPriority( Priority.Low ) ]
-      public static void BeforeNav_Drop_Attack ( VehicleFactionController __instance, ref float? __state ) { try {
+      private static void BeforeNav_Drop_Attack ( VehicleFactionController __instance, ref float? __state ) { try {
          if ( ShouldStopFight( __instance.Vehicle?.GeoLevel, __instance.Vehicle?.Owner ) ) {
             Verbo( "Discouraging {0} from faction war.", __instance.Vehicle.Name );
             __state = __instance.ControllerDef.FactionInWarWeightMultiplier;
@@ -127,12 +127,12 @@ namespace Sheepy.PhoenixPt.NoWar {
       } catch ( Exception ex ) { Error( ex ); } }
 
       [ HarmonyPriority( Priority.High ) ]
-      public static void AfterNav_Restore ( VehicleFactionController __instance, float? __state ) {
+      private static void AfterNav_Restore ( VehicleFactionController __instance, float? __state ) {
          if ( __state != null ) __instance.ControllerDef.FactionInWarWeightMultiplier = __state.Value;
       }
 
       [ HarmonyPriority( Priority.High ) ]
-      public static bool Override_Attack ( GeoFaction __instance, GeoVehicle vehicle, GeoSite site, GeoLevelController ____level ) { try {
+      private static bool Override_Attack ( GeoFaction __instance, GeoVehicle vehicle, GeoSite site, GeoLevelController ____level ) { try {
          Verbo( "{0} wants to attack {1}.", vehicle.Name, site.Name );
          if ( ShouldStopFight( ____level, vehicle?.Owner ) ) {
             Info( "{0} attack prevented at {2}.", __instance.Name.Localize(), vehicle.Name, site.Name );
@@ -144,7 +144,7 @@ namespace Sheepy.PhoenixPt.NoWar {
       #endregion
 
       #region Alertness
-      public static void AfterDestroySite_RaiseAlertness ( GeoSite __instance ) { try {
+      private static void AfterDestroySite_RaiseAlertness ( GeoSite __instance ) { try {
          var haven = DefenseMission?.Haven;
          var owner = haven?.Site?.Owner;
          if ( haven == null || IsAlienOrPP( owner ) ) return;
@@ -163,8 +163,8 @@ namespace Sheepy.PhoenixPt.NoWar {
       private static GeoHavenDefenseMission DefenseMission = null;
 
       [ HarmonyPriority( Priority.VeryHigh ) ]
-      public static void BeforeGeoMission_StoreMission  ( GeoHavenDefenseMission __instance ) { DefenseMission = __instance; }
-      public static void AfterGeoMission_Cleanup () { DefenseMission = null; }
+      private static void BeforeGeoMission_StoreMission  ( GeoHavenDefenseMission __instance ) { DefenseMission = __instance; }
+      private static void AfterGeoMission_Cleanup () { DefenseMission = null; }
 
       private static bool CauseZoneDamage ( IGeoFactionMissionParticipant attacker ) {
          return ! IsPhoenixPt( attacker ) &&
@@ -173,7 +173,7 @@ namespace Sheepy.PhoenixPt.NoWar {
       }
 
       [ HarmonyPriority( Priority.High ) ]
-      public static bool Override_DestroySite ( GeoSite __instance ) { try {
+      private static bool Override_DestroySite ( GeoSite __instance ) { try {
          if ( DefenseMission == null ) return true;
          Verbo( "{0} loss to {1}.", __instance.Name, DefenseMission.GetEnemyFaction().GetPPName() );
          if ( ! CauseZoneDamage( DefenseMission?.GetEnemyFaction() ) ) return true;
@@ -183,7 +183,7 @@ namespace Sheepy.PhoenixPt.NoWar {
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
 
-      public static void AfterSiteMission_AmendLog ( GeoSite site, GeoMission mission, List<GeoscapeLogEntry> ____entries ) { try {
+      private static void AfterSiteMission_AmendLog ( GeoSite site, GeoMission mission, List<GeoscapeLogEntry> ____entries ) { try {
          if ( ! ( mission is GeoHavenDefenseMission defense ) ) return;
          if ( ! CauseZoneDamage( DefenseMission?.GetEnemyFaction() ) ) return;
          LocalizedTextBind zoneName = defense.AttackedZone?.Def?.ViewElementDef?.DisplayName1;
@@ -196,7 +196,7 @@ namespace Sheepy.PhoenixPt.NoWar {
 
       #region Defense Boost
       [ HarmonyPriority( Priority.High ) ]
-      public static void AfterDefDeploy_BoostDef ( GeoHavenDefenseMission __instance, ref int __result, GeoHaven haven ) { try {
+      private static void AfterDefDeploy_BoostDef ( GeoHavenDefenseMission __instance, ref int __result, GeoHaven haven ) { try {
          Info( "{0} under attack, defense strength {1}", haven.Site.Name, __result, __instance.AttackerDeployment, haven.Site.Owner.FactionStatModifiers.HavenAttackerStrengthModifier );
          float deploy = __result;
          switch ( haven?.AlertLevel ) {
