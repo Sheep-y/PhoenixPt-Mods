@@ -11,12 +11,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Reflection.BindingFlags;
 
-namespace Sheepy.PhoenixPt.NoWar {
+namespace Sheepy.PhoenixPt.LimitedWar {
 
    public class ModSettings {
       public bool Faction_Attack_Zone = true;
@@ -39,9 +38,11 @@ namespace Sheepy.PhoenixPt.NoWar {
       public float Default = 1;
       public float Alert    = 1.1f;
       public float High_Alert = 1.05f;
+      public float Attacker_Alien = 1;
       public float Attacker_Anu = 1;
       public float Attacker_NewJericho = 1.2f;
       public float Attacker_Synedrion = 1;
+      public float Defender_Alien = 1;
       public float Defender_Anu = 1;
       public float Defender_NewJericho = 1;
       public float Defender_Synedrion = 1;
@@ -225,7 +226,9 @@ namespace Sheepy.PhoenixPt.NoWar {
          GeoFaction attacker = __instance.GetEnemyFaction() is GeoSubFaction sub 
                ? attacker = sub.BaseFaction : __instance.GetEnemyFaction() as GeoFaction;
          var geoLevel = haven?.Site?.GeoLevel;
-         if ( attacker == geoLevel.AnuFaction )
+         if ( IsAlien( attacker ) )
+            deploy *= boost.Attacker_Alien;
+         else if ( attacker == geoLevel.AnuFaction )
             deploy *= boost.Attacker_Anu;
          else if ( attacker == geoLevel.SynedrionFaction )
             deploy *= boost.Attacker_Synedrion;
@@ -233,7 +236,9 @@ namespace Sheepy.PhoenixPt.NoWar {
             deploy *= boost.Attacker_NewJericho;
 
          var defender = haven.Site.Owner;
-         if ( attacker == geoLevel.AnuFaction )
+         if ( IsAlien( defender ) )
+            deploy *= boost.Defender_Alien;
+         else if ( attacker == geoLevel.AnuFaction )
             deploy *= boost.Defender_Anu;
          else if ( attacker == geoLevel.SynedrionFaction )
             deploy *= boost.Defender_Synedrion;
