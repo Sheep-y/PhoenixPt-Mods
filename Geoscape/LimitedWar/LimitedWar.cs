@@ -36,19 +36,19 @@ namespace Sheepy.PhoenixPt.LimitedWar {
 
    public class DefenseMultiplier {
       public float Default = 1;
-      public float Alert    = 1.1f;
-      public float High_Alert = 1.05f;
+      public float Alert    = 1.2f;
+      public float High_Alert = 1.1f;
       public float Attacker_Alien = 1;
       public float Attacker_Anu = 1;
-      public float Attacker_NewJericho = 1.2f;
+      public float Attacker_NewJericho = 1f;
       public float Attacker_Synedrion = 1;
       public float Defender_Alien = 1;
-      public float Defender_Anu = 1;
+      public float Defender_Anu = 1.2f;
       public float Defender_NewJericho = 1;
-      public float Defender_Synedrion = 1;
+      public float Defender_Synedrion = 1.2f;
 
-      internal bool IsEmpty => Default == 0 && Alert == 0 && High_Alert == 0 && Attacker_Anu == 0 && Attacker_NewJericho == 0 && Attacker_Synedrion == 0
-         && Defender_Anu == 0 && Defender_NewJericho == 0 && Defender_Synedrion == 0;
+      internal bool IsEmpty => Default == 1 && Alert == 1 && High_Alert == 1 && Attacker_Anu == 1 && Attacker_NewJericho == 1 && Attacker_Synedrion == 1
+         && Defender_Anu == 1 && Defender_NewJericho == 1 && Defender_Synedrion == 1;
    }
 
    public class Mod : ZyAdvMod {
@@ -74,7 +74,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          if ( settings.Attack_Raise_Alertness || settings.Attack_Raise_Faction_Alertness )
                Patch( typeof( GeoSite ), "DestroySite", postfix: nameof( AfterDestroySite_RaiseAlertness ) );
 
-         if ( settings.Defense_Multiplier?.IsEmpty != false )
+         if ( settings.Defense_Multiplier?.IsEmpty == false )
             Patch( typeof( GeoHavenDefenseMission ), "GetDefenseDeployment", postfix: nameof( AfterDefDeploy_BoostDef ) );
 
          if ( settings.Has_Less_Attack ) {
@@ -245,8 +245,8 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          else if ( attacker == geoLevel.NewJerichoFaction )
             deploy *= boost.Defender_NewJericho;
 
-         __result = (int) Math.Round( deploy );
-         Info( "Bumping defender strength by {0} to {1}", deploy, __result );
+         __result = (int) Math.Round( __result * deploy );
+         Info( "Multiplying defender strength by {0} to {1}", deploy, __result );
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
    }
