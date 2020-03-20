@@ -198,7 +198,15 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          GeoHavenZone zone = DefenseMission.AttackedZone;
          zone.AddDamage( zone.Health.IntValue );
          zone.AddProduction( 0 );
+         var haven = zone.Haven;
          Info( "Fall of {0} converted to {1} destruction.", __instance.Name, zone.Def.ViewElementDef.DisplayName1.LocalizeEnglish() );
+         if ( haven != null ) {
+            if ( ( zone.Def.ProvidesRecruitment || zone.Def.ProvidesEliteRecruitment ) && haven.AvailableRecruit != null ) {
+               haven.RemoveRecruit();
+            }
+            haven.ZonesStats.UpdateZonesStats();
+         }
+         __instance.RefreshVisuals();
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
 
