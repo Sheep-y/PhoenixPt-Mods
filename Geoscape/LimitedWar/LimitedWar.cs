@@ -179,6 +179,7 @@ namespace Sheepy.PhoenixPt.NoWar {
          if ( ! CauseZoneDamage( DefenseMission?.GetEnemyFaction() ) ) return true;
          GeoHavenZone zone = DefenseMission.AttackedZone;
          zone.AddDamage( zone.Health.IntValue );
+         zone.AddProduction( 0 );
          Info( "Fall of {0} converted to {1} destruction.", __instance.Name, zone.Def.ViewElementDef.DisplayName1 );
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
