@@ -225,9 +225,11 @@ namespace Sheepy.PhoenixPt.LimitedWar {
       #region Defense Boost
       [ HarmonyPriority( Priority.High ) ]
       private static void AfterDefDeploy_BoostDef ( GeoHavenDefenseMission __instance, ref int __result, GeoHaven haven ) { try {
-         GeoFaction attacker = __instance.GetEnemyFaction() is GeoSubFaction sub 
+         if ( haven == null ) return;
+         GeoFaction attacker = __instance.GetEnemyFaction() is GeoSubFaction sub
                ? attacker = sub.BaseFaction : __instance.GetEnemyFaction() as GeoFaction;
-         Info( "{0} under attack by {1}, defense strength {2}.", haven.Site.Name, attacker.GetPPName(), __result );
+         var defender = haven.Site.Owner;
+         Info( "{0} of {1} under attack by {2}, defense strength {3}. Alert level {4}.", haven.Site.Name, defender, attacker.GetPPName(), __result, haven.AlertLevel );
 
          var conf = Settings.Defense_Multiplier;
          float multiply = conf.Default;
@@ -236,7 +238,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
             case GeoHaven.HavenAlertLevel.HighAlert : multiply *= conf.High_Alert; break;
          }
 
-         var geoLevel = haven?.Site?.GeoLevel;
+         var geoLevel = haven.Site.GeoLevel;
          if ( IsAlien( attacker ) )
             multiply *= conf.Attacker_Pandora;
          else if ( attacker == geoLevel.AnuFaction )
@@ -246,14 +248,13 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          else if ( attacker == geoLevel.NewJerichoFaction )
             multiply *= conf.Attacker_NewJericho;
 
-         var defender = haven.Site.Owner;
          if ( IsAlien( defender ) )
             multiply *= conf.Defender_Pandora;
-         else if ( attacker == geoLevel.AnuFaction )
+         else if ( defender == geoLevel.AnuFaction )
             multiply *= conf.Defender_Anu;
-         else if ( attacker == geoLevel.SynedrionFaction )
+         else if ( defender == geoLevel.SynedrionFaction )
             multiply *= conf.Defender_Synedrion;
-         else if ( attacker == geoLevel.NewJerichoFaction )
+         else if ( defender == geoLevel.NewJerichoFaction )
             multiply *= conf.Defender_NewJericho;
 
          if ( multiply != 1 ) {
