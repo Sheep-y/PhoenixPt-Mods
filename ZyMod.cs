@@ -56,12 +56,12 @@ namespace Sheepy.PhoenixPt {
          internal HarmonyMethod Post;
          internal HarmonyMethod Tran;
          public IPatch Patch () {
-            Verbo( "Patching {0}, pre={1} post={2} trans={3}", Target, Pre, Post, Tran );
+            Verbo( "Patching {0}.{1}, pre={2} post={3} trans={4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
             Patcher.Patch( Target, Pre, Post, Tran );
             return this;
          }
          public void Unpatch () {
-            Verbo( "Unpatching {0}, pre={1} post={2} trans={3}", Target, Pre, Post, Tran );
+            Verbo( "Unpatching {0}.{1}, pre={2} post={3} trans={4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
             if ( Pre  != null ) Patcher.Unpatch( Target, Pre.method );
             if ( Post != null ) Patcher.Unpatch( Target, Post.method );
             if ( Tran != null ) Patcher.Unpatch( Target, Tran.method );
