@@ -204,8 +204,8 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          if ( haven != null ) {
             if ( ( zone.Def.ProvidesRecruitment || zone.Def.ProvidesEliteRecruitment ) && haven.AvailableRecruit != null )
                haven.RemoveRecruit();
-            haven.ZonesStats.UpdateZonesStats();
          }
+         haven.ZonesStats.UpdateZonesStats();
          __instance.RefreshVisuals();
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
@@ -225,7 +225,9 @@ namespace Sheepy.PhoenixPt.LimitedWar {
       #region Defense Boost
       [ HarmonyPriority( Priority.High ) ]
       private static void AfterDefDeploy_BoostDef ( GeoHavenDefenseMission __instance, ref int __result, GeoHaven haven ) { try {
-         Info( "{0} under attack, defense strength {1}", haven.Site.Name, __result, __instance.AttackerDeployment );
+         GeoFaction attacker = __instance.GetEnemyFaction() is GeoSubFaction sub 
+               ? attacker = sub.BaseFaction : __instance.GetEnemyFaction() as GeoFaction;
+         Info( "{0} under attack by {1}, defense strength {2}.", haven.Site.Name, attacker.GetPPName(), __result );
 
          var conf = Settings.Defense_Multiplier;
          float multiply = conf.Default;
@@ -234,8 +236,6 @@ namespace Sheepy.PhoenixPt.LimitedWar {
             case GeoHaven.HavenAlertLevel.HighAlert : multiply *= conf.High_Alert; break;
          }
 
-         GeoFaction attacker = __instance.GetEnemyFaction() is GeoSubFaction sub 
-               ? attacker = sub.BaseFaction : __instance.GetEnemyFaction() as GeoFaction;
          var geoLevel = haven?.Site?.GeoLevel;
          if ( IsAlien( attacker ) )
             multiply *= conf.Attacker_Pandora;
