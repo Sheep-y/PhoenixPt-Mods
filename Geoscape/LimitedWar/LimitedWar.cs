@@ -7,6 +7,7 @@ using PhoenixPoint.Geoscape.Entities.Missions;
 using PhoenixPoint.Geoscape.Entities.Sites;
 using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Geoscape.Levels.Factions;
+using PhoenixPoint.Geoscape.View;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -63,27 +64,27 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          Info( "Setting = {0}", (Func<string>) JsonifySettings );
 
          if ( settings.Faction_Attack_Zone || settings.Pandora_Attack_Zone ) {
-            BatchPatch( "Zoned attacks", () => {
+            if ( BatchPatch( "Zoned attacks", () => {
                Patch( typeof( GeoHavenDefenseMission ), "UpdateGeoscapeMissionState", nameof( BeforeGeoMission_StoreMission ), nameof( AfterGeoMission_Cleanup ) );
                Patch( typeof( GeoSite ), "DestroySite", nameof( Override_DestroySite ) );
-               Patch( typeof( GeoscapeLog ), "Map_SiteMissionStarted", postfix: nameof( AfterSiteMission_AmendLog ) );
-               Patch( typeof( GeoscapeLog ), "Map_SiteMissionEnded", postfix: nameof( AfterSiteMission_AmendLog ) );
-               CommitPatch();
-            } );
+            } ) != null ) {
+               TryPatch( typeof( GeoscapeLog ), "Map_SiteMissionStarted", postfix: nameof( AfterSiteMission_AmendLog ) );
+               TryPatch( typeof( GeoscapeLog ), "Map_SiteMissionEnded", postfix: nameof( AfterSiteMission_AmendLog ) );
+            }
          }
 
          if ( settings.Attack_Raise_Alertness || settings.Attack_Raise_Faction_Alertness )
-               Patch( typeof( GeoSite ), "DestroySite", postfix: nameof( AfterDestroySite_RaiseAlertness ) );
+            TryPatch( typeof( GeoSite ), "DestroySite", postfix: nameof( AfterDestroySite_RaiseAlertness ) );
 
          if ( settings.Defense_Multiplier?.IsEmpty == false )
-            Patch( typeof( GeoHavenDefenseMission ), "GetDefenseDeployment", postfix: nameof( AfterDefDeploy_BoostDef ) );
+            TryPatch( typeof( GeoHavenDefenseMission ), "GetDefenseDeployment", postfix: nameof( AfterDefDeploy_BoostDef ) );
 
          if ( settings.Has_Less_Attack ) {
-            BatchPatch( "Less attacks", () => {
-               Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( AfterLevelStart_StoreDiff ) );
-               Patch( typeof( VehicleFactionController ), "UpdateNavigation", nameof( BeforeNav_Drop_Attack ), nameof( AfterNav_Restore ) );
-               Patch( typeof( GeoFaction ), "AttackHavenFromVehicle", nameof( Override_Attack ) );
-            } );
+            if ( TryPatch( typeof( GeoFaction ), "AttackHavenFromVehicle", nameof( Override_Attack ) ) != null )
+               BatchPatch( "Less attacks", () => {
+                  Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( AfterLevelStart_StoreDiff ) );
+                  Patch( typeof( VehicleFactionController ), "UpdateNavigation", nameof( BeforeNav_Drop_Attack ), nameof( AfterNav_Restore ) );
+               } );
          }
       }
 
@@ -201,9 +202,8 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          var haven = zone.Haven;
          Info( "Fall of {0} converted to {1} destruction.", __instance.Name, zone.Def.ViewElementDef.DisplayName1.LocalizeEnglish() );
          if ( haven != null ) {
-            if ( ( zone.Def.ProvidesRecruitment || zone.Def.ProvidesEliteRecruitment ) && haven.AvailableRecruit != null ) {
+            if ( ( zone.Def.ProvidesRecruitment || zone.Def.ProvidesEliteRecruitment ) && haven.AvailableRecruit != null )
                haven.RemoveRecruit();
-            }
             haven.ZonesStats.UpdateZonesStats();
          }
          __instance.RefreshVisuals();
