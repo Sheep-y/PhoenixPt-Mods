@@ -42,40 +42,47 @@ namespace Sheepy.PhoenixPt {
          return patch;
       } catch ( Exception ex ) { RollbackPatch( ex ); throw; } }
 
-      protected void StartPatch ( string id = "patches" ) { lock( Trans ) {
-         if ( TransId != null ) return;
+      protected bool StartPatch ( string id = "patches" ) { lock( Trans ) {
+         if ( TransId != null ) {
+            Warn( "Cannot start {0}, already in {1}", id, TransId );
+            return false;
+         }
          id = id ?? "null";
-         Verbo( "Start {0}", id );
          TransId = id;
+         Verbo( "Start {0}", id );
+         return true;
       } }
 
-      protected void RollbackPatch ( object reason = null ) { lock( Trans ) {
-         if ( TransId == null ) return;
+      protected IPatch[] RollbackPatch ( object reason = null ) { lock( Trans ) {
+         if ( TransId == null ) return null;
          Warn( "Rollback {0} ({1} patches) {2}", TransId, Trans.Count, reason ?? "" );
+         var result = Trans.ToArray();
          foreach ( var patch in Trans )
             patch.Unpatch();
          Trans.Clear();
          TransId = null;
+         return result;
       } }
 
-      protected void CommitPatch () { lock( Trans ) {
-         if ( TransId == null ) return;
+      protected IPatch[] CommitPatch () { lock( Trans ) {
+         if ( TransId == null ) return null;
+         var result = Trans.ToArray();
          Info( "Commit {0} ({1} patches)", TransId, Trans.Count );
          Trans.Clear();
          TransId = null;
+         return result;
       } }
 
-      protected Exception BatchPatch ( Action patcher ) => BatchPatch( "patches", patcher );
+      protected IPatch[] BatchPatch ( Action patcher ) => BatchPatch( "patches", patcher );
 
-      protected Exception BatchPatch ( string id, Action patcher ) {
+      protected IPatch[] BatchPatch ( string id, Action patcher ) {
          StartPatch( id );
          try {
             patcher();
-            CommitPatch();
-            return null;
+            return CommitPatch();
          } catch ( Exception ex ) {
             RollbackPatch( ex );
-            return ex;
+            return null;
          }
       }
 

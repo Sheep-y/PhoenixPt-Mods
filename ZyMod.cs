@@ -85,7 +85,7 @@ namespace Sheepy.PhoenixPt {
 
       protected internal static Action< SourceLevels, object, object[] > Logger;
       protected virtual void SetLogger ( Action< SourceLevels, object, object[] > logger ) { lock ( _Lock ) Logger = logger; }
-      private static void Log ( SourceLevels level, object msg, object[] augs ) { lock ( _Lock ) Logger?.Invoke( level, msg, augs ); }
+      private static void Log ( SourceLevels level, object msg, object[] augs ) { lock ( _Lock ) try { Logger?.Invoke( level, msg, augs ); } catch ( Exception ) { } }
       protected internal static void Verbo ( object msg, params object[] augs ) => Log( SourceLevels.Verbose, msg, augs );
       protected internal static void Info  ( object msg, params object[] augs ) => Log( SourceLevels.Information, msg, augs );
       protected internal static void Warn  ( object msg, params object[] augs ) => Log( SourceLevels.Warning, msg, augs );
