@@ -11,6 +11,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using static System.Reflection.BindingFlags;
+using PhoenixPoint.Geoscape.View.ViewStates;
 
 namespace Sheepy.PhoenixPt.SkipIntro {
 
@@ -19,6 +20,7 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       public int  Config_Version = 20200322;
       public bool Skip_Logos = true;
       public bool Skip_HottestYear = true;
+      public bool Skip_NewGameIntro = false;
       public bool Skip_Landings = true;
       public bool Skip_CurtainDrop = true;
       public bool Skip_CurtainLift = true;
@@ -46,6 +48,12 @@ namespace Sheepy.PhoenixPt.SkipIntro {
             IntroLoadPatch  = Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
          }
 
+         // Skip "The Hottest Year"
+         if ( config.Skip_NewGameIntro ) {
+            Patch( typeof( UIStateGeoCutscene ), "EnterState", postfix: nameof( AfterGeoCutscene_Skip ) );
+            Patch( typeof( UIStateGeoCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
+         }
+
          // Skip aircraft landings
          if ( config.Skip_Landings ) {
             Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
@@ -67,7 +75,7 @@ namespace Sheepy.PhoenixPt.SkipIntro {
          if ( def == null ) return false;
          string path = def.ResourcePath;
          Verbo( "Checking video {0}", path );
-         return path.Contains( "Game_Intro_Cutscene" ) || path.Contains( "LandingSequences" );
+         return path.Contains( "LandingSequences" ) || path.Contains( "PP_Intro_Cutscene" ) || path.Contains( "Game_Intro_Cutscene" );
       }
 
       private static bool BeforeRunGameLevel_Skip ( PhoenixGame __instance, LevelSceneBinding levelSceneBinding, ref IEnumerator<NextUpdate> __result ) { try {
@@ -87,6 +95,12 @@ namespace Sheepy.PhoenixPt.SkipIntro {
          Unpatch( ref IntroLoadPatch );
       } catch ( Exception ex ) { Error( ex ); } }
 
+      private static void AfterGeoCutscene_Skip ( UIStateGeoCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
+         if ( ! ShouldSkip( ____sourcePlaybackDef ) ) return;
+         Info( "Skipping New Game Video" );
+         typeof( UIStateGeoCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
+      } catch ( Exception ex ) { Error( ex ); } }
+
       private static void AfterTacCutscene_Skip ( UIStateTacticalCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
          if ( ! ShouldSkip( ____sourcePlaybackDef ) ) return;
          Info( "Skipping Combat Video" );
@@ -102,17 +116,15 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       private static void InkOpen_Skip ( ref float ____progress, object __instance ) { try {
          float ____endFrame = (float) typeof( UseInkUI ).GetProperty( "_endFrame", NonPublic | Instance ).GetValue( __instance );
          var target = ____endFrame - SKIP_FRAME;
-         if ( ____progress < target ) {
-            Verbo( "Skipping Curtain Drop" );
-            ____progress = target;
-         }
+         if ( ____progress >= target ) return;
+         Verbo( "Skipping Curtain Drop" );
+         ____progress = target;
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void InkClose_Skip ( ref float ____progress ) {
-         if ( ____progress > SKIP_FRAME ) {
-            Verbo( "Skipping Curtain Lift" );
-            ____progress = SKIP_FRAME;
-         }
+         if ( ____progress <= SKIP_FRAME ) return;
+         Verbo( "Skipping Curtain Lift" );
+         ____progress = SKIP_FRAME;
       }
    }
 }
