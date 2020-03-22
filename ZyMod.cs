@@ -56,26 +56,43 @@ namespace Sheepy.PhoenixPt {
          internal HarmonyMethod Post;
          internal HarmonyMethod Tran;
          public IPatch Patch () {
-            Verbo( "Patching {0}.{1}, pre={2} post={3} trans={4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
+            Verbo( "Patching {0}.{1}, pre:{2} post:{3} trans:{4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
             Patcher.Patch( Target, Pre, Post, Tran );
             return this;
          }
          public void Unpatch () {
-            Verbo( "Unpatching {0}.{1}, pre={2} post={3} trans={4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
+            Verbo( "Unpatching {0}.{1}, pre:{2} post:{3} trans:{4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
             if ( Pre  != null ) Patcher.Unpatch( Target, Pre.method );
             if ( Post != null ) Patcher.Unpatch( Target, Post.method );
             if ( Tran != null ) Patcher.Unpatch( Target, Tran.method );
          }
       }
 
-      protected static T ReadSettings < T > ( T supplied ) where T : class, new() {
-         if ( supplied != null ) return supplied;
-         try {
+      protected internal static Func< string, object, object > ModnixApi;
+
+      protected virtual void SetApi ( Func< string, object, object > api ) { lock ( _Lock ) {
+         if ( api == null ) return;
+         ModnixApi = api;
+         lock ( _Lock ) Logger = (Action< TraceEventType, object, object[] >) api( "logger", "TraceEventType" );
+      } }
+
+      protected virtual T SetApi < T > ( Func< string, object, object > api, out T config ) where T : new() { lock ( _Lock ) {
+         config = default;
+         if ( api == null ) {
             var file = Assembly.GetExecutingAssembly().Location.Replace( ".dll", ".conf" );
-            if ( File.Exists( file ) ) return JsonConvert.DeserializeObject<T>( File.ReadAllText( file ) );
-         } catch ( Exception ex ) { Warn( ex ); }
-         return new T();
-      }
+            if ( File.Exists( file ) ) try {
+                  config = JsonConvert.DeserializeObject<T>( File.ReadAllText( file ) );
+            } catch ( Exception ex ) { Warn( ex ); }
+         } else {
+            SetApi( api );
+            config = (T) api( "config", typeof( T ) );
+         }
+         if ( config == null ) config = new T();
+         Verbo( "Config = {0}", Jsonify( config ) );
+         return config;
+      } }
+
+      private static Func<string> Jsonify ( object obj ) => () => JsonConvert.SerializeObject( obj );
 
       public static string TitleCase ( string txt ) {
          // return CultureInfo.CurrentCulture.TextInfo.ToTitleCase( txt );
@@ -83,14 +100,13 @@ namespace Sheepy.PhoenixPt {
             .Join( e => char.ToUpper( e[0] ) + e.Substring(1).ToLower(), " " );
       }
 
-      protected internal static Action< SourceLevels, object, object[] > Logger;
-      protected virtual void SetLogger ( Action< SourceLevels, object, object[] > logger ) { lock ( _Lock ) Logger = logger; }
-      private static void Log ( SourceLevels level, object msg, object[] augs ) { lock ( _Lock ) try { Logger?.Invoke( level, msg, augs ); } catch ( Exception ) { } }
-      protected internal static void Verbo ( object msg, params object[] augs ) => Log( SourceLevels.Verbose, msg, augs );
-      protected internal static void Info  ( object msg, params object[] augs ) => Log( SourceLevels.Information, msg, augs );
-      protected internal static void Warn  ( object msg, params object[] augs ) => Log( SourceLevels.Warning, msg, augs );
+      protected internal static Action< TraceEventType, object, object[] > Logger;
+      private static void Log ( TraceEventType level, object msg, object[] augs ) { lock ( _Lock ) try { Logger?.Invoke( level, msg, augs ); } catch ( Exception ) { } }
+      protected internal static void Verbo ( object msg, params object[] augs ) => Log( TraceEventType.Verbose, msg, augs );
+      protected internal static void Info  ( object msg, params object[] augs ) => Log( TraceEventType.Information, msg, augs );
+      protected internal static void Warn  ( object msg, params object[] augs ) => Log( TraceEventType.Warning, msg, augs );
       protected internal static bool Error ( object msg, params object[] augs ) {
-         Log( SourceLevels.Error, msg, augs );
+         Log( TraceEventType.Error, msg, augs );
          return true;
       }
    }

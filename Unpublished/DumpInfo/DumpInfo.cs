@@ -27,17 +27,20 @@ using System.Threading.Tasks;
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    public class Mod : ZyMod {
-      public void Init () => new Mod().MainMod( "." );
+      public void Init () => new Mod().MainMod();
 
       internal static string ModDir;
+      internal static string GameVersion;
 
       private static IPatch DumpPatch;
-      internal static Func< string, Version > Query;
 
-      public void MainMod ( string modPath, Action< SourceLevels, object, object[] > logger = null, Func< string, Version > query = null ) {
-         ModDir = Path.GetDirectoryName( modPath );
-         SetLogger( logger );
-         Query = query;
+      public void MainMod ( Func< string, object, object > api = null ) {
+         SetApi( api );
+         if ( api != null ) {
+            ModDir = api( "path", "mods_root" )?.ToString() ?? ".";
+            GameVersion = api( "version", "game" )?.ToString();
+         } else
+            ModDir = ".";
 
          DumpPatch = Patch( typeof( GeoscapeView ), "ResetViewState", null, postfix: nameof( DumpData ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogWeapons ) );

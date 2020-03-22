@@ -18,7 +18,7 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.LimitedWar {
 
-   public class ModSettings {
+   public class ModConfig {
       public bool Faction_Attack_Zone = true;
       public bool Pandora_Attack_Zone = false;
       public bool Attack_Raise_Alertness = true;
@@ -54,16 +54,14 @@ namespace Sheepy.PhoenixPt.LimitedWar {
    }
 
    public class Mod : ZyAdvMod {
-      private static ModSettings Settings;
+      private static ModConfig Config;
 
       public static void Init () => new Mod().MainMod();
 
-      public void MainMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
-         SetLogger( logger );
-         Settings = settings = ReadSettings( settings );
-         Info( "Setting = {0}", (Func<string>) JsonifySettings );
+      public void MainMod ( Func< string, object, object > api = null ) {
+         SetApi( api, out Config );
 
-         if ( settings.Faction_Attack_Zone || settings.Pandora_Attack_Zone ) {
+         if ( Config.Faction_Attack_Zone || Config.Pandora_Attack_Zone ) {
             if ( BatchPatch( "Zoned attacks", () => {
                Patch( typeof( GeoHavenDefenseMission ), "UpdateGeoscapeMissionState", nameof( BeforeGeoMission_StoreMission ), nameof( AfterGeoMission_Cleanup ) );
                Patch( typeof( GeoSite ), "DestroySite", nameof( Override_DestroySite ) );
@@ -73,13 +71,13 @@ namespace Sheepy.PhoenixPt.LimitedWar {
             }
          }
 
-         if ( settings.Attack_Raise_Alertness || settings.Attack_Raise_Faction_Alertness )
+         if ( Config.Attack_Raise_Alertness || Config.Attack_Raise_Faction_Alertness )
             TryPatch( typeof( GeoSite ), "DestroySite", postfix: nameof( AfterDestroySite_RaiseAlertness ) );
 
-         if ( settings.Defense_Multiplier?.IsEmpty == false )
+         if ( Config.Defense_Multiplier?.IsEmpty == false )
             TryPatch( typeof( GeoHavenDefenseMission ), "GetDefenseDeployment", postfix: nameof( AfterDefDeploy_BoostDef ) );
 
-         if ( settings.Has_Less_Attack ) {
+         if ( Config.Has_Less_Attack ) {
             if ( TryPatch( typeof( GeoFaction ), "AttackHavenFromVehicle", nameof( Override_Attack ) ) != null )
                BatchPatch( "Less attacks", () => {
                   Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( AfterLevelStart_StoreDiff ) );
@@ -87,8 +85,6 @@ namespace Sheepy.PhoenixPt.LimitedWar {
                } );
          }
       }
-
-      private static string JsonifySettings () => JsonConvert.SerializeObject( Settings );
 
       private static bool IsAlien ( IGeoFactionMissionParticipant f ) => f is GeoAlienFaction;
       private static bool IsPhoenixPt ( IGeoFactionMissionParticipant f ) => f is GeoPhoenixFaction;
@@ -109,15 +105,15 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          if ( geoLevel?.Map == null || IsAlienOrPP( attacker ) ) return false;
          foreach ( GeoSite site in geoLevel.Map.AllSites ) {
             if ( ! ( site.ActiveMission is GeoHavenDefenseMission mission ) ) continue;
-            if ( Settings.No_Attack_When_Sieged_Difficulty >= difficulty && IsAlien( mission.GetEnemyFaction() ) && site.Owner == attacker ) {
+            if ( Config.No_Attack_When_Sieged_Difficulty >= difficulty && IsAlien( mission.GetEnemyFaction() ) && site.Owner == attacker ) {
                Verbo( "{0} is being sieged by alien at {0}.", site.Name );
                return true;
             }
-            if ( Settings.One_Global_Attack_Difficulty >= difficulty ) {
+            if ( Config.One_Global_Attack_Difficulty >= difficulty ) {
                Verbo( "Global attack limit: {0} already under siege.", site.Name );
                return true; // Rokkie and Veteran limits to 1 faction war on globe
             }
-            if ( Settings.One_Attack_Per_Faction_Difficulty >= difficulty && mission.GetEnemyFaction() == attacker ) {
+            if ( Config.One_Attack_Per_Faction_Difficulty >= difficulty && mission.GetEnemyFaction() == attacker ) {
                Verbo( "Faction attack limit: {0} already sieging {1}.", attacker.GetPPName(), site.Name );
                return true; // Hero and Legend limits to 1 attack per faction
             }
@@ -126,7 +122,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
       } catch ( Exception ex ) { return ! Error( ex ); } }
 
       private static bool ShouldStopFight ( GeoLevelController geoLevel, IGeoFactionMissionParticipant from ) { try {
-         if ( Settings.Stop_OneSided_War && lastAttacker != null && from == lastAttacker ) {
+         if ( Config.Stop_OneSided_War && lastAttacker != null && from == lastAttacker ) {
             Verbo( "One sided war; {0} has already attacked.", from.GetPPName() );
             return true;
          }
@@ -166,7 +162,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          var haven = DefenseMission?.Haven;
          var owner = haven?.Site?.Owner;
          if ( haven == null || IsAlienOrPP( owner ) ) return;
-         if ( Settings.Attack_Raise_Faction_Alertness && owner != null ) {
+         if ( Config.Attack_Raise_Faction_Alertness && owner != null ) {
             Info( "{0} has loss. Raising alertness of {1}", haven.Site.Name, owner.GetPPName() );
             foreach ( var e in owner.Havens )
                typeof( GeoHaven ).GetMethod( "IncreaseAlertness", NonPublic | Instance ).Invoke( e, null );
@@ -186,8 +182,8 @@ namespace Sheepy.PhoenixPt.LimitedWar {
 
       private static bool CauseZoneDamage ( IGeoFactionMissionParticipant attacker ) {
          return ! IsPhoenixPt( attacker ) &&
-              ( Settings.Pandora_Attack_Zone && IsAlien( attacker ) ) ||
-              ( Settings.Faction_Attack_Zone && ! IsAlien( attacker ) );
+              ( Config.Pandora_Attack_Zone && IsAlien( attacker ) ) ||
+              ( Config.Faction_Attack_Zone && ! IsAlien( attacker ) );
       }
 
       [ HarmonyPriority( Priority.High ) ]
@@ -231,7 +227,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          var defender = haven.Site.Owner;
          Info( "{0} of {1} under attack by {2}, defense strength {3}. Alert level {4}.", haven.Site.Name, defender, attacker.GetPPName(), __result, haven.AlertLevel );
 
-         var conf = Settings.Defense_Multiplier;
+         var conf = Config.Defense_Multiplier;
          float multiply = conf.Default;
          switch ( haven?.AlertLevel ) {
             case GeoHaven.HavenAlertLevel.Alert : multiply *= conf.Alert; break;

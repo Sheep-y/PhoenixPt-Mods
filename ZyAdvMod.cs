@@ -88,18 +88,20 @@ namespace Sheepy.PhoenixPt {
 
       protected static string LogFile;
 
-      protected override void SetLogger ( Action< SourceLevels, object, object[] > logger ) {
-         if ( logger == null ) {
+      protected override void SetApi ( Func< string, object, object > api ) {
+         base.SetApi( api );
+         if ( api == null ) {
             var asm = Assembly.GetExecutingAssembly();
-            LogFile = asm.Location.Replace( ".dll", ".log" );
-            base.SetLogger( DefaultLogger );
+            lock ( _Lock ) {
+               LogFile = asm.Location.Replace( ".dll", ".log" );
+               Logger = DefaultLogger;
+            }
             Info( DateTime.Now.ToString( "D" ) + " " + GetType().Namespace + " " + asm.GetName().Version );
-         } else
-            base.SetLogger( logger );
+         }
       }
 
       // A simple file logger when one is not provided by the mod loader.
-      private static void DefaultLogger ( SourceLevels lv, object msg, object[] param ) { try {
+      private static void DefaultLogger ( TraceEventType lv, object msg, object[] param ) { try {
          string line = msg?.ToString();
          try {
             if ( param != null ) line = string.Format( line, param );

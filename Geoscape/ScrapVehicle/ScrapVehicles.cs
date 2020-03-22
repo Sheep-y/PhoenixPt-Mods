@@ -29,8 +29,8 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
    public class Mod : ZyAdvMod {
       public static void Init () => new Mod().MainMod();
 
-      public void MainMod ( Action< SourceLevels, object, object[] > logger = null ) {
-         SetLogger( logger );
+      public void MainMod ( Func< string, object, object > api = null ) {
+         SetApi( api );
          StartPatch( "scrap vehicle" );
          var UiType = typeof( UIModuleManufacturing );
          Patch( UiType, "SetupClassFilter", postfix: nameof( AfterSetupClassFilter_CheckScrapMode ) );

@@ -34,38 +34,37 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       private static ModConfig Config;
 
       // Modnix entry point, splash phase
-      public void SplashMod ( ModConfig config = null, Action< SourceLevels, object, object[] > logger = null ) {
-         SetLogger( logger );
-         Config = config = ReadSettings( config );
+      public void SplashMod ( Func< string, object, object > api = null ) {
+         SetApi( api, out Config );
 
          // I prefer doing manual patch for better control, such as reusing methods, configurable patch flow, or try catch optional patches.
          // Simpler mods can use Harmony Attributes / Annotation, and it'll work the same.
 
          // Skip logos and splash
-         if ( config.Skip_Logos )
+         if ( Config.Skip_Logos )
             LogoPatch = Patch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
 
          // Skip "The Hottest Year"
-         if ( config.Skip_HottestYear )
+         if ( Config.Skip_HottestYear )
             IntroEnterPatch = Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
 
          // Skip New Campaign Video
-         if ( config.Skip_NewGameIntro )
+         if ( Config.Skip_NewGameIntro )
             Patch( typeof( UIStateGeoCutscene ), "EnterState", postfix: nameof( AfterGeoCutscene_Skip ) );
 
          // Skip aircraft landings
-         if ( config.Skip_Landings )
+         if ( Config.Skip_Landings )
             Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
 
          // Don't load skipped videos
-         if ( config.SkipAnyVideo )
+         if ( Config.SkipAnyVideo )
             Patch( typeof( VideoPlaybackController ), "Setup", nameof( BeforeVideoSetup_Skip ) );
 
          // Skip curtain drop (opening loading screen)
-         if ( config.Skip_CurtainDrop )
+         if ( Config.Skip_CurtainDrop )
             Patch( typeof( UseInkUI ), "Open", nameof( InkOpen_Skip ) );
          // Skip curtain lift (closing loading screen)
-         if ( config.Skip_CurtainLift )
+         if ( Config.Skip_CurtainLift )
             Patch( typeof( UseInkUI ), "Close", nameof( InkClose_Skip ) );
       }
 

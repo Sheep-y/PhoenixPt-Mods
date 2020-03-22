@@ -46,8 +46,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                Writer = writer;
                writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
                StartTag( typeName, "count", Data.Count.ToString(), false );
-               if ( Mod.Query != null )
-                  StartTag( "Game", "Version", Mod.Query( "Phoenix Point" )?.ToString(), true );
+               if ( Mod.GameVersion != null )
+                  StartTag( "Game", "Version", Mod.GameVersion, true );
                StartTag( "DumpInfo", "Version", Assembly.GetExecutingAssembly().GetName().Version.ToString(), true );
                foreach ( var def in Data )
                   ToXml( def );
