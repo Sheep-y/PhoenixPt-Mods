@@ -1,8 +1,14 @@
 Changelog of Scrap Vehicle, a Phoenix Point Mod by Sheepy
 
+# Version 2.1, 2020-03-22
+
+* Update to Modnix 1.0
+* Fix: Vehicles now have correct name in stats panel.
+* New: Vehicles now show their location in stats panel.
+
 # Version 2.0, 2020-03-18
 
-* Update to phoenix point 1.0.56200
+* Update to Phoenix Point 1.0.56200 and Modnix 0.90
 * Fix: Scrapping vehicle will prevent game from being saved or enter combat.
 * Fix: Last aircraft may not be scrapped, to prevent freezing the game.
 
