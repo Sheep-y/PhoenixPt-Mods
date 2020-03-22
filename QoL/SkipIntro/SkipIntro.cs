@@ -100,17 +100,19 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       private const float SKIP_FRAME = 0.00001f;
 
       private static void InkOpen_Skip ( ref float ____progress, object __instance ) { try {
-         Verbo( "Skipping Curtain Drop" );
          float ____endFrame = (float) typeof( UseInkUI ).GetProperty( "_endFrame", NonPublic | Instance ).GetValue( __instance );
          var target = ____endFrame - SKIP_FRAME;
-         if ( ____progress < target )
+         if ( ____progress < target ) {
+            Verbo( "Skipping Curtain Drop" );
             ____progress = target;
+         }
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void InkClose_Skip ( ref float ____progress ) {
-         Verbo( "Skipping Curtain Lift" );
-         if ( ____progress > SKIP_FRAME )
+         if ( ____progress > SKIP_FRAME ) {
+            Verbo( "Skipping Curtain Lift" );
             ____progress = SKIP_FRAME;
+         }
       }
    }
 }
