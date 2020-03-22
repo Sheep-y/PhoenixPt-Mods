@@ -4,14 +4,13 @@ using Base.UI;
 using Base.UI.VideoPlayback;
 using PhoenixPoint.Common.Game;
 using PhoenixPoint.Home.View.ViewStates;
+using PhoenixPoint.Geoscape.View.ViewStates;
 using PhoenixPoint.Tactical.View.ViewStates;
 using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Diagnostics;
-using System.Reflection;
 using static System.Reflection.BindingFlags;
-using PhoenixPoint.Geoscape.View.ViewStates;
 
 namespace Sheepy.PhoenixPt.SkipIntro {
 
@@ -24,41 +23,43 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       public bool Skip_Landings = true;
       public bool Skip_CurtainDrop = true;
       public bool Skip_CurtainLift = true;
+
+      internal bool SkipAnyVideo => Skip_HottestYear || Skip_NewGameIntro || Skip_Landings;
    }
 
    public class Mod : ZyMod {
       // PPML v0.1 entry point
       public static void Init () => new Mod().SplashMod();
 
+      private static ModConfig Config;
+
       // Modnix entry point, splash phase
       public void SplashMod ( ModConfig config = null, Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
-         config = ReadSettings( config );
+         Config = config = ReadSettings( config );
 
-         // I prefer doing manual patch for better control, such as reusing a method in patch.
-         // Most modders prefer the simpler Harmony Attributes / Annotation, and it'll work the same.
+         // I prefer doing manual patch for better control, such as reusing methods, configurable patch flow, or try catch optional patches.
+         // Simpler mods can use Harmony Attributes / Annotation, and it'll work the same.
 
          // Skip logos and splash
          if ( config.Skip_Logos )
             LogoPatch = Patch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
 
          // Skip "The Hottest Year"
-         if ( config.Skip_HottestYear ) {
+         if ( config.Skip_HottestYear )
             IntroEnterPatch = Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
-            IntroLoadPatch  = Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
-         }
 
-         // Skip "The Hottest Year"
-         if ( config.Skip_NewGameIntro ) {
+         // Skip New Campaign Video
+         if ( config.Skip_NewGameIntro )
             Patch( typeof( UIStateGeoCutscene ), "EnterState", postfix: nameof( AfterGeoCutscene_Skip ) );
-            Patch( typeof( UIStateGeoCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
-         }
 
          // Skip aircraft landings
-         if ( config.Skip_Landings ) {
+         if ( config.Skip_Landings )
             Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
-            Patch( typeof( UIStateTacticalCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
-         }
+
+         // Don't load skipped videos
+         if ( config.SkipAnyVideo )
+            Patch( typeof( VideoPlaybackController ), "Setup", nameof( BeforeVideoSetup_Skip ) );
 
          // Skip curtain drop (opening loading screen)
          if ( config.Skip_CurtainDrop )
@@ -69,13 +70,16 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       }
 
       // For manual unpatching
-      private static IPatch LogoPatch, IntroEnterPatch, IntroLoadPatch;
+      private static IPatch LogoPatch, IntroEnterPatch;
 
       private static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
          if ( def == null ) return false;
          string path = def.ResourcePath;
          Verbo( "Checking video {0}", path );
-         return path.Contains( "LandingSequences" ) || path.Contains( "PP_Intro_Cutscene" ) || path.Contains( "Game_Intro_Cutscene" );
+         if ( Config.Skip_Landings && path.Contains( "LandingSequences" ) ) return true;
+         if ( Config.Skip_NewGameIntro && path.Contains( "PP_Intro_Cutscene" ) ) return true;
+         if ( Config.Skip_HottestYear && path.Contains( "Game_Intro_Cutscene" ) ) return true;
+         return false;
       }
 
       private static bool BeforeRunGameLevel_Skip ( PhoenixGame __instance, LevelSceneBinding levelSceneBinding, ref IEnumerator<NextUpdate> __result ) { try {
@@ -92,12 +96,12 @@ namespace Sheepy.PhoenixPt.SkipIntro {
          typeof( UIStateHomeScreenCutscene ).GetMethod( "OnCancel", NonPublic | Instance ).Invoke( __instance, null );
          Info( "Intro skipped. Unpatching home cutscene." );
          Unpatch( ref IntroEnterPatch );
-         Unpatch( ref IntroLoadPatch );
+         Config.Skip_HottestYear = false; // Allows video to be loaded after unpatch
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void AfterGeoCutscene_Skip ( UIStateGeoCutscene __instance, VideoPlaybackSourceDef ____sourcePlaybackDef ) { try {
          if ( ! ShouldSkip( ____sourcePlaybackDef ) ) return;
-         Info( "Skipping New Game Video" );
+         Info( "Skipping New Game Intro" );
          typeof( UIStateGeoCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
       } catch ( Exception ex ) { Error( ex ); } }
 
@@ -107,8 +111,8 @@ namespace Sheepy.PhoenixPt.SkipIntro {
          typeof( UIStateTacticalCutscene ).GetMethod( "OnCancel", NonPublic | Instance )?.Invoke( __instance, null );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static bool BeforeOnLoad_Skip ( VideoPlaybackSourceDef ____sourcePlaybackDef ) {
-         return ! ShouldSkip( ____sourcePlaybackDef );
+      private static bool BeforeVideoSetup_Skip ( VideoPlaybackController __instance ) {
+         return ! ShouldSkip( __instance.PlaybackSource );
       }
 
       private const float SKIP_FRAME = 0.00001f;
