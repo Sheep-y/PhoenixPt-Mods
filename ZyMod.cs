@@ -34,13 +34,11 @@ namespace Sheepy.PhoenixPt {
 
       protected virtual IPatch Patch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) {
          lock ( _Lock ) if ( Patcher == null ) Patcher = HarmonyInstance.Create( GetType().Namespace );
-         return new PatchRecord { Patcher = Patcher, Target = method,
-            Pre = _ToHarmony( prefix ), Post = _ToHarmony( postfix ), Tran = _ToHarmony( transpiler ) }.Patch();
+         return new PatchRecord( Patcher, method, _ToHarmony( prefix ), _ToHarmony( postfix ), _ToHarmony( transpiler ) ).Patch();
       }
 
       protected static void Unpatch ( ref IPatch patch ) {
-         if ( patch == null ) return;
-         patch.Unpatch();
+         patch?.Unpatch();
          patch = null;
       }
 
@@ -50,11 +48,18 @@ namespace Sheepy.PhoenixPt {
       }
 
       private class PatchRecord : IPatch {
-         internal HarmonyInstance Patcher;
-         internal MethodBase Target;
-         internal HarmonyMethod Pre;
-         internal HarmonyMethod Post;
-         internal HarmonyMethod Tran;
+         private readonly HarmonyInstance Patcher;
+         private readonly MethodBase Target;
+         private readonly HarmonyMethod Pre;
+         private readonly HarmonyMethod Post;
+         private readonly HarmonyMethod Tran;
+         internal PatchRecord ( HarmonyInstance patcher, MethodBase target, HarmonyMethod pre, HarmonyMethod post, HarmonyMethod tran ) {
+            Patcher = patcher;
+            Target = target;
+            Pre = pre;
+            Post = post;
+            Tran = tran;
+         }
          public IPatch Patch () {
             Verbo( "Patching {0}.{1}, pre:{2} post:{3} trans:{4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
             Patcher.Patch( Target, Pre, Post, Tran );
@@ -62,7 +67,7 @@ namespace Sheepy.PhoenixPt {
          }
          public void Unpatch () {
             Verbo( "Unpatching {0}.{1}, pre:{2} post:{3} trans:{4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
-            if ( Pre  != null ) Patcher.Unpatch( Target, Pre.method );
+            if ( Pre  != null ) Patcher.Unpatch( Target, Pre.method  );
             if ( Post != null ) Patcher.Unpatch( Target, Post.method );
             if ( Tran != null ) Patcher.Unpatch( Target, Tran.method );
          }
@@ -70,18 +75,20 @@ namespace Sheepy.PhoenixPt {
 
       protected internal static Func< string, object, object > ModnixApi;
 
-      protected virtual void SetApi ( Func< string, object, object > api ) { lock ( _Lock ) {
+      protected virtual void SetApi ( Func< string, object, object > api ) {
          if ( api == null ) return;
-         ModnixApi = api;
-         lock ( _Lock ) Logger = (Action< TraceEventType, object, object[] >) api( "logger", "TraceEventType" );
-      } }
+         lock ( _Lock ) {
+            ModnixApi = api;
+            Logger = (Action< TraceEventType, object, object[] >) api( "logger", "TraceEventType" );
+         }
+      }
 
-      protected virtual T SetApi < T > ( Func< string, object, object > api, out T config ) where T : new() { lock ( _Lock ) {
+      protected virtual T SetApi < T > ( Func< string, object, object > api, out T config ) where T : new() {
          config = default;
          if ( api == null ) {
             var file = Assembly.GetExecutingAssembly().Location.Replace( ".dll", ".conf" );
             if ( File.Exists( file ) ) try {
-                  config = JsonConvert.DeserializeObject<T>( File.ReadAllText( file ) );
+               config = JsonConvert.DeserializeObject<T>( File.ReadAllText( file ) );
             } catch ( Exception ex ) { Warn( ex ); }
          } else {
             SetApi( api );
@@ -90,7 +97,7 @@ namespace Sheepy.PhoenixPt {
          if ( config == null ) config = new T();
          Verbo( "Config = {0}", Jsonify( config ) );
          return config;
-      } }
+      }
 
       private static Func<string> Jsonify ( object obj ) => () => JsonConvert.SerializeObject( obj );
 
@@ -101,7 +108,7 @@ namespace Sheepy.PhoenixPt {
       }
 
       protected internal static Action< TraceEventType, object, object[] > Logger;
-      private static void Log ( TraceEventType level, object msg, object[] augs ) { lock ( _Lock ) try { Logger?.Invoke( level, msg, augs ); } catch ( Exception ) { } }
+      private static void Log ( TraceEventType level, object msg, object[] augs ) { lock ( _Lock ) Logger?.Invoke( level, msg, augs ); }
       protected internal static void Verbo ( object msg, params object[] augs ) => Log( TraceEventType.Verbose, msg, augs );
       protected internal static void Info  ( object msg, params object[] augs ) => Log( TraceEventType.Information, msg, augs );
       protected internal static void Warn  ( object msg, params object[] augs ) => Log( TraceEventType.Warning, msg, augs );
