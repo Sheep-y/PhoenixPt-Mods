@@ -13,5 +13,5 @@
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods",
    },
    Disables :
-      { Id: "PhoenixPt_ScrapVehicle", Max: "1.0.0.0" },
+      { Id: "PhoenixPt_ScrapVehicles", Max: "1.0.0.0" },
 })
