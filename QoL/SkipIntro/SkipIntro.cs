@@ -15,8 +15,8 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt.SkipIntro {
 
    // Modnix will save and load settings to/from {dll_name}.conf as utf-8 json
-   public class ModSettings {
-      public string Settings_Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+   public class ModConfig {
+      public int  Config_Version = 20200322;
       public bool Skip_Logos = true;
       public bool Skip_HottestYear = true;
       public bool Skip_Landings = true;
@@ -29,34 +29,34 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       public static void Init () => new Mod().SplashMod();
 
       // Modnix entry point, splash phase
-      public void SplashMod ( ModSettings settings = null, Action< SourceLevels, object, object[] > logger = null ) {
+      public void SplashMod ( ModConfig config = null, Action< SourceLevels, object, object[] > logger = null ) {
          SetLogger( logger );
-         settings = ReadSettings( settings );
+         config = ReadSettings( config );
 
          // I prefer doing manual patch for better control, such as reusing a method in patch.
          // Most modders prefer the simpler Harmony Attributes / Annotation, and it'll work the same.
 
          // Skip logos and splash
-         if ( settings.Skip_Logos )
+         if ( config.Skip_Logos )
             LogoPatch = Patch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
 
          // Skip "The Hottest Year"
-         if ( settings.Skip_HottestYear ) {
+         if ( config.Skip_HottestYear ) {
             IntroEnterPatch = Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
             IntroLoadPatch  = Patch( typeof( UIStateHomeScreenCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
          }
 
          // Skip aircraft landings
-         if ( settings.Skip_Landings ) {
+         if ( config.Skip_Landings ) {
             Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
             Patch( typeof( UIStateTacticalCutscene ), "PlayCutsceneOnFinishedLoad", nameof( BeforeOnLoad_Skip ) );
          }
 
          // Skip curtain drop (opening loading screen)
-         if ( settings.Skip_CurtainDrop )
+         if ( config.Skip_CurtainDrop )
             Patch( typeof( UseInkUI ), "Open", nameof( InkOpen_Skip ) );
          // Skip curtain lift (closing loading screen)
-         if ( settings.Skip_CurtainLift )
+         if ( config.Skip_CurtainLift )
             Patch( typeof( UseInkUI ), "Close", nameof( InkClose_Skip ) );
       }
 
