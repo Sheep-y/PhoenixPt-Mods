@@ -15,9 +15,15 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          GameConsoleWindow.DisableConsoleAccess = false;
       }
 
+      private static string LineCache = "";
+
       private static void UnityToConsole ( string condition, string stackTrace, LogType type ) {
          if ( type == LogType.Error && condition.Contains( "inside a graphic rebuild loop. This is not supported." ) ) return;
-         GameConsoleWindow.Create().WriteLine( "{0} {1} {2}", type, condition, stackTrace );
+         var line = $"{LineCache}\n{type} {condition} {stackTrace}";
+         try {
+            GameConsoleWindow.Create().WriteLine( line );
+            LineCache = "";
+         } catch ( Exception er ) { LineCache = line; }
       }
    }
 }
