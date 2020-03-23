@@ -37,6 +37,20 @@ namespace Sheepy.PhoenixPt {
          return new PatchRecord( Patcher, method, _ToHarmony( prefix ), _ToHarmony( postfix ), _ToHarmony( transpiler ) ).Patch();
       }
 
+      protected IPatch TryPatch ( Type type, string method, string prefix = null, string postfix = null, string transpiler = null ) { try {
+         return Patch( type, method, prefix, postfix, transpiler );
+      } catch ( Exception ex ) {
+         Warn( ex );
+         return null;
+      } }
+
+      protected IPatch TryPatch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) { try {
+         return Patch( method, prefix, postfix, transpiler );
+      } catch ( Exception ex ) {
+         Warn( ex );
+         return null;
+      } }
+
       protected static void Unpatch ( ref IPatch patch ) {
          patch?.Unpatch();
          patch = null;
