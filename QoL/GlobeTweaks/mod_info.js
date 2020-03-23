@@ -18,9 +18,12 @@
       { Id: "PhoenixPt_PauseOnHeal", Max: "1.0.1.0" },
    ],
    DefaultConfig : {
+      "Config_Version" : 20200323,
+      "Base_Centre_On_Heal" : true,
+      "Base_Pause_On_Heal" : true,
       "Center_On_New_Base" : true,
-      "Centre_On_Heal" : true,
       "No_Auto_Unpause" : true,
-      "Pause_On_Heal" : true,
+      "Vehicle_Centre_On_Heal" : true,
+      "Vehicle_Pause_On_Heal" : true,
    },
 })

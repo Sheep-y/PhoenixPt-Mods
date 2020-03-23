@@ -16,11 +16,13 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt.GlobeTweaks {
 
    public class ModConfig {
-      public string Settings_Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+      public int  Config_Version = 20200323;
+      public bool Base_Centre_On_Heal = true;
+      public bool Base_Pause_On_Heal = true;
       public bool Center_On_New_Base = true;
-      public bool Centre_On_Heal = true;
       public bool No_Auto_Unpause = true;
-      public bool Pause_On_Heal = true;
+      public bool Vehicle_Centre_On_Heal = true;
+      public bool Vehicle_Pause_On_Heal = true;
    }
 
    public class Mod : ZyMod {
@@ -31,31 +33,39 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public void MainMod ( Func< string, object, object > api = null ) {
          SetApi( api, out ModConfig config );
 
-         if ( config.Center_On_New_Base ) {
-            Patch( typeof( GeoPhoenixFaction ), "ActivatePhoenixBase", postfix: nameof( AfterActivatePhoenixBase_Center ) );
-            Patch( typeof( GeoFaction ), "OnVehicleSiteExplored", postfix: nameof( AfterExplore_Center ) );
-         }
-
          if ( config.No_Auto_Unpause ) {
             ContextGetter = typeof( GeoscapeViewState ).GetProperty( "Context", NonPublic | Instance );
             if ( ContextGetter != null )
-               Patch( typeof( UIStateVehicleSelected ), "AddTravelSite", nameof( BeforeAddTravelSite_GetPause ), nameof( AfterAddTravelSite_RestorePause ) );
+               TryPatch( typeof( UIStateVehicleSelected ), "AddTravelSite", nameof( BeforeAddTravelSite_GetPause ), nameof( AfterAddTravelSite_RestorePause ) );
+            else
+               Warn( "GeoscapeViewState.Context not found." );
          }
 
-         if ( config.Centre_On_Heal )
-            Patch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeProcessQueuedEvents_Centre ) );
+         if ( config.Center_On_New_Base ) {
+            TryPatch( typeof( GeoPhoenixFaction ), "ActivatePhoenixBase", postfix: nameof( AfterActivatePhoenixBase_Center ) );
+            TryPatch( typeof( GeoFaction ), "OnVehicleSiteExplored", postfix: nameof( AfterExplore_Center ) );
+         }
 
-         if ( config.Pause_On_Heal )
-            Patch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeProcessQueuedEvents_Pause ) );
+         if ( config.Base_Centre_On_Heal )
+            TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_CentreBase ) );
+         if ( config.Base_Pause_On_Heal )
+            TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_PauseBase ) );
+
+         if ( config.Vehicle_Centre_On_Heal )
+            TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_CentreVehicle ) );
+         if ( config.Vehicle_Pause_On_Heal )
+            TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_PauseVehicle ) );
       }
 
       #region CenterOnNewBase
       private static void AfterActivatePhoenixBase_Center ( GeoSite site, GeoLevelController ____level ) { try {
+         Info( "New base {0} activated, centering.", site.Name );
          ____level.View.ChaseTarget( site, false );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void AfterExplore_Center ( GeoFaction __instance, GeoVehicle vehicle, GeoLevelController ____level ) { try {
-         if ( __instance != ____level.PhoenixFaction ) return;
+         if ( __instance != ____level.ViewerFaction ) return;
+         Info( "New base {0} discovered, centering.", vehicle.CurrentSite.Name );
          ____level.View.ChaseTarget( vehicle.CurrentSite, false );
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
@@ -69,24 +79,40 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void AfterAddTravelSite_RestorePause ( UIStateVehicleSelected __instance, ref bool __state ) { try {
+         Verbo( "New vehicle travel plan. Setting time to {0}.", __state ? "Paused" : "Running" );
          getContext( __instance ).Level.Timing.Paused = __state;
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
 
-      #region CentreOnHeal
-      private static void BeforeProcessQueuedEvents_Centre ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
-         var container = ____justRestedContainer?.FirstOrDefault();
-         if ( container is GeoVehicle vehicle && ____level.View.CurrentViewState is UIStateVehicleSelected state )
+      #region Vehicle Heal
+      private static void BeforeQueuedEvents_CentreVehicle ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
+         var vehicle = ____justRestedContainer?.OfType<GeoVehicle>().FirstOrDefault();
+         if ( vehicle == null ) return;
+         GeoscapeViewState state = ____level.View.CurrentViewState;
+         Info( "Crew on {0} are rested. ViewState is {1}.", vehicle.Name, state );
+         if ( state is UIStateVehicleSelected )
             typeof( UIStateVehicleSelected ).GetMethod( "SelectVehicle", NonPublic | Instance ).Invoke( state, new object[]{ vehicle, true } );
-         else if ( container is GeoActor actor )
-            ____level.View.ChaseTarget( actor, false );
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      private static void BeforeQueuedEvents_PauseVehicle ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
+         if ( ____justRestedContainer?.OfType<GeoVehicle>().Any() != true ) return;
+         Info( "Crew on a vehicle are rested. Pausing" );
+         ____level.Timing.Paused = true;
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
 
-      #region PauseOnHeal
-      private static void BeforeProcessQueuedEvents_Pause ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
-         if ( ____justRestedContainer?.Any() == true )
-            ____level.Timing.Paused = true;
+      #region Base Heal
+      private static void BeforeQueuedEvents_CentreBase ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
+         var pxbase = ____justRestedContainer?.OfType<GeoSite>().FirstOrDefault();
+         if ( pxbase == null ) return;
+         Info( "Crew in base {0} are rested. Centering.", pxbase.Name );
+         ____level.View.ChaseTarget( pxbase, false );
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      private static void BeforeQueuedEvents_PauseBase ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
+         if ( ____justRestedContainer?.OfType<GeoSite>().Any() != true ) return;
+         Info( "Crew in a base are rested. Pausing." );
+         ____level.Timing.Paused = true;
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
    }
