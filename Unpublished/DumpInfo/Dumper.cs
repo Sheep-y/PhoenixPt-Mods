@@ -23,7 +23,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
    internal abstract class Dumper {
       protected readonly Type DataType;
       protected readonly List<object> Data;
-      private const int MaxLevel = 20;
+      private const int MaxDepth = 50;
 
       internal Dumper ( Type key, List<object> list ) {
          DataType = key;
@@ -95,9 +95,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
                   { StartTag( name, "type", type.FullName, true ); return; }
             }
-            if ( level >= MaxLevel ) { SimpleMem( name, "..." ); return; }
+            if ( level >= MaxDepth ) { SimpleMem( name, "..." ); return; }
             if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
-               DumpList( name, list, level );
+               DumpList( name, list, level + 1 );
                return;
             }
             try {
@@ -120,7 +120,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( val is Color color ) { WriteColour( name, color ); return; }
             StartTag( name ); // Other structs
          }
-         Obj2Xml( val, level + 1 ); // Either structs or non-enum objects
+         Obj2Xml( val, level + 2 ); // Either structs or non-enum objects
          EndTag( name );
       }
 
@@ -139,7 +139,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private void Obj2Xml ( object subject, int level ) {
          var type = subject.GetType();
          if ( level == 0 ) { Writer.Write( type.Name, subject, 1 ); return; }
-         if ( level > MaxLevel ) { Writer.Write( "..." ); return; }
+         if ( level > MaxDepth ) { Writer.Write( "..." ); return; }
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
