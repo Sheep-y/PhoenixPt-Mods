@@ -16,16 +16,18 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt.GlobeTweaks {
 
    public class ModConfig {
-      public int  Config_Version = 20200323;
+      public int  Config_Version = 20200324;
       public bool Base_Centre_On_Heal = true;
       public bool Base_Pause_On_Heal = true;
       public bool Center_On_New_Base = true;
       public bool No_Auto_Unpause = true;
+      public bool Pause_On_HP_Only_Heal = true;
+      public bool Pause_On_Stamina_Only_Heal = true;
       public bool Vehicle_Centre_On_Heal = true;
       public bool Vehicle_Pause_On_Heal = true;
    }
 
-   public class Mod : ZyMod {
+   public class Mod : ZyAdvMod {
       private static PropertyInfo ContextGetter;
 
       public static void Init () => new Mod().MainMod();
@@ -55,6 +57,10 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
             TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_CentreVehicle ) );
          if ( config.Vehicle_Pause_On_Heal )
             TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_PauseVehicle ) );
+
+         if ( config.Pause_On_HP_Only_Heal || config.Pause_On_Stamina_Only_Heal ) {
+            
+         }
       }
 
       #region CenterOnNewBase
