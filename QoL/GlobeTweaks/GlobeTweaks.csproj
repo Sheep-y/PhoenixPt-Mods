@@ -54,7 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GlobeTweaks.cs" />
-    <Compile Include="PauseMod.cs" />
+    <Compile Include="PauseModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ZyAdvMod.cs" />
     <Compile Include="ZyMod.cs" />

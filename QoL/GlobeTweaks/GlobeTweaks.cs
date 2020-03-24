@@ -24,7 +24,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
       public void MainMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
-         new PauseMod().DoPatches();
+         new PauseModule().DoPatches();
       }
 
    }
