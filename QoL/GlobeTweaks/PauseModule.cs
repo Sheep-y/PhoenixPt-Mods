@@ -41,7 +41,11 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
             TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_PauseVehicle ) );
 
          if ( Mod.Config.Pause_On_HP_Only_Heal || Mod.Config.Pause_On_Stamina_Only_Heal ) {
-            
+            BatchPatch( () => {
+               Patch( typeof( GeoscapeLog ), "Health_StatChangeEvent"   , nameof( BeforeHealthChange_SetHP ), nameof( AfterHealthChange_UnsetHP ) );
+               Patch( typeof( GeoscapeLog ), "Stamina_StatChangeEvent"  , nameof( BeforeHealthChange_SetST ), nameof( AfterHealthChange_UnsetST ) );
+               Patch( typeof( GeoscapeLog ), "CheckForRestedInContainer", postfix: nameof( CheckHPSTRested ) );
+            } );
          }
       }
 
@@ -70,6 +74,33 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          Verbo( "New vehicle travel plan. Setting time to {0}.", __state ? "Paused" : "Running" );
          getContext( __instance ).Level.Timing.Paused = __state;
       } catch ( Exception ex ) { Error( ex ); } }
+      #endregion
+
+      #region HP/ST only pause
+      private static bool HP_Changed, ST_Changed;
+
+      [ HarmonyPriority( Priority.VeryHigh ) ]
+      private static void BeforeHealthChange_SetHP  () => HP_Changed = true;
+      private static void AfterHealthChange_UnsetHP () => HP_Changed = false;
+      [ HarmonyPriority( Priority.VeryHigh ) ]
+      private static void BeforeHealthChange_SetST  () => ST_Changed = true;
+      private static void AfterHealthChange_UnsetST () => ST_Changed = false;
+      
+		private static void CheckHPSTRested ( GeoCharacter restedCharacter, List<IGeoCharacterContainer> ____justRestedContainer, GeoFaction ____faction ) {
+         if ( ! HP_Changed && ! ST_Changed ) return;
+         if ( HP_Changed && ! Mod.Config.Pause_On_HP_Only_Heal ) return;
+         if ( ST_Changed && ! Mod.Config.Pause_On_Stamina_Only_Heal ) return;
+         Func<IGeoCharacterContainer,bool> foundRested = ( e ) => e.GetAllCharacters().Contains( restedCharacter );
+
+         if ( ____justRestedContainer.Any( foundRested ) ) return;
+         var container = ____faction.Vehicles.FirstOrDefault( foundRested ) ?? ____faction.Sites.FirstOrDefault( foundRested );
+         if ( container == null ) return;
+         IEnumerable<GeoCharacter> allCharacters = container.GetAllCharacters();
+         if ( allCharacters.All( c => ( HP_Changed && !c.IsInjured ) || ( ST_Changed && c.Fatigue?.IsFullyRested != false ) ) ) {
+            Info( "Detected {0} recovery on {1}", HP_Changed ? "HP" : "stamina", container.Name );
+            ____justRestedContainer.Add( container );
+         }
+      }
       #endregion
 
       #region Vehicle Heal
