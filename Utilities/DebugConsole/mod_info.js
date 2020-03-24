@@ -15,10 +15,12 @@
    },
    DefaultConfig: {
       "Config_Version" : 20200324,
+      "Mod_Count_In_Version" : true,
       "Log_Game_Error" : true,
       "Log_Game_Info" : true,
       "Log_Modnix_Error" : true,
       "Log_Modnix_Info" : true,
       "Log_Modnix_Verbose" : false,
+      "Write_Modnix_To_Console_Logfile" : false,
    },
 })

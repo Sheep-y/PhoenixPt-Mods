@@ -1,6 +1,6 @@
 ﻿using Base.Core;
-using Base.UI;
 using Base.Utils.GameConsole;
+using Harmony;
 using PhoenixPoint.Home.View.ViewModules;
 using PhoenixPoint.Home.View.ViewStates;
 using System;
@@ -23,6 +23,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       public bool Log_Modnix_Error = true;
       public bool Log_Modnix_Info = true;
       public bool Log_Modnix_Verbose = false;
+      public bool Write_Modnix_To_Console_Logfile = false;
    }
 
    public class Mod : ZyMod {
@@ -50,6 +51,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                ModnixLogEntryLevel = loader.GetType( "Sheepy.Logging.LogEntry" ).GetField( "Level" );
                if ( ModnixLogEntryLevel == null ) Warn( "Modnix log level not found. All log forwarded." );
                TryPatch( type, "ProcessEntry", postfix: nameof( ModnixToConsole ) );
+               if ( ! Config.Write_Modnix_To_Console_Logfile )
+                  TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( SkipAppendLogFile_IfModnix ) );
             } else
                Info( "Modnix assembly not found, log not forwarded." );
          }
@@ -96,6 +99,11 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          }
          lock ( Buffer ) Buffer.Add( txt );
       } catch ( Exception ex ) { Error( ex ); } }
+
+      [ HarmonyPriority( Priority.VeryLow ) ]
+      private static bool SkipAppendLogFile_IfModnix ( string line ) {
+         return ! string.IsNullOrWhiteSpace( line ) && line.IndexOf( '┊' ) < 0;
+      }
 
       private static void UnityToConsole ( string condition, string stackTrace, LogType type ) { try {
          switch ( type ) {
