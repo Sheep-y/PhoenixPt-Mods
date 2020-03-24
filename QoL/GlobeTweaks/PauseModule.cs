@@ -41,7 +41,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          if ( Mod.Config.Vehicle_Pause_On_Heal )
             TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_PauseVehicle ) );
 
-         if ( Mod.Config.Pause_On_HP_Only_Heal || Mod.Config.Pause_On_Stamina_Only_Heal ) {
+         if ( Mod.Config.Notice_On_HP_Only_Heal || Mod.Config.Notice_On_Stamina_Only_Heal ) {
             BatchPatch( () => {
                Patch( typeof( GeoscapeLog ), "Health_StatChangeEvent"   , nameof( BeforeHealthChange_SetHP ), nameof( AfterHealthChange_UnsetHP ) );
                Patch( typeof( GeoscapeLog ), "Stamina_StatChangeEvent"  , nameof( BeforeHealthChange_SetST ), nameof( AfterHealthChange_UnsetST ) );
@@ -90,8 +90,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       
 		private static void CheckHPSTRested ( GeoCharacter restedCharacter, List<IGeoCharacterContainer> ____justRestedContainer, GeoFaction ____faction ) { try {
          if ( ! HP_Changed && ! ST_Changed ) return;
-         if ( HP_Changed && ! Mod.Config.Pause_On_HP_Only_Heal ) return;
-         if ( ST_Changed && ! Mod.Config.Pause_On_Stamina_Only_Heal ) return;
+         if ( HP_Changed && ! Mod.Config.Notice_On_HP_Only_Heal ) return;
+         if ( ST_Changed && ! Mod.Config.Notice_On_Stamina_Only_Heal ) return;
          Func<IGeoCharacterContainer,bool> foundRested = ( e ) => e.GetAllCharacters().Contains( restedCharacter );
 
          if ( ____justRestedContainer.Any( foundRested ) ) return;

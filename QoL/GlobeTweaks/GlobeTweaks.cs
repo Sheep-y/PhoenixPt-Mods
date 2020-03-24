@@ -10,8 +10,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public bool Base_Pause_On_Heal = true;
       public bool Center_On_New_Base = true;
       public bool No_Auto_Unpause = true;
-      public bool Pause_On_HP_Only_Heal = false;
-      public bool Pause_On_Stamina_Only_Heal = true;
+      public bool Notice_On_HP_Only_Heal = false;
+      public bool Notice_On_Stamina_Only_Heal = true;
       public bool Vehicle_Centre_On_Heal = true;
       public bool Vehicle_Pause_On_Heal = true;
    }
