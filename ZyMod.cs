@@ -1,8 +1,10 @@
 ﻿using Harmony;
+using I2.Loc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -114,12 +116,8 @@ namespace Sheepy.PhoenixPt {
       }
 
       private static Func<string> Jsonify ( object obj ) => () => JsonConvert.SerializeObject( obj );
-
-      public static string TitleCase ( string txt ) {
-         // return CultureInfo.CurrentCulture.TextInfo.ToTitleCase( txt );
-         return txt.Split( new char[]{ ' ' }, StringSplitOptions.RemoveEmptyEntries )
-            .Join( e => char.ToUpper( e[0] ) + e.Substring(1).ToLower(), " " );
-      }
+      
+      protected static TextInfo CurrentLang => new CultureInfo( LocalizationManager.CurrentLanguageCode, false ).TextInfo;
 
       protected internal static Action< TraceEventType, object, object[] > Logger;
       private static void Log ( TraceEventType level, object msg, object[] augs ) { lock ( _Lock ) Logger?.Invoke( level, msg, augs ); }

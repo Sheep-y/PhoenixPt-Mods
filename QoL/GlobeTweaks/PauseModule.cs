@@ -1,4 +1,5 @@
-﻿using Harmony;
+﻿using Base.UI;
+using Harmony;
 using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Geoscape.Levels.Factions;
@@ -6,6 +7,7 @@ using PhoenixPoint.Geoscape.View;
 using PhoenixPoint.Geoscape.View.ViewStates;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
@@ -103,7 +105,19 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          }
       }
 
-      private static void BeforeAddEntry_AmendEntry ( GeoscapeLogEntry entry, GeoscapeLogMessagesDef ____messagesDef ) { try {
+      private static void BeforeAddEntry_AmendEntry ( GeoscapeLogEntry entry, GeoscapeLogMessagesDef ____messagesDef, GeoFaction ____faction ) { try {
+         if ( entry == null || entry.Text != ____messagesDef.AircraftCrewReadyMessage ) return;
+         var name = ( entry.Parameters[0] as LocalizedTextBind )?.Localize();
+         Verbo( "Checking rest message of {0}", name );
+         Func<IGeoCharacterContainer,bool> foundEntry = ( e ) => e.Name == name;
+         IGeoCharacterContainer container = ____faction.Vehicles.FirstOrDefault( foundEntry ) ?? ____faction.Sites.FirstOrDefault( foundEntry );
+         if ( container == null ) return;
+         string note;
+         if ( container.GetAllCharacters().Any( e => e.IsInjured ) ) note = new LocalizedTextBind( "KEY_HEALTH" ).Localize();
+         else if ( container.GetAllCharacters().Any( e => e.Fatigue?.IsFullyRested == false ) ) note = new LocalizedTextBind( "KEY_GEOSCAPE_STAMINA" ).Localize();
+         else return;
+         Info( "Updating rest message of {0}", name );
+         entry.Text = new LocalizedTextBind( entry.GenerateMessage() + " (" + CurrentLang.ToTitleCase( note ) + ")", true );
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
 
