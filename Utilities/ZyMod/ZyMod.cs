@@ -110,7 +110,7 @@ namespace Sheepy.PhoenixPt {
             SetApi( api );
             config = (T) api( "config", typeof( T ) );
          }
-         if ( config == null ) config = new T();
+         lock ( _Lock ) if ( config == null ) config = new T();
          Verbo( "Config = {0}", Jsonify( config ) );
          return config;
       }
