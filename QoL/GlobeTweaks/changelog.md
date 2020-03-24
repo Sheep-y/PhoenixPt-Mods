@@ -3,6 +3,7 @@ Changelog of Globe UI Tweaks, a Phoenix Point Mod by Sheepy
 # Version 3.0, ???
 
 * Updated to Modnix 1.0.
+* Fix: Pause on heal now properly updates time controller state.
 * Separate vehicle heal and base heal options.
 
 # Version 2.0, 2020-03-16

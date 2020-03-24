@@ -45,6 +45,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
                Patch( typeof( GeoscapeLog ), "Health_StatChangeEvent"   , nameof( BeforeHealthChange_SetHP ), nameof( AfterHealthChange_UnsetHP ) );
                Patch( typeof( GeoscapeLog ), "Stamina_StatChangeEvent"  , nameof( BeforeHealthChange_SetST ), nameof( AfterHealthChange_UnsetST ) );
                Patch( typeof( GeoscapeLog ), "CheckForRestedInContainer", postfix: nameof( CheckHPSTRested ) );
+               TryPatch( typeof( GeoscapeLog ), "AddEntry", postfix: nameof( BeforeAddEntry_AmendEntry ) );
             } );
          }
       }
@@ -101,6 +102,9 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
             ____justRestedContainer.Add( container );
          }
       }
+
+      private static void BeforeAddEntry_AmendEntry ( GeoscapeLogEntry entry, GeoscapeLogMessagesDef ____messagesDef ) { try {
+      } catch ( Exception ex ) { Error( ex ); } }
       #endregion
 
       #region Vehicle Heal
@@ -116,7 +120,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       private static void BeforeQueuedEvents_PauseVehicle ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
          if ( ____justRestedContainer?.OfType<GeoVehicle>().Any() != true ) return;
          Info( "Crew on a vehicle are rested. Pausing" );
-         ____level.Timing.Paused = true;
+         ____level.View.RequestGamePause();
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
 
@@ -131,7 +135,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       private static void BeforeQueuedEvents_PauseBase ( List<IGeoCharacterContainer> ____justRestedContainer, GeoLevelController ____level ) { try {
          if ( ____justRestedContainer?.OfType<GeoSite>().Any() != true ) return;
          Info( "Crew in a base are rested. Pausing." );
-         ____level.Timing.Paused = true;
+         ____level.View.RequestGamePause();
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
    }
