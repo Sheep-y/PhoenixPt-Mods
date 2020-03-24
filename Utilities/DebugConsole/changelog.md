@@ -1,8 +1,12 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version ?
+# Version 2.0, 2020-03-25
 
-* Add Duration declaration
+* New: Modnix mod logs are now forwarded.
+* New: Configurable log level.
+* Fix: Avoid graphic rebulid loop error by caching logs and build on TimingScheduler.Update.
+* Fix: Avoid 65000 vertices ArgumentException by discarding long entry and recurring entry.
+* Add Duration declaration in mod_info.
 
 # Version 1.0, 2020-03-18
 
