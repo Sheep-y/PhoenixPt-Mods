@@ -117,7 +117,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          else if ( container.GetAllCharacters().Any( e => e.Fatigue?.IsFullyRested == false ) ) note = new LocalizedTextBind( "KEY_GEOSCAPE_STAMINA" ).Localize();
          else return;
          Info( "Updating rest message of {0}", name );
-         entry.Text = new LocalizedTextBind( entry.GenerateMessage() + " (" + CurrentLang.ToTitleCase( note ) + ")", true );
+         entry.Text = new LocalizedTextBind( entry.GenerateMessage() + " (" + TitleCase( note ) + ")", true );
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
 

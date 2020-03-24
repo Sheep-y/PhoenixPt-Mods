@@ -117,7 +117,11 @@ namespace Sheepy.PhoenixPt {
 
       private static Func<string> Jsonify ( object obj ) => () => JsonConvert.SerializeObject( obj );
       
-      protected static TextInfo CurrentLang => new CultureInfo( LocalizationManager.CurrentLanguageCode, false ).TextInfo;
+      protected static TextInfo CurrentLang => new CultureInfo( LocalizationManager.CurrentLanguageCode ).TextInfo;
+      protected static string TitleCase ( string txt ) {
+         var lang = CurrentLang;
+         return lang.ToTitleCase( lang.ToLower( txt ) );
+      }
 
       protected internal static Action< TraceEventType, object, object[] > Logger;
       private static void Log ( TraceEventType level, object msg, object[] augs ) { lock ( _Lock ) Logger?.Invoke( level, msg, augs ); }

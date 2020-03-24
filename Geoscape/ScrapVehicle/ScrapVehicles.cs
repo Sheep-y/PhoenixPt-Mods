@@ -161,7 +161,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
                                                            MessageBox ____confirmationBox, GeoscapeViewContext ____context ) { try {
          if ( item.Manufacturable is GeoUnitWrapper unit ) {
             Verbo( "Confirming scraping of {0}", unit.GetName() );
-            string scrapTxt = CurrentLang.ToTitleCase( __instance.ScrapModeButton.GetComponentInChildren<Text>()?.text ?? "Scrap" );
+            string scrapTxt = TitleCase( __instance.ScrapModeButton.GetComponentInChildren<Text>()?.text ?? "Scrap" );
             if ( scrapTxt == "Scrap Item" ) scrapTxt = "Scrap";
             string translation = scrapTxt + " " + unit.GetName() + "?";
             ____confirmationBox.ShowModal(translation, MessageBoxIcon.Warning, MessageBoxButtons.YesNo,

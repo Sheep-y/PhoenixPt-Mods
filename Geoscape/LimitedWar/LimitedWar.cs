@@ -214,7 +214,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          if ( zoneName == null || ____entries == null || ____entries.Count < 1 ) return;
          GeoscapeLogEntry entry = ____entries[ ____entries.Count - 1 ];
          Verbo( "Converting {0} invasion message to zone invasion.", attacker.GetPPName() );
-         entry.Parameters[0] = new LocalizedTextBind( site.SiteName.Localize() + " " + CurrentLang.ToTitleCase( zoneName.Localize() ), true );
+         entry.Parameters[0] = new LocalizedTextBind( site.SiteName.Localize() + " " + TitleCase( zoneName.Localize() ), true );
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
 
