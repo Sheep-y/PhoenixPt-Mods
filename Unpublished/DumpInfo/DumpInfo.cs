@@ -56,7 +56,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Info( "Scanning text" );
          foreach ( var src in LocalizationManager.Sources )
             foreach ( var term in src.mDictionary )
-                  AddDataToExport( typeof( TermData ), term.Value );
+               AddDataToExport( typeof( TermData ), term.Value );
          /*
          Info( "Scanning data" );
          Type[] wanted = new Type[] { typeof( ResearchDef ),
@@ -82,7 +82,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          var sum = ExportData.Values.Sum( e => e.Count );
          var tasks = new List<Task>();
          foreach ( var entry in ExportData ) { lock( entry.Value ) {
-            var dump = new BaseDefDumper( entry.Key, entry.Value );
+            var dump = entry.Key == typeof( TermData ) ? (Dumper) new TermDumper( entry.Key, entry.Value ) : new BaseDefDumper( entry.Key, entry.Value ) ;
             var task = Task.Run( dump.DumpData );
             tasks.Add( task );
          } }
