@@ -113,8 +113,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          if ( container == null ) return;
 
          string note;
-         if ( container.GetAllCharacters().Any( e => e.IsInjured ) ) note = new LocalizedTextBind( "KEY_HEALTH" ).Localize();
-         else if ( container.GetAllCharacters().Any( e => e.Fatigue?.IsFullyRested == false ) ) note = new LocalizedTextBind( "KEY_GEOSCAPE_STAMINA" ).Localize();
+         if ( container.GetAllCharacters().Any( e => e.IsInjured ) ) note = new LocalizedTextBind( "KEY_GEOSCAPE_STAMINA" ).Localize();
+         else if ( container.GetAllCharacters().Any( e => e.Fatigue?.IsFullyRested == false ) ) note = new LocalizedTextBind( "KEY_HEALTH" ).Localize();
          else return;
          Info( "Updating rest message of {0}", name );
          entry.Text = new LocalizedTextBind( entry.GenerateMessage() + " (" + TitleCase( note ) + ")", true );

@@ -1,5 +1,9 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
+# Version 3.1.1, 2020-03-25
+
+* Fix: Heal message and rest message are no longer swapped.
+
 # Version 3.1, 2020-03-24
 
 * Renamed Pause_On_HP_Only_Heal to Notice_On_HP_Only_Heal.
