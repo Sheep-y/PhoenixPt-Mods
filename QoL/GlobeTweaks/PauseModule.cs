@@ -97,8 +97,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          if ( ____justRestedContainer.Any( foundRested ) ) return;
          var container = ____faction.Vehicles.FirstOrDefault( foundRested ) ?? ____faction.Sites.FirstOrDefault( foundRested );
          if ( container == null ) return;
-         IEnumerable<GeoCharacter> allCharacters = container.GetAllCharacters();
-         if ( allCharacters.All( c => ( HP_Changed && !c.IsInjured ) || ( ST_Changed && c.Fatigue?.IsFullyRested != false ) ) ) {
+         if ( container.GetAllCharacters().All( c => ( HP_Changed && !c.IsInjured ) || ( ST_Changed && c.Fatigue?.IsFullyRested != false ) ) ) {
             Info( "Detected {0} recovery on {1}", HP_Changed ? "HP" : "stamina", container.Name );
             ____justRestedContainer.Add( container );
          }
