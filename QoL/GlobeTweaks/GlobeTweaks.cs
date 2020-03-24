@@ -28,14 +28,24 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
    }
 
    public class Mod : ZyAdvMod {
-      private static PropertyInfo ContextGetter;
+
+      public static ModConfig Config;
 
       public static void Init () => new Mod().MainMod();
 
       public void MainMod ( Func< string, object, object > api = null ) {
-         SetApi( api, out ModConfig config );
+         SetApi( api, out Config );
+         new PauseMod().DoPatches();
+      }
 
-         if ( config.No_Auto_Unpause ) {
+   }
+
+   class PauseMod : ZyAdvMod {
+
+      private static PropertyInfo ContextGetter;
+
+      public void DoPatches () {
+         if ( Mod.Config.No_Auto_Unpause ) {
             ContextGetter = typeof( GeoscapeViewState ).GetProperty( "Context", NonPublic | Instance );
             if ( ContextGetter != null )
                TryPatch( typeof( UIStateVehicleSelected ), "AddTravelSite", nameof( BeforeAddTravelSite_GetPause ), nameof( AfterAddTravelSite_RestorePause ) );
@@ -43,22 +53,22 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
                Warn( "GeoscapeViewState.Context not found." );
          }
 
-         if ( config.Center_On_New_Base ) {
+         if ( Mod.Config.Center_On_New_Base ) {
             TryPatch( typeof( GeoPhoenixFaction ), "ActivatePhoenixBase", postfix: nameof( AfterActivatePhoenixBase_Center ) );
             TryPatch( typeof( GeoFaction ), "OnVehicleSiteExplored", postfix: nameof( AfterExplore_Center ) );
          }
 
-         if ( config.Base_Centre_On_Heal )
+         if ( Mod.Config.Base_Centre_On_Heal )
             TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_CentreBase ) );
-         if ( config.Base_Pause_On_Heal )
+         if ( Mod.Config.Base_Pause_On_Heal )
             TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_PauseBase ) );
 
-         if ( config.Vehicle_Centre_On_Heal )
+         if ( Mod.Config.Vehicle_Centre_On_Heal )
             TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_CentreVehicle ) );
-         if ( config.Vehicle_Pause_On_Heal )
+         if ( Mod.Config.Vehicle_Pause_On_Heal )
             TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_PauseVehicle ) );
 
-         if ( config.Pause_On_HP_Only_Heal || config.Pause_On_Stamina_Only_Heal ) {
+         if ( Mod.Config.Pause_On_HP_Only_Heal || Mod.Config.Pause_On_Stamina_Only_Heal ) {
             
          }
       }
