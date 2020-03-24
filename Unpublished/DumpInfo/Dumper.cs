@@ -21,11 +21,13 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    internal abstract class Dumper {
+      protected readonly string Filename;
       protected readonly Type DataType;
       protected readonly List<object> Data;
       private const int MaxDepth = 50;
 
-      internal Dumper ( Type key, List<object> list ) {
+      internal Dumper ( string name, Type key, List<object> list ) {
+         Filename = name.Trim();
          DataType = key;
          Data = list;
       }
@@ -36,8 +38,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       internal void DumpData () { lock ( Data ) {
          ZyMod.Info( "Dumping {0} ({1})", DataType.Name, Data.Count );
          SortData();
-         var typeName = DataType.Name;
-         var path = Path.Combine( Mod.ModDir, "Data-" + typeName + ".xml.gz" );
+         var path = Path.Combine( Mod.ModDir, "Data-" + Filename + ".xml.gz" );
          File.Delete( path );
          using ( var fstream = new FileStream( path, FileMode.Create ) ) {
             //var buffer = new BufferedStream( fstream );
@@ -45,7 +46,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             using ( var writer = new StreamWriter( buffer ) ) {
                Writer = writer;
                writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
-               StartTag( typeName, "count", Data.Count.ToString(), false );
+               StartTag( DataType.Name, "count", Data.Count.ToString(), false );
                if ( Mod.GameVersion != null )
                   StartTag( "Game", "Version", Mod.GameVersion, true );
                StartTag( "DumpInfo", "Version", Assembly.GetExecutingAssembly().GetName().Version.ToString(), true );
@@ -53,7 +54,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                   RecurringObject.Add( val, RecurringObject.Count );
                foreach ( var val in Data )
                   ToXml( val );
-               writer.Write( $"</{typeName}>" );
+               EndTag( DataType.Name );
                writer.Flush();
             }
          }

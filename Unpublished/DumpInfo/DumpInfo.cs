@@ -38,7 +38,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public void MainMod ( Func< string, object, object > api = null ) {
          SetApi( api );
          if ( api != null ) {
-            ModDir = api( "path", "mods_root" )?.ToString() ?? ".";
+            ModDir = api( "path", null )?.ToString();
+            ModDir = ModDir == null ? "." : Path.GetDirectoryName( ModDir );
             GameVersion = api( "version", "game" )?.ToString();
          } else
             ModDir = ".";
@@ -54,9 +55,15 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private static Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
 
       private static void DumpData () { try {
+         Info( "Dumping data to {0}", ModDir );
          Info( "Scanning text" );
          foreach ( var src in LocalizationManager.Sources ) {
-            var name = "Text " + src.mTerm_AppName;
+            var name = "Text " + src.mDictionary.FirstOrDefault().Key;
+            if ( name == null ) continue;
+            if ( src.HasUnloadedLanguages() ) {
+               src.LoadAllLanguages( true );
+               Info( "Loading {0}", name );
+            }
             foreach ( var term in src.mDictionary )
                AddDataToExport( name, typeof( TermData ), term.Value );
          }
@@ -84,7 +91,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          var tasks = new List<Task>();
          foreach ( var entry in ExportData ) { lock( entry.Value ) {
             var type = ExportType[ entry.Key ];
-            var dump = type == typeof( TermData ) ? (Dumper) new TermDumper( type, entry.Value ) : new BaseDefDumper( type, entry.Value ) ;
+            var dump = type == typeof( TermData ) 
+                  ? (Dumper) new TermDumper( entry.Key, type, entry.Value )
+                  : new BaseDefDumper( entry.Key, type, entry.Value ) ;
             var task = Task.Run( dump.DumpData );
             tasks.Add( task );
          } }

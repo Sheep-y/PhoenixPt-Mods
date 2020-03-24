@@ -22,7 +22,7 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    internal class BaseDefDumper : Dumper {
-      internal BaseDefDumper ( Type key, List<object> list ) : base( key, list ) { }
+      internal BaseDefDumper ( string name, Type key, List<object> list ) : base( name, key, list ) { }
 
       protected override void SortData() => Data.Sort( CompareDef );
 
@@ -36,7 +36,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
    }
 
    internal class TermDumper : Dumper {
-      internal TermDumper ( Type key, List<object> list ) : base( key, list ) { }
+      internal TermDumper ( string name, Type key, List<object> list ) : base( name, key, list ) { }
 
       protected override void SortData() => Data.Sort( CompareDef );
 
