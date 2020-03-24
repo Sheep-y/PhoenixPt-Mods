@@ -1,11 +1,15 @@
 ﻿using Base.Core;
+using Base.UI;
 using Base.Utils.GameConsole;
+using PhoenixPoint.Home.View.ViewModules;
+using PhoenixPoint.Home.View.ViewStates;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -13,6 +17,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
    public class ModConfig {
       public int  Config_Version = 20200324;
+      public bool Mod_Count_In_Version = true;
       public bool Log_Game_Error = true;
       public bool Log_Game_Info = true;
       public bool Log_Modnix_Error = true;
@@ -26,12 +31,17 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       public static void Init () => new Mod().SplashMod();
 
       public void SplashMod ( Func< string, object, object > api = null ) {
-         GameConsoleWindow.DisableConsoleAccess = false;
+         GameConsoleWindow.DisableConsoleAccess = false; // Enable console first no matter what happens
          SetApi( api, out Config );
          if ( Config.Log_Game_Error || Config.Log_Game_Info ) {
             Application.logMessageReceived += UnityToConsole;
             TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
          }
+         if ( api == null ) return;
+
+         // Modnix only features
+         if ( Config.Mod_Count_In_Version )
+            TryPatch( typeof( UIStateMainMenu ), "EnterState", postfix: nameof( AfterMainMenu_AddModCount ) );
          if ( Config.Log_Modnix_Error || Config.Log_Modnix_Info || Config.Log_Modnix_Verbose ) {
             var loader = api( "assembly", "modnix" ) as Assembly
                ?? AppDomain.CurrentDomain.GetAssemblies().First( e => e.FullName.StartsWith( "ModnixLoader", StringComparison.Ordinal ) );
@@ -44,6 +54,15 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                Info( "Modnix assembly not found, log not forwarded." );
          }
       }
+
+      private static void AfterMainMenu_AddModCount ( UIStateMainMenu __instance ) { try {
+         var revision = typeof( UIStateMainMenu ).GetProperty( "_buildRevisionModule", BindingFlags.NonPublic | BindingFlags.Instance )?.GetValue( __instance ) as UIModuleBuildRevision;
+         var list = ModnixApi( "mod_list", null ) as IEnumerable<string>;
+         if ( revision == null || list == null ) return;
+         Info( "Adding to main menu version string" );
+         var loader_ver = new Regex( "(?:\\.0){1,2}$" ).Replace( ModnixApi( "version", "loader" ).ToString(), "" );
+         revision.BuildRevisionNumber.text += $", Modnix {loader_ver}, {list.Count()} mods.";
+      } catch ( Exception ex ) { Error( ex ); } }
 
       private readonly static List<string> Buffer = new List<string>();
 
@@ -76,9 +95,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             txt = prefix + txt;
          }
          lock ( Buffer ) Buffer.Add( txt );
-      } catch ( Exception ex ) {
-         Error( ex );
-      } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       private static void UnityToConsole ( string condition, string stackTrace, LogType type ) { try {
          switch ( type ) {
@@ -94,9 +111,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          var line = $"{type} {condition}   {stackTrace}".Trim();
          if ( line.Length == 0 ) return;
          lock ( Buffer ) Buffer.Add( line );
-      } catch ( Exception ex ) {
-         Error( ex );
-      } }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       private static void BufferToConsole () { try {
          string[] lines;
@@ -108,8 +123,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          var console = GameConsoleWindow.Create();
          foreach ( var line in lines )
             console.WriteLine( line );
-      } catch ( Exception ex ) {
-         Error( ex );
-      } }
+      } catch ( Exception ex ) { Error( ex ); } }
    }
 }
