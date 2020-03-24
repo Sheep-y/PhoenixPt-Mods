@@ -49,8 +49,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                if ( Mod.GameVersion != null )
                   StartTag( "Game", "Version", Mod.GameVersion, true );
                StartTag( "DumpInfo", "Version", Assembly.GetExecutingAssembly().GetName().Version.ToString(), true );
-               foreach ( var def in Data )
-                  ToXml( def );
+               foreach ( var val in Data )
+                  RecurringObject.Add( val, RecurringObject.Count );
+               foreach ( var val in Data )
+                  ToXml( val );
                writer.Write( $"</{typeName}>" );
                writer.Flush();
             }
@@ -100,17 +102,21 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                DumpList( name, list, level + 1 );
                return;
             }
-            try {
-               if ( RecurringObject.TryGetValue( val, out int link ) ) {
-                  if ( val is BaseDef def )
-                     StartTag( name, "path", def.ResourcePath, true );
-                  else
-                     StartTag( name, "ref", link.ToString( "X" ), true );
-                  return;
-               }
-            } catch ( Exception ex ) { StartTag( name, "err_H", ex.GetType().Name, true ); return; } // Hash error
-            var id = RecurringObject.Count;
-            RecurringObject.Add( val, id );
+            int id;
+            if ( level > 0 ) {
+               try {
+                  if ( RecurringObject.TryGetValue( val, out int link ) ) {
+                     if ( val is BaseDef def )
+                        StartTag( name, "path", def.ResourcePath, true );
+                     else
+                        StartTag( name, "ref", link.ToString( "X" ), true );
+                     return;
+                  }
+               } catch ( Exception ex ) { StartTag( name, "err_H", ex.GetType().Name, true ); return; } // Hash error
+               id = RecurringObject.Count;
+               RecurringObject.Add( val, id );
+            } else
+               id = RecurringObject[ val ];
             if ( val is BaseDef )
                StartTag( name );
             else

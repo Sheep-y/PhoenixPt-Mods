@@ -50,39 +50,41 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          //Patch( typeof( ItemManufacturing ), "AddAvailableItem", nameof( LogItem ) );
       }
 
-      private static Dictionary< Type, List<object> > ExportData = new Dictionary< Type, List<object> >();
+      private static Dictionary< string, List<object> > ExportData = new Dictionary< string, List<object> >();
+      private static Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
 
       private static void DumpData () { try {
          Info( "Scanning text" );
-         foreach ( var src in LocalizationManager.Sources )
+         foreach ( var src in LocalizationManager.Sources ) {
+            var name = "Text " + src.mTerm_AppName;
             foreach ( var term in src.mDictionary )
-               AddDataToExport( typeof( TermData ), term.Value );
-         /*
+               AddDataToExport( name, typeof( TermData ), term.Value );
+         }
          Info( "Scanning data" );
-         Type[] wanted = new Type[] { typeof( ResearchDef ),
+         Type[] wanted = new Type[] { typeof( ResearchDef ),/*
             typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ), typeof( TacticalItemDef ),
             typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( SpecializationDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
             typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( TacticalActorDef ),
             typeof( GeoAlienBaseDef ), typeof( GeoMistGeneratorDef ),
-            typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ), typeof( GeoSiteSceneDef ),
+            typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ), typeof( GeoSiteSceneDef ), */
             typeof( AchievementDef ), typeof( GeoscapeEventDef ), typeof( TacMissionDef ) };
          foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs ) {
             var type = Array.Find( wanted, cls => cls.IsInstanceOfType( e ) );
             if ( type == null ) continue;
-            AddDataToExport( type, e );
+            AddDataToExport( type.Name, type, e );
          }
-         */
          Info( "{0} entries to dump", ExportData.Values.Sum( e => e.Count ) );
          var shared = SharedData.GetSharedDataFromGame();
-         foreach ( var e in shared.DifficultyLevels ) AddDataToExport( typeof( GameDifficultyLevelDef ), e );
-         AddDataToExport( typeof( BaseDef ), shared.AISettingsDef );
-         AddDataToExport( typeof( BaseDef ), shared.ContributionSettings );
-         AddDataToExport( typeof( BaseDef ), shared.DynamicDifficultySettings );
-         AddDataToExport( typeof( BaseDef ), shared.DiplomacySettings );
+         AddDataToExport( "BaseDef", typeof( BaseDef ), shared.AISettingsDef );
+         AddDataToExport( "BaseDef", typeof( BaseDef ), shared.ContributionSettings );
+         AddDataToExport( "BaseDef", typeof( BaseDef ), shared.DynamicDifficultySettings );
+         AddDataToExport( "BaseDef", typeof( BaseDef ), shared.DiplomacySettings );
+         foreach ( var e in shared.DifficultyLevels ) AddDataToExport( "BaseDef", typeof( BaseDef ), e );
          var sum = ExportData.Values.Sum( e => e.Count );
          var tasks = new List<Task>();
          foreach ( var entry in ExportData ) { lock( entry.Value ) {
-            var dump = entry.Key == typeof( TermData ) ? (Dumper) new TermDumper( entry.Key, entry.Value ) : new BaseDefDumper( entry.Key, entry.Value ) ;
+            var type = ExportType[ entry.Key ];
+            var dump = type == typeof( TermData ) ? (Dumper) new TermDumper( type, entry.Value ) : new BaseDefDumper( type, entry.Value ) ;
             var task = Task.Run( dump.DumpData );
             tasks.Add( task );
          } }
@@ -92,9 +94,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Unpatch( ref DumpPatch );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static void AddDataToExport ( Type type, object obj ) {
-         if ( ! ExportData.TryGetValue( type, out var list ) )
-            ExportData.Add( type, list = new List<object>() );
+      private static void AddDataToExport ( string name, Type type, object obj ) {
+         if ( ! ExportData.TryGetValue( name, out var list ) )
+            ExportData.Add( name, list = new List<object>() );
+         ExportType[ name ] = type;
          list.Add( obj );
       }
       /*
