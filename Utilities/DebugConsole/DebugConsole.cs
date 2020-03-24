@@ -77,22 +77,22 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             lock ( _Lock ) switch ( level ) {
                case TraceEventType.Critical: case TraceEventType.Error:
                   if ( ! Config.Log_Modnix_Error ) return;
-                  prefix = "Error ";
+                  prefix = "Error";
                   break;
                 case TraceEventType.Warning:
                   if ( ! Config.Log_Modnix_Error ) return;
-                  prefix = "Warning ";
+                  prefix = "Warning";
                   break;
                case TraceEventType.Information :
                   if ( ! Config.Log_Modnix_Info ) return;
-                  prefix = "Log [Info] ";
+                  prefix = "Log [INFO]";
                   break;
                default :
                   if ( ! Config.Log_Modnix_Verbose ) return;
-                  prefix = "Log [Vebo] ";
+                  prefix = "Log [VEBO]";
                   break;
             }
-            txt = prefix + txt;
+            txt = $"{prefix} {Time.frameCount} ({Time.time.ToString("0.000")}) {txt}";
          }
          lock ( Buffer ) Buffer.Add( txt );
       } catch ( Exception ex ) { Error( ex ); } }
