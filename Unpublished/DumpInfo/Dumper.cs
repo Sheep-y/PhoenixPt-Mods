@@ -96,6 +96,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                   { StartTag( name, "type", type.FullName, true ); return; }
             }
             if ( level >= MaxLevel ) { SimpleMem( name, "..." ); return; }
+            if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
+               DumpList( name, list, level );
+               return;
+            }
             try {
                if ( RecurringObject.TryGetValue( val, out int link ) ) {
                   if ( val is BaseDef def )
@@ -109,13 +113,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             RecurringObject.Add( val, id );
             if ( val is BaseDef )
                StartTag( name );
-            else {
+            else
                StartTag( name, "id", id.ToString( "X" ), false );
-               if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
-                  DumpList( name, list, level );
-                  return;
-               }
-            }
          } else {
             if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
             if ( val is Color color ) { WriteColour( name, color ); return; }
@@ -125,7 +124,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          EndTag( name );
       }
 
-      private bool DumpList ( string name, IEnumerable list, int level ) {
+      private void DumpList ( string name, IEnumerable list, int level ) {
+         StartTag( name );
          var itemType = list.GetType().GetElementType();
          foreach ( var e in list ) {
             if ( e == null )
@@ -134,7 +134,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                Mem2Xml( e.GetType() == itemType ? "LI" : ( "LI." + e.GetType().Name ), e, level );
          }
          EndTag( name );
-         return true;
       }
 
       private void Obj2Xml ( object subject, int level ) {
