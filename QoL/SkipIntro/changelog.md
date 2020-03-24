@@ -1,5 +1,9 @@
 Changelog of Skip Intro, a Phoenix Point Mod by Sheepy
 
+# Version ?
+
+* Isolate each feature's patching so that the others can keep working when one fails.
+
 # Version 4.0, 2020-03-16
 
 * Update to Modnix 1.0.

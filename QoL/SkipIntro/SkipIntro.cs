@@ -41,31 +41,37 @@ namespace Sheepy.PhoenixPt.SkipIntro {
          // Simpler mods can use Harmony Attributes / Annotation, and it'll work the same.
 
          // Skip logos and splash
-         if ( Config.Skip_Logos )
-            LogoPatch = Patch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
+         if ( Config.Skip_Logos ) {
+            LogoPatch = TryPatch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
+            if ( LogoPatch == null ) Config.Skip_Logos = false; // Allow video to be loaded, ditto below
+         }
 
          // Skip "The Hottest Year"
-         if ( Config.Skip_HottestYear )
-            IntroEnterPatch = Patch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
+         if ( Config.Skip_HottestYear ) {
+            IntroEnterPatch = TryPatch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
+            if ( IntroEnterPatch == null ) Config.Skip_HottestYear = false;
+         }
 
          // Skip New Campaign Video
-         if ( Config.Skip_NewGameIntro )
-            Patch( typeof( UIStateGeoCutscene ), "EnterState", postfix: nameof( AfterGeoCutscene_Skip ) );
+         if ( Config.Skip_NewGameIntro ) {
+            if ( TryPatch( typeof( UIStateGeoCutscene ), "EnterState", postfix: nameof( AfterGeoCutscene_Skip ) ) == null )
+               Config.Skip_NewGameIntro = false;
+         }
 
          // Skip aircraft landings
          if ( Config.Skip_Landings )
-            Patch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
+            TryPatch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
 
          // Don't load skipped videos
          if ( Config.SkipAnyVideo )
-            Patch( typeof( VideoPlaybackController ), "Setup", nameof( BeforeVideoSetup_Skip ) );
+            TryPatch( typeof( VideoPlaybackController ), "Setup", nameof( BeforeVideoSetup_Skip ) );
 
          // Skip curtain drop (opening loading screen)
          if ( Config.Skip_CurtainDrop )
-            Patch( typeof( UseInkUI ), "Open", nameof( InkOpen_Skip ) );
+            TryPatch( typeof( UseInkUI ), "Open", nameof( InkOpen_Skip ) );
          // Skip curtain lift (closing loading screen)
          if ( Config.Skip_CurtainLift )
-            Patch( typeof( UseInkUI ), "Close", nameof( InkClose_Skip ) );
+            TryPatch( typeof( UseInkUI ), "Close", nameof( InkClose_Skip ) );
       }
 
       // For manual unpatching
