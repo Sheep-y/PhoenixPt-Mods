@@ -43,21 +43,17 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( condition.Length > 1000 || stackTrace?.Contains( "UnityTools.LogFormatter" ) == true || condition.Contains( "Called from a secondary Thread" ) ) return;
          var line = $"{type} {condition}   {stackTrace}".Trim();
          if ( line.Length == 0 ) return;
-         lock ( _Lock ) Buffer.Add( line );
+         Buffer.Add( line );
       } catch ( Exception ex ) {
          Error( ex );
       } }
 
       private static void BufferToConsole () { try {
-         string[] buffer;
-         lock ( _Lock ) {
-            if ( Buffer.Count == 0 ) return;
-            buffer = Buffer.ToArray();
-            Buffer.Clear();
-         }
+         if ( Buffer.Count == 0 ) return;
          var console = GameConsoleWindow.Create();
-         foreach ( var line in buffer )
+         foreach ( var line in Buffer )
             console.WriteLine( line );
+         Buffer.Clear();
       } catch ( Exception ex ) {
          Error( ex );
       } }
