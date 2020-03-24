@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0A99512A-C640-4EE0-BBFF-3A26F84FE553}</ProjectGuid>
+    <ProjectGuid>{ADBE1F6F-B231-4891-BBB8-D774CA236329}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sheepy.PhoenixPt.LimitedWar</RootNamespace>
-    <AssemblyName>PhoenixPt_LimitedWar</AssemblyName>
+    <RootNamespace>ZyMod</RootNamespace>
+    <AssemblyName>ZyMod</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -36,7 +36,6 @@
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>C:\Program Files\Epic Games\PhoenixPoint\PhoenixPointWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -49,33 +48,14 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>C:\Program Files\Epic Games\PhoenixPoint\PhoenixPointWin64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LimitedWar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ZyAdvMod.cs" />
     <Compile Include="ZyMod.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="mod_info.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="changelog.md" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PreBuildEvent>cd "$(SolutionDir)Utilities\ZyMod"
-copy ZyMod.cs "$(ProjectDir)"
-copy ZyAdvMod.cs "$(ProjectDir)"</PreBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent>cd "$(SolutionDir)"
-mkdir distro
-cd distro
-copy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" .</PostBuildEvent>
-  </PropertyGroup>
 </Project>

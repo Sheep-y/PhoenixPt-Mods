@@ -64,14 +64,14 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>cd $(SolutionDir)
-copy ZyMod.cs $(ProjectDir)
-copy ZyAdvMod.cs $(ProjectDir)</PreBuildEvent>
+    <PreBuildEvent>cd "$(SolutionDir)Utilities\ZyMod"
+copy ZyMod.cs "$(ProjectDir)"
+copy ZyAdvMod.cs "$(ProjectDir)"</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>cd $(SolutionDir)
+    <PostBuildEvent>cd "$(SolutionDir)"
 mkdir distro
 cd distro
-copy /y $(ProjectDir)$(OutDir)$(TargetFileName) .</PostBuildEvent>
+copy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" .</PostBuildEvent>
   </PropertyGroup>
 </Project>
