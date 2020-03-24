@@ -1,6 +1,6 @@
 ({
    Id: "Sheepy.DebugConsole",
-   Lang: "-",
+   Lang: "en",
    Duration : "temp",
    Name: {
       en : "Debug Console",
