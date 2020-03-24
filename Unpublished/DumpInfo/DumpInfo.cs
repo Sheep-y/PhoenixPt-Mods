@@ -68,12 +68,12 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                AddDataToExport( name, typeof( TermData ), term.Value );
          }
          Info( "Scanning data" );
-         Type[] wanted = new Type[] { typeof( ResearchDef ),/*
+         Type[] wanted = new Type[] { typeof( ResearchDef ),
             typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ), typeof( TacticalItemDef ),
             typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( SpecializationDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
             typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( TacticalActorDef ),
             typeof( GeoAlienBaseDef ), typeof( GeoMistGeneratorDef ),
-            typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ), typeof( GeoSiteSceneDef ), */
+            typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ), typeof( GeoSiteSceneDef ),
             typeof( AchievementDef ), typeof( GeoscapeEventDef ), typeof( TacMissionDef ) };
          foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs ) {
             var type = Array.Find( wanted, cls => cls.IsInstanceOfType( e ) );
