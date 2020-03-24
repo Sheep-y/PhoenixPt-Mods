@@ -1,6 +1,5 @@
 ﻿using Base.UI;
 using Harmony;
-using Newtonsoft.Json;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.Entities.Missions;
