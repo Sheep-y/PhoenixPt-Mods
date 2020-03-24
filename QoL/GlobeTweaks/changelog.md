@@ -1,4 +1,4 @@
-Changelog of Globe UI Tweaks, a Phoenix Point Mod by Sheepy
+Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
 # Version 3.0, 2020-03-24
 

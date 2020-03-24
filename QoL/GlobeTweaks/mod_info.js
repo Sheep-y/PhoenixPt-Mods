@@ -3,7 +3,7 @@
    Lang : "*",
    Duration : "temp",
    Name : {
-      en : "Globe UI Tweaks",
+      en : "Globe Tweaks",
       zh : "地球介面微調" },
    Description : {
       en : "Tweaks Geoscape globe - do not unpause on move, pause on rest and heal, centre to new base etc.",
