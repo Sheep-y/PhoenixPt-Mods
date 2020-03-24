@@ -55,6 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DumperImpl.cs" />
     <Compile Include="Dumper.cs" />
     <Compile Include="DumpInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

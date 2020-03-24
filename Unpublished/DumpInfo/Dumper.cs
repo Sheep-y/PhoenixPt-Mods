@@ -20,12 +20,12 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
-   internal class Dumper {
-      private readonly Type DataType;
-      private readonly List<BaseDef> Data;
+   internal abstract class Dumper {
+      protected readonly Type DataType;
+      protected readonly List<object> Data;
       private const int MaxLevel = 20;
 
-      internal Dumper ( Type key, List<BaseDef> list ) {
+      internal Dumper ( Type key, List<object> list ) {
          DataType = key;
          Data = list;
       }
@@ -35,7 +35,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       internal void DumpData () { lock ( Data ) {
          ZyMod.Info( "Dumping {0} ({1})", DataType.Name, Data.Count );
-         Data.Sort( CompareDef );
+         SortData();
          var typeName = DataType.Name;
          var path = Path.Combine( Mod.ModDir, "Data-" + typeName + ".xml.gz" );
          File.Delete( path );
@@ -60,12 +60,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          RecurringObject.Clear();
       } }
 
-      private static int CompareDef ( BaseDef a, BaseDef b ) {
-         string aid = a.Guid, bid = b.Guid;
-         if ( aid == null ) return bid == null ? 0 : -1;
-         if ( bid == null ) return 1;
-         return aid.CompareTo( bid );
-      }
+      protected abstract void SortData();
 
       private void ToXml ( object subject ) {
          if ( subject == null ) return;

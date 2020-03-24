@@ -2,6 +2,7 @@
 using Base.Defs;
 using Base.Entities.Abilities;
 using Base.Platforms;
+using I2.Loc;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities;
 using PhoenixPoint.Common.Entities.Characters;
@@ -49,9 +50,14 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          //Patch( typeof( ItemManufacturing ), "AddAvailableItem", nameof( LogItem ) );
       }
 
-      private static Dictionary< Type, List<BaseDef> > ExportData = new Dictionary< Type, List<BaseDef> >();
+      private static Dictionary< Type, List<object> > ExportData = new Dictionary< Type, List<object> >();
 
       private static void DumpData () { try {
+         Info( "Scanning text" );
+         foreach ( var src in LocalizationManager.Sources )
+            foreach ( var term in src.mDictionary )
+                  AddDataToExport( typeof( TermData ), term.Value );
+         /*
          Info( "Scanning data" );
          Type[] wanted = new Type[] { typeof( ResearchDef ),
             typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ), typeof( TacticalItemDef ),
@@ -65,17 +71,18 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( type == null ) continue;
             AddDataToExport( type, e );
          }
-         Info( "{0} entries from repository", ExportData.Values.Sum( e => e.Count ) );
+         */
+         Info( "{0} entries to dump", ExportData.Values.Sum( e => e.Count ) );
          var shared = SharedData.GetSharedDataFromGame();
          foreach ( var e in shared.DifficultyLevels ) AddDataToExport( typeof( GameDifficultyLevelDef ), e );
          AddDataToExport( typeof( BaseDef ), shared.AISettingsDef );
-         //AddDataToExport( typeof( BaseDef ), shared.ContributionSettings );
+         AddDataToExport( typeof( BaseDef ), shared.ContributionSettings );
          AddDataToExport( typeof( BaseDef ), shared.DynamicDifficultySettings );
          AddDataToExport( typeof( BaseDef ), shared.DiplomacySettings );
          var sum = ExportData.Values.Sum( e => e.Count );
          var tasks = new List<Task>();
          foreach ( var entry in ExportData ) { lock( entry.Value ) {
-            var dump = new Dumper( entry.Key, entry.Value );
+            var dump = new BaseDefDumper( entry.Key, entry.Value );
             var task = Task.Run( dump.DumpData );
             tasks.Add( task );
          } }
@@ -85,9 +92,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Unpatch( ref DumpPatch );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static void AddDataToExport ( Type type, BaseDef obj ) {
+      private static void AddDataToExport ( Type type, object obj ) {
          if ( ! ExportData.TryGetValue( type, out var list ) )
-            ExportData.Add( type, list = new List<BaseDef>() );
+            ExportData.Add( type, list = new List<object>() );
          list.Add( obj );
       }
       /*
