@@ -7,7 +7,6 @@ using PhoenixPoint.Geoscape.View;
 using PhoenixPoint.Geoscape.View.ViewStates;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
@@ -89,7 +88,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       private static void BeforeHealthChange_SetST  () => ST_Changed = true;
       private static void AfterHealthChange_UnsetST () => ST_Changed = false;
       
-		private static void CheckHPSTRested ( GeoCharacter restedCharacter, List<IGeoCharacterContainer> ____justRestedContainer, GeoFaction ____faction ) {
+		private static void CheckHPSTRested ( GeoCharacter restedCharacter, List<IGeoCharacterContainer> ____justRestedContainer, GeoFaction ____faction ) { try {
          if ( ! HP_Changed && ! ST_Changed ) return;
          if ( HP_Changed && ! Mod.Config.Pause_On_HP_Only_Heal ) return;
          if ( ST_Changed && ! Mod.Config.Pause_On_Stamina_Only_Heal ) return;
@@ -103,15 +102,17 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
             Info( "Detected {0} recovery on {1}", HP_Changed ? "HP" : "stamina", container.Name );
             ____justRestedContainer.Add( container );
          }
-      }
+      } catch ( Exception ex ) { Error( ex ); } }
 
       private static void BeforeAddEntry_AmendEntry ( GeoscapeLogEntry entry, GeoscapeLogMessagesDef ____messagesDef, GeoFaction ____faction ) { try {
          if ( entry == null || entry.Text != ____messagesDef.AircraftCrewReadyMessage ) return;
          var name = ( entry.Parameters[0] as LocalizedTextBind )?.Localize();
          Verbo( "Checking rest message of {0}", name );
+
          Func<IGeoCharacterContainer,bool> foundEntry = ( e ) => e.Name == name;
          IGeoCharacterContainer container = ____faction.Vehicles.FirstOrDefault( foundEntry ) ?? ____faction.Sites.FirstOrDefault( foundEntry );
          if ( container == null ) return;
+
          string note;
          if ( container.GetAllCharacters().Any( e => e.IsInjured ) ) note = new LocalizedTextBind( "KEY_HEALTH" ).Localize();
          else if ( container.GetAllCharacters().Any( e => e.Fatigue?.IsFullyRested == false ) ) note = new LocalizedTextBind( "KEY_GEOSCAPE_STAMINA" ).Localize();
