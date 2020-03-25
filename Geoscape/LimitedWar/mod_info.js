@@ -23,10 +23,12 @@
       Pandora_Attack_Zone : false,
       Attack_Raise_Alertness : true,
       Attack_Raise_Faction_Alertness : true,
+
       Stop_OneSided_War : true,
       No_Attack_When_Sieged_Difficulty : 2,
       One_Global_Attack_Difficulty : 0,
       One_Attack_Per_Faction_Difficulty : 1,
+
       Defense_Multiplier : {
           Default : 1,
           Alert    : 1.2,
@@ -39,6 +41,7 @@
           Defender_Anu : 1.2,
           Defender_NewJericho : 1,
           Defender_Synedrion : 1.2,
-	  }
+	  },
+      No_Alien_Attack_On_PhoenixPoint : false,
    }
 })

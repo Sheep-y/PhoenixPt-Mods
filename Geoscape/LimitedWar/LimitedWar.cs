@@ -30,6 +30,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
               No_Attack_When_Sieged_Difficulty >= 0 || One_Global_Attack_Difficulty >= 0 || One_Attack_Per_Faction_Difficulty >= 0;
 
       public DefenseMultiplier Defense_Multiplier = new DefenseMultiplier();
+      public bool No_Alien_Attack_On_PhoenixPoint = false;
    }
 
    public class DefenseMultiplier {
@@ -80,6 +81,13 @@ namespace Sheepy.PhoenixPt.LimitedWar {
                   Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( AfterLevelStart_StoreDiff ) );
                   Patch( typeof( VehicleFactionController ), "UpdateNavigation", nameof( BeforeNav_Drop_Attack ), nameof( AfterNav_Restore ) );
                } );
+         }
+
+         if ( Config.No_Alien_Attack_On_PhoenixPoint ) {
+            BatchPatch( "Hide PP Base", () => {
+               Patch( typeof( GeoAlienFaction ), "AttackPhoenixBase", nameof( BypassAttack ) );
+               Patch( typeof( GeoAlienFaction ), "StartPhoenixBaseAssault", nameof( BypassAttack ) );
+            } );
          }
       }
 
@@ -256,5 +264,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          }
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
+
+      private static bool BypassAttack () => false;
    }
 }
