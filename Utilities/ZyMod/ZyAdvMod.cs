@@ -19,6 +19,7 @@ namespace Sheepy.PhoenixPt {
 
       private string TransId = null;
       private List< IPatch > Trans = new List<IPatch>();
+      private bool NoRollback = false;
 
       protected override MethodInfo _GetPatchSubject ( Type target, string method ) { try {
          return base._GetPatchSubject( target, method );
@@ -29,6 +30,20 @@ namespace Sheepy.PhoenixPt {
          lock ( Trans ) if ( TransId != null ) Trans.Add( patch );
          return patch;
       } catch ( Exception ex ) { RollbackPatch( ex ); throw; } }
+
+      protected override IPatch TryPatch ( Type type, string method, string prefix = null, string postfix = null, string transpiler = null ) {
+         lock ( Trans ) NoRollback = true;
+         var result = base.TryPatch( type, method, prefix, postfix, transpiler );
+         lock ( Trans ) NoRollback = false;
+         return result;
+      }
+
+      protected override IPatch TryPatch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) {
+         lock ( Trans ) NoRollback = true;
+         var result = base.TryPatch( method, prefix, postfix, transpiler );
+         lock ( Trans ) NoRollback = false;
+         return result;
+      }
 
       protected bool StartPatch ( string id = "patches" ) { lock( Trans ) {
          if ( TransId != null ) {
@@ -42,7 +57,7 @@ namespace Sheepy.PhoenixPt {
       } }
 
       protected IPatch[] RollbackPatch ( object reason = null ) { lock( Trans ) {
-         if ( TransId == null ) return null;
+         if ( NoRollback || TransId == null ) return null;
          Warn( "Rollback {0} ({1} patches) {2}", TransId, Trans.Count, reason ?? "" );
          var result = Trans.ToArray();
          foreach ( var patch in Trans )
