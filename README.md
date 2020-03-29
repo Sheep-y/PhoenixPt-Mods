@@ -1,8 +1,8 @@
 # Sheepy's Phoenix Point Mods
 
-*Source Codes* of my mods for [Phoenix Point](https://phoenixpoint.info/), [Snapshot Games](http://www.snapshotgames.com/) 2019.
-No dlls here.
-Download dlls from NexusMods, links below.
+Source Codes of my mods for [Phoenix Point](https://phoenixpoint.info/), [Snapshot Games](http://www.snapshotgames.com/) 2019.
+DLLs are latest build and are less well-tested than those on NexusMods.
+You can find NexusMods links below.
 
 Unless otherwise noted, my mods tries not to modify game data,
 meaning they shouldn't taint your save.
@@ -15,13 +15,19 @@ usually custom jobs or for self use, can be found here.
 
 ## List of Mods
 
-Published mods only 
+Published mods.
 
 * [**Debug Console**](https://www.nexusmods.com/phoenixpoint/mods/44/) - Enable console and direct unity log and game log to it.
 * [**Limited War**](https://www.nexusmods.com/phoenixpoint/mods/24) - Tone down the scale and damage of faction war.
 * [**Scrap Vehicle**](https://www.nexusmods.com/phoenixpoint/mods/26) - Make it possible to recycle vehicles and mutogs.
 * [**Skip Intro**](https://www.nexusmods.com/phoenixpoint/mods/17) - Skip logos, openings, and landings.
-* [**UI Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centering.
+* [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centering.
+
+Unpublished mods.  Not guaranteed to work at all.
+
+* Dump Info - dump game text and data in xml form.
+* Flat Difficulty - combat result no longer affect dynamic difficulty system.
+* VersionText - simple mod to demo Modnix best practices.
 
 ## Loader Compatibility
 
@@ -37,6 +43,20 @@ Because of how PPML v0.2 is designed, mods must choose one to support.
 Since 0.1 is still used by old mods, and many players are not experts in mod management,
 I opt for having my mods not work rather than crashing the game, when they are used incorrectly.
 Thanks for your understanding.
+
+## Compiling
+
+Steps to build your own dlls from the source code.
+
+1. Make sure the game is installed in `C:\Program Files\Epic Games\PhoenixPoint`.  The mods need to reference its dlls.
+2. Download Visual Studio 2019, select ".Net Desktop Development" in the Installer.
+3. Download the [https://github.com/Sheep-y/PhoenixPt-Mods/archive/master.zip whole repo] and extract to a folder.
+4. Double click `PhoenixPt_Mods.sln`.  This should open all the mods in Visual Studio.
+5. In Build menu, click "Build Solution".  For the first build you need to be online, and it may take a while.
+6. If everything is fine, you can find the mods in the `distro` folder.
+
+If things are not fine, well, chances are you need to solve it as a programmer.
+We need modders. Come join us!
 
 ## Tech Tree
 

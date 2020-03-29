@@ -7,8 +7,8 @@
     <ProjectGuid>{964ECEDD-F829-431C-97D0-2430AC5D0EED}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sheepy.PhoenixPt_MarkUnpowered</RootNamespace>
-    <AssemblyName>PhoenixPt_MarkUnpowered</AssemblyName>
+    <RootNamespace>Sheepy.PhoenixPt.GeoTweaks</RootNamespace>
+    <AssemblyName>PhoenixPt_GeoTweaks</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
