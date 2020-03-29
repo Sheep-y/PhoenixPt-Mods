@@ -34,6 +34,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       public void SplashMod ( Func< string, object, object > api = null ) {
          GameConsoleWindow.DisableConsoleAccess = false; // Enable console first no matter what happens
          SetApi( api, out Config );
+         Verbo( "Console Enabled" );
          if ( Config.Log_Game_Error || Config.Log_Game_Info ) {
             Application.logMessageReceived += UnityToConsole;
             TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
