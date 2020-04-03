@@ -27,6 +27,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private const int MaxDepth = 50;
 
       internal Dumper ( string name, Type key, List<object> list ) {
+         foreach ( var chr in Path.GetInvalidFileNameChars() )
+            name = name.Replace( chr, '-' );
          Filename = name.Trim();
          DataType = key;
          Data = list;
@@ -38,7 +40,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       internal void DumpData () { lock ( Data ) {
          ZyMod.Info( "Dumping {0} ({1})", DataType.Name, Data.Count );
          SortData();
-         var path = Path.Combine( Mod.ModDir, "Data-" + Filename + ".xml.gz" );
+         var path = Path.Combine( Mod.ModDir, Filename + ".xml.gz" );
          File.Delete( path );
          using ( var fstream = new FileStream( path, FileMode.Create ) ) {
             //var buffer = new BufferedStream( fstream );
