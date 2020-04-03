@@ -1,5 +1,9 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
+# Version ?
+
+* Fix: ConsoleEnabler mod now properly disabled.
+
 # Version 2.0, 2020-03-25
 
 * New: Modnix mod logs are now forwarded.  Not written to console log by default.
