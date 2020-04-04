@@ -15,20 +15,18 @@ namespace VersionText {
    public static class Mod {
       internal static ModConfig Config;
       public static void MainMod ( Func<string,object,object> api ) {
-         Config = api( "config", typeof( ModConfig ) ) as ModConfig;
+         Config = api?.Invoke( "config", typeof( ModConfig ) ) as ModConfig ?? new ModConfig();
          HarmonyInstance.Create( typeof( Mod ).Namespace ).PatchAll();
       }
    }
 
    [HarmonyPatch( typeof( RuntimeBuildInfo ), "Version", MethodType.Getter )]
    static class RuntimeBuildInfoMod_GetVersion {
-      static void Postfix ( ref string __result ) =>
-         __result = Mod.Config.Text;
+      static void Postfix ( ref string __result ) => __result = Mod.Config.Text;
    }
 
    [HarmonyPatch( typeof( RuntimeBuildInfo ), "Platform", MethodType.Getter )]
    static class RuntimeBuildInfoMod_GetPlatform {
-      static void Postfix ( ref string __result ) =>
-         __result = "";
+      static void Postfix ( ref string __result ) => __result = "";
    }
 }

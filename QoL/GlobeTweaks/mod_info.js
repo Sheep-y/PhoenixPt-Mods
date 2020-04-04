@@ -17,6 +17,9 @@
       { Id: "PhoenixPt_NoAutoUnpause", Max: "1.0.0.0" },
       { Id: "PhoenixPt_PauseOnHeal", Max: "1.0.1.0" },
    ],
+   ConfigType : "Sheepy.PhoenixPt.GlobeTweaks.ModConfig",
+
+   /* Legacy config for Modnix 1.0 */
    DefaultConfig : {
       "Config_Version" : 20200324,
       "Base_Centre_On_Heal" : true,

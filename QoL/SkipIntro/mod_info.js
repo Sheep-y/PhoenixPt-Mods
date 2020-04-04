@@ -22,6 +22,9 @@
       { Id: "PhoenixPt_SkipIntro", Max: "1.1.0.0" },
 
    /* Config files will be created when user click "Reset". */
+   ConfigType : "Sheepy.PhoenixPt.SkipIntro.ModConfig",
+
+   /* Legacy config for Modnix 1.0 */
    DefaultConfig : {
       "Config_Version" : 20200322,
       "Skip_Logos" : true,

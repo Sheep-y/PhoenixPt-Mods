@@ -18,6 +18,9 @@
       { Id: "PhoenixPt_LimitWarToZone", Max: "1.0.0.0" },
       { Id: "PhoenixPt_NoWar", Max: "1.0.0.0" },
    ],
+   ConfigType : "Sheepy.PhoenixPt.LimitedWar.ModConfig",
+
+   /* Legacy config for Modnix 1.0 */
    DefaultConfig : {
       Faction_Attack_Zone : true,
       Pandora_Attack_Zone : false,
