@@ -10,7 +10,7 @@
    Disables:
       { Id: "ConsoleEnabler", Max: "1.0.0.0" },
    Url: {
-      "Nexus"  : "https://www.nexusmods.com/phoenixpoint/mods/44/",
+      "Nexus"  : "https://nexusmods.com/phoenixpoint/mods/44/",
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods"
    },
    DefaultConfig: {
