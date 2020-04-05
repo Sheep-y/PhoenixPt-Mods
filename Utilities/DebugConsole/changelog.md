@@ -1,8 +1,12 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version ?
+# Version 3.0, ?
 
+* New: Scan mods for console command.
+* New: Console command to run modnix api.
+* Fix: Brackets are now escaped to avoid string format error in the console.
 * Fix: ConsoleEnabler mod now properly disabled.
+* Modnix messages are now coloured in the console to distinguish from game messages.
 
 # Version 2.0, 2020-03-25
 
