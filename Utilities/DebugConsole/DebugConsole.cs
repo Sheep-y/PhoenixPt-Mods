@@ -46,6 +46,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             TryPatch( typeof( ConsoleCommandAttribute ), "GetCommands", prefix: nameof( ScanCommands ) );
             TryPatch( typeof( ConsoleCommandAttribute ), "GetInfo", prefix: nameof( ScanCommands ) );
             TryPatch( typeof( ConsoleCommandAttribute ), "HasCommand", prefix: nameof( ScanCommands ) );
+            TryPatch( typeof( GameConsoleWindow ), "ToggleVisibility", postfix: nameof( ScanCommands ) );
          }
          if ( api == null ) return;
 
@@ -67,6 +68,11 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          }
       }
 
+      public static void MainMod () {
+         if ( Config.Scan_Mods_For_Command )
+            ScanCommands();
+      }
+
       private static void CheckConfig () {
          if ( Config.Config_Version < 20200405 )
             ModnixApi?.Invoke( "config_save", Config );
@@ -75,16 +81,19 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private static HashSet< Assembly > ScannedMods;
       private static FieldInfo CmdMethod;
       private static FieldInfo CmdVarArg;
+      private static SortedList<string, ConsoleCommandAttribute> Commands;
 
       private static void InitScanner () {
          if ( ScannedMods != null ) return;
          ScannedMods = new HashSet< Assembly >();
          CmdMethod = typeof( ConsoleCommandAttribute ).GetField( "_methodInfo", BindingFlags.NonPublic | BindingFlags.Instance );
          CmdVarArg = typeof( ConsoleCommandAttribute ).GetField( "_variableArguments", BindingFlags.NonPublic | BindingFlags.Instance );
+         Commands =  typeof( ConsoleCommandAttribute ).GetField( "CommandToInfo", BindingFlags.NonPublic | BindingFlags.Static ).GetValue( null ) as SortedList<string, ConsoleCommandAttribute> ;
       }
 
-      private static void ScanCommands ( SortedList<string, ConsoleCommandAttribute> ___CommandToInfo ) { try {
+      private static void ScanCommands () { try {
          InitScanner();
+         if ( Commands == null ) return;
          Assembly[] asmAry = AppDomain.CurrentDomain.GetAssemblies();
          if ( asmAry.Length == ScannedMods.Count ) return;
          foreach ( var asm in asmAry ) {
@@ -102,7 +111,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                   var tag = func.GetCustomAttribute( typeof(ConsoleCommandAttribute) ) as ConsoleCommandAttribute;
                   if ( tag == null ) continue;
                   tag.Command = tag.Command ?? func.Name;
-                  if ( ___CommandToInfo.ContainsKey( tag.Command ) ) {
+                  if ( Commands.ContainsKey( tag.Command ) ) {
                      Info( "Command exists, cannot register {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
                      continue;
                   }
@@ -110,7 +119,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                   var param = func.GetParameters();
                   if ( param.Length > 0 && param[ param.Length - 1 ].ParameterType.FullName.Equals( "System.String[]" ) )
                      CmdVarArg.SetValue( tag, true );
-                  ___CommandToInfo.Add( tag.Command, tag );
+                  Commands.Add( tag.Command, tag );
                   Info( "Command registered: {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
                }
             ScannedMods.Add( asm );
@@ -124,7 +133,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( param.Length > 2 ) {
             arg = new string[ param.Length - 1 ];
             Array.Copy( param, 1, arg as string[], 0, param.Length - 1 );
-         } else if ( param.Length == 1 )
+         } else if ( param.Length == 2 )
             arg = param[1];
          var result = ModnixApi( param[0], arg );
          console.WriteLine( EscLine( result is string txt ? txt : JsonConvert.SerializeObject( result, Formatting.None ) ) );
