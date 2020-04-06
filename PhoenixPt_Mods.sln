@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZyMod", "Utilities\ZyMod\Zy
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeoTweaks", "QoL\MarkUnpowered\GeoTweaks.csproj", "{964ECEDD-F829-431C-97D0-2430AC5D0EED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionText", "Utilities\VersionText\VersionText.csproj", "{C8F4BA02-8DF1-41C2-A3BE-7638AB6411E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionText", "Unpublished\VersionText\VersionText.csproj", "{C8F4BA02-8DF1-41C2-A3BE-7638AB6411E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PpmlTest", "Unpublished\PpmlTest\PpmlTest.csproj", "{C9DBB18F-4C9F-43FF-9023-12F686EB2124}"
 EndProject
