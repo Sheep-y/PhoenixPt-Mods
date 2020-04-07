@@ -1,5 +1,7 @@
 ({
    Id: "Sheepy.DebugConsole",
+   LoadIndex : -1000,
+
    Lang: "en",
    Duration : "temp",
    Name: {

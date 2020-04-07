@@ -2,6 +2,7 @@
 using Base.Utils.GameConsole;
 using Harmony;
 using Newtonsoft.Json;
+using PhoenixPoint.Common.Game;
 using PhoenixPoint.Home.View.ViewModules;
 using PhoenixPoint.Home.View.ViewStates;
 using System;
@@ -43,10 +44,12 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
          }
          if ( Config.Scan_Mods_For_Command ) {
+            TryPatch( typeof( PhoenixGame ), "StartGameCrt", postfix: nameof( ScanCommands ) );
+            TryPatch( typeof( GameConsoleWindow ), "ToggleVisibility", postfix: nameof( ScanCommands ) );
+            // Scan before lists are accessed. Messages are buffered and will appear after the commands.
             TryPatch( typeof( ConsoleCommandAttribute ), "GetCommands", prefix: nameof( ScanCommands ) );
             TryPatch( typeof( ConsoleCommandAttribute ), "GetInfo", prefix: nameof( ScanCommands ) );
             TryPatch( typeof( ConsoleCommandAttribute ), "HasCommand", prefix: nameof( ScanCommands ) );
-            TryPatch( typeof( GameConsoleWindow ), "ToggleVisibility", postfix: nameof( ScanCommands ) );
          }
          if ( api == null ) return;
 
@@ -66,11 +69,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             } else
                Info( "Modnix assembly not found, log not forwarded." );
          }
-      }
-
-      public static void MainMod () {
-         if ( Config.Scan_Mods_For_Command )
-            ScanCommands();
       }
 
       private static void CheckConfig () {
