@@ -1,11 +1,15 @@
 ﻿using Base.Build;
 using Base.Utils.GameConsole;
 using Harmony;
+using PhoenixPoint.Home.View.ViewModules;
+using PhoenixPoint.Home.View.ViewStates;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.UI;
 
 namespace VersionText {
    internal class ModConfig {
@@ -24,6 +28,7 @@ namespace VersionText {
          return this;
       }
    }
+
    public static class Mod {
       internal static Func<string,object,object> Api;
       internal static ModConfig Config;
@@ -32,29 +37,64 @@ namespace VersionText {
          Api = api;
          Config = ( api?.Invoke( "config", typeof( ModConfig ) ) as ModConfig )?.Update() ?? new ModConfig();
          HarmonyInstance.Create( typeof( Mod ).Namespace ).PatchAll();
-         api?.Invoke( "api_add Sheepy.VerText", (Func<object,string>) ApiVerText );
+         api?.Invoke( "api_add Sheepy.VerText", (Func<string,object,string>) ApiVerText );
       }
 
-      private static string ApiVerText ( object arg ) {
-         string old = Config.VersionText;
-         Config.VersionText = arg?.ToString();
+      private static string ApiVerText ( string type, object arg ) {
+         string old;
+         if ( "build".Equals( type?.ToLowerInvariant() ) ) {
+            old = Config.BuildText;
+            Config.BuildText = arg?.ToString();
+         } else {
+            old = Config.VersionText;
+            Config.VersionText = arg?.ToString();
+         }
+         UIModuleBuildRevision_SetRevisionNumber.RefreshText();
          return old;
       }
 
-      [ ConsoleCommand( Command = "VerText", Description = "Change version text" ) ]
-      static void ChangeText ( IConsole console, string ver, string build ) {
-         Mod.Config.VersionText = ver;
-         Mod.Config.BuildText = build;
+      [ ConsoleCommand( Command = "VerText", Description = "Set home screen version text." ) ]
+      public static void ConsoleVerText ( IConsole console, string ver, string build ) {
+         console.WriteLine( Config.VersionText + " " + Config.BuildText );
+         Config.VersionText = ver?.ToString();
+         Config.BuildText = build?.ToString();
+         UIModuleBuildRevision_SetRevisionNumber.RefreshText();
       }
    }
 
-   [ HarmonyPatch( typeof( RuntimeBuildInfo ), "Version", MethodType.Getter ) ]
-   static class RuntimeBuildInfoMod_GetVersion {
-      static void Postfix ( ref string __result ) => __result = Mod.Config.VersionText;
+   [ HarmonyPatch( typeof( UIModuleBuildRevision ), "SetRevisionNumber" ) ]
+   internal static class UIModuleBuildRevision_SetRevisionNumber {
+      private static Text VersionText;
+      private static void Postfix ( UIModuleBuildRevision __instance ) {
+         VersionText = __instance.BuildRevisionNumber;
+         RefreshText();
+      }
+
+      internal static void RefreshText () {
+         VersionText.text = Mod.Config.VersionText + " " + Mod.Config.BuildText;
+         UIStateMainMenu_EnterState.Refresh();
+      }
    } 
 
-   [ HarmonyPatch( typeof( RuntimeBuildInfo ), "Platform", MethodType.Getter ) ]
-   static class RuntimeBuildInfoMod_GetPlatform {
-      static void Postfix ( ref string __result ) => __result = Mod.Config.BuildText;
+   [ HarmonyPatch( typeof( UIStateMainMenu ), "EnterState" ) ]
+   internal static class UIStateMainMenu_EnterState {
+      private static UIStateMainMenu MainMenu;
+      private static MethodBase DebugConsoleAdder;
+
+      internal static void Postfix ( UIStateMainMenu __instance ) {
+         try {
+            if ( Mod.Api?.Invoke( "version", "Sheepy.DebugConsole" ) == null ) return;
+            MainMenu = __instance;
+            var asm = Mod.Api( "assembly", "Sheepy.DebugConsole" ) as Assembly;
+            DebugConsoleAdder = asm.GetType( "Sheepy.PhoenixPt.DebugConsole.Mod" )
+               .GetMethod( "AfterMainMenu_AddModCount", BindingFlags.NonPublic | BindingFlags.Static );
+         } catch ( Exception ex ) {
+            Mod.Api?.Invoke( "log error", ex );
+         }
+      }
+
+      internal static void Refresh () {
+         DebugConsoleAdder?.Invoke( null, new object[]{ MainMenu } );
+      }
    }
 }
