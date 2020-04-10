@@ -135,11 +135,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void WriteResult ( object result ) { try {
-         string line;
-         if ( result == null ) line = "null";
-         else if ( result is string txt ) line = EscLine( txt );
+         if ( result is string line ) ;
+         else if ( result == null ) line = "null";
          else if ( result is Exception || result is StackTrace ) line = result.ToString();
-         else line = EscLine( JsonConvert.SerializeObject( result, Formatting.None ) );
+         else line = JsonConvert.SerializeObject( result, Formatting.None );
          lock ( Buffer ) Buffer.Add( line );
          if ( result is Task<object> task )
             task.ContinueWith( e => {
