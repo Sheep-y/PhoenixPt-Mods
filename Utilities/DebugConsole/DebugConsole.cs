@@ -17,7 +17,6 @@ using UnityEngine;
 namespace Sheepy.PhoenixPt.DebugConsole {
 
    public class ModConfig {
-      public int  Config_Version = 20200405;
       public bool Mod_Count_In_Version = true;
       public bool Log_Game_Error = true;
       public bool Log_Game_Info = true;
@@ -26,6 +25,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       public bool Log_Modnix_Verbose = false;
       public bool Scan_Mods_For_Command = true;
       public bool Write_Modnix_To_Console_Logfile = false;
+      public int  Config_Version = 20200405;
    }
 
    public class Mod : ZyMod {
@@ -135,8 +135,21 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             Array.Copy( param, 1, arg as string[], 0, param.Length - 1 );
          } else if ( param.Length == 2 )
             arg = param[1];
-         var result = ModnixApi( param[0], arg );
-         console.WriteLine( EscLine( result is string txt ? txt : JsonConvert.SerializeObject( result, Formatting.None ) ) );
+         WriteResult( ModnixApi( param[0], arg ) );
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      private static void WriteResult ( object result ) { try {
+         string line;
+         if ( result == null ) line = "null";
+         else if ( result is string txt ) line = EscLine( txt );
+         else line = EscLine( JsonConvert.SerializeObject( result, Formatting.None ) );
+         lock ( Buffer ) Buffer.Add( line );
+         if ( result is Task<object> task )
+            task.ContinueWith( e => {
+               if ( e.IsCanceled ) WriteResult( "Cancelled" );
+               else if ( e.IsFaulted ) WriteResult( e.Exception );
+               else WriteResult( e.Result );
+            } );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void AfterMainMenu_AddModCount ( UIStateMainMenu __instance ) { try {
