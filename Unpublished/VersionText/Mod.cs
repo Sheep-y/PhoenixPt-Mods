@@ -32,6 +32,13 @@ namespace VersionText {
          Api = api;
          Config = ( api?.Invoke( "config", typeof( ModConfig ) ) as ModConfig )?.Update() ?? new ModConfig();
          HarmonyInstance.Create( typeof( Mod ).Namespace ).PatchAll();
+         api?.Invoke( "api_add Sheepy.VerText", (Func<object,string>) ApiVerText );
+      }
+
+      private static string ApiVerText ( object arg ) {
+         string old = Config.VersionText;
+         Config.VersionText = arg?.ToString();
+         return old;
       }
 
       [ ConsoleCommand( Command = "VerText", Description = "Change version text" ) ]
