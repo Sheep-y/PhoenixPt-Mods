@@ -21,7 +21,6 @@
 
    /* Legacy config for Modnix 1.0 */
    DefaultConfig : {
-      "Config_Version" : 20200324,
       "Base_Centre_On_Heal" : true,
       "Base_Pause_On_Heal" : true,
       "Center_On_New_Base" : true,
@@ -30,5 +29,6 @@
       "Notice_On_Stamina_Only_Heal" : true,
       "Vehicle_Centre_On_Heal" : true,
       "Vehicle_Pause_On_Heal" : true,
+      "Config_Version" : 20200324,
    },
 })

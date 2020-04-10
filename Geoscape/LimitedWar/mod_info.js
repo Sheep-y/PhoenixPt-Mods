@@ -44,7 +44,9 @@
           Defender_Anu : 1.2,
           Defender_NewJericho : 1,
           Defender_Synedrion : 1.2,
-	  },
+      },
       No_Alien_Attack_On_PhoenixPoint : false,
+
+      public long Config_Version : 20200325,
    }
 })

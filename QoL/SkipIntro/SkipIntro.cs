@@ -16,13 +16,13 @@ namespace Sheepy.PhoenixPt.SkipIntro {
 
    // Modnix will save and load settings to/from {dll_name}.conf as utf-8 json
    public class ModConfig {
-      public int  Config_Version = 20200322;
       public bool Skip_Logos = true;
       public bool Skip_HottestYear = true;
       public bool Skip_NewGameIntro = false;
       public bool Skip_Landings = true;
       public bool Skip_CurtainDrop = true;
       public bool Skip_CurtainLift = true;
+      public int  Config_Version = 20200322;
 
       internal bool SkipAnyVideo => Skip_HottestYear || Skip_NewGameIntro || Skip_Landings;
    }

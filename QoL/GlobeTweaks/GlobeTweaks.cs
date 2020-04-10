@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 namespace Sheepy.PhoenixPt.GlobeTweaks {
 
    public class ModConfig {
-      public int  Config_Version = 20200324;
       public bool Base_Centre_On_Heal = true;
       public bool Base_Pause_On_Heal = true;
       public bool Center_On_New_Base = true;
@@ -14,6 +13,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public bool Notice_On_Stamina_Only_Heal = true;
       public bool Vehicle_Centre_On_Heal = true;
       public bool Vehicle_Pause_On_Heal = true;
+      public int  Config_Version = 20200324;
    }
 
    public class Mod : ZyAdvMod {

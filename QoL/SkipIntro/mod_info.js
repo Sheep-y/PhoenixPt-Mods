@@ -26,12 +26,12 @@
 
    /* Legacy config for Modnix 1.0 */
    DefaultConfig : {
-      "Config_Version" : 20200322,
       "Skip_Logos" : true,
       "Skip_HottestYear" : true,
       "Skip_NewGameIntro" : false,
       "Skip_Landings" : true,
       "Skip_CurtainDrop" : true,
       "Skip_CurtainLift" : true,
+      "Config_Version" : 20200322,
    },
 })

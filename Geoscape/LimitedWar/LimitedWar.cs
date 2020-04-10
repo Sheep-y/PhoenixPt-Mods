@@ -31,6 +31,8 @@ namespace Sheepy.PhoenixPt.LimitedWar {
 
       public DefenseMultiplier Defense_Multiplier = new DefenseMultiplier();
       public bool No_Alien_Attack_On_PhoenixPoint = false;
+
+      public long Config_Version = 20200325;
    }
 
    public class DefenseMultiplier {
