@@ -170,7 +170,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             lock ( _Lock ) switch ( level ) {
                case TraceEventType.Critical: case TraceEventType.Error:
                   if ( ! Config.Log_Modnix_Error ) return;
-                  prefix = "<color=red>Error";
+                  prefix = "<color=fuchsia>Error";
                   break;
                 case TraceEventType.Warning:
                   if ( ! Config.Log_Modnix_Error ) return;
