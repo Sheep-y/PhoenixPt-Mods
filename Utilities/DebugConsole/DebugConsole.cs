@@ -2,7 +2,6 @@
 using Base.Utils.GameConsole;
 using Harmony;
 using Newtonsoft.Json;
-using PhoenixPoint.Common.Game;
 using PhoenixPoint.Home.View.ViewModules;
 using PhoenixPoint.Home.View.ViewStates;
 using System;
@@ -44,7 +43,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
          }
          if ( Config.Scan_Mods_For_Command ) {
-            TryPatch( typeof( PhoenixGame ), "StartGameCrt", postfix: nameof( ScanCommands ) );
+            TryPatch( typeof( UIStateMainMenu ), "EnterState", prefix: nameof( ScanCommands ) );
             TryPatch( typeof( GameConsoleWindow ), "ToggleVisibility", postfix: nameof( ScanCommands ) );
             // Scan before lists are accessed. Messages are buffered and will appear after the commands.
             TryPatch( typeof( ConsoleCommandAttribute ), "GetCommands", prefix: nameof( ScanCommands ) );
@@ -81,17 +80,18 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private static FieldInfo CmdVarArg;
       private static SortedList<string, ConsoleCommandAttribute> Commands;
 
-      private static void InitScanner () {
-         if ( ScannedMods != null ) return;
-         ScannedMods = new HashSet< Assembly >();
+      private static bool InitScanner () {
+         if ( ScannedMods != null ) return true;
          CmdMethod = typeof( ConsoleCommandAttribute ).GetField( "_methodInfo", BindingFlags.NonPublic | BindingFlags.Instance );
          CmdVarArg = typeof( ConsoleCommandAttribute ).GetField( "_variableArguments", BindingFlags.NonPublic | BindingFlags.Instance );
          Commands =  typeof( ConsoleCommandAttribute ).GetField( "CommandToInfo", BindingFlags.NonPublic | BindingFlags.Static ).GetValue( null ) as SortedList<string, ConsoleCommandAttribute> ;
+         if ( CmdMethod == null || CmdVarArg == null || Commands == null ) return false;
+         ScannedMods = new HashSet< Assembly >();
+         return true;
       }
 
       private static void ScanCommands () { try {
-         InitScanner();
-         if ( Commands == null ) return;
+         if ( ! InitScanner() ) return;
          Assembly[] asmAry = AppDomain.CurrentDomain.GetAssemblies();
          if ( asmAry.Length == ScannedMods.Count ) return;
          foreach ( var asm in asmAry ) {
