@@ -29,7 +29,7 @@ namespace Sheepy.PhoenixPt.SkipIntro {
 
    public class Mod : ZyMod {
       // PPML v0.1 entry point
-      public static void Init () => new Mod().SplashMod();
+      static void Init () => new Mod().SplashMod();
 
       private static ModConfig Config;
 

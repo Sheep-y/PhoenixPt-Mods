@@ -28,7 +28,7 @@ using System.Threading.Tasks;
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    public class Mod : ZyMod {
-      public void Init () => new Mod().MainMod();
+      static void Init () => new Mod().MainMod();
 
       internal static string ModDir;
       internal static string GameVersion;

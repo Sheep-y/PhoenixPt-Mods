@@ -31,7 +31,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
    public class Mod : ZyMod {
       internal static ModConfig Config;
 
-      public static void Init () => new Mod().SplashMod();
+      static void Init () => new Mod().SplashMod();
 
       public void SplashMod ( Func< string, object, object > api = null ) {
          GameConsoleWindow.DisableConsoleAccess = false; // Enable console first no matter what happens
@@ -138,6 +138,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          string line;
          if ( result == null ) line = "null";
          else if ( result is string txt ) line = EscLine( txt );
+         else if ( result is Exception || result is StackTrace ) line = result.ToString();
          else line = EscLine( JsonConvert.SerializeObject( result, Formatting.None ) );
          lock ( Buffer ) Buffer.Add( line );
          if ( result is Task<object> task )

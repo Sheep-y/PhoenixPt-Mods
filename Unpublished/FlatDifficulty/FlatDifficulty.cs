@@ -9,7 +9,7 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhotnixPt.FlatDifficulty {
    public class Mod : PhoenixPt.ZyMod {
-      public static void Init () => new Mod().MainMod();
+      static void Init () => new Mod().MainMod();
 
       public void MainMod ( Func< string, object, object > api = null ) {
          SetApi( api );
