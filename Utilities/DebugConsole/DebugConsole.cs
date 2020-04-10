@@ -42,7 +42,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             Application.logMessageReceived += UnityToConsole; // Non-main thread will cause inconsistent formats.
             TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
          }
-         if ( Config.Scan_Mods_For_Command ) {
+         if ( Config.Scan_Mods_For_Command &&
+            TryPatch( typeof( ConsoleCommandAttribute ).GetProperty( "HasParameters" ).GetGetMethod(), postfix: nameof( AddCommandToList ) ) != null ) {
             TryPatch( typeof( UIStateMainMenu ), "EnterState", prefix: nameof( ScanCommands ) );
             TryPatch( typeof( GameConsoleWindow ), "ToggleVisibility", postfix: nameof( ScanCommands ) );
             // Scan before lists are accessed. Messages are buffered and will appear after the commands.
@@ -76,19 +77,24 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       }
 
       private static HashSet< Assembly > ScannedMods;
-      private static FieldInfo CmdMethod;
-      private static FieldInfo CmdVarArg;
+      private static MethodInfo ConsoleCommand;
       private static SortedList<string, ConsoleCommandAttribute> Commands;
 
       private static bool InitScanner () {
          if ( ScannedMods != null ) return true;
-         CmdMethod = typeof( ConsoleCommandAttribute ).GetField( "_methodInfo", BindingFlags.NonPublic | BindingFlags.Instance );
-         CmdVarArg = typeof( ConsoleCommandAttribute ).GetField( "_variableArguments", BindingFlags.NonPublic | BindingFlags.Instance );
          Commands =  typeof( ConsoleCommandAttribute ).GetField( "CommandToInfo", BindingFlags.NonPublic | BindingFlags.Static ).GetValue( null ) as SortedList<string, ConsoleCommandAttribute> ;
-         if ( CmdMethod == null || CmdVarArg == null || Commands == null ) return false;
+         if ( Commands == null ) return false;
          ScannedMods = new HashSet< Assembly >();
          return true;
       }
+
+      private static void AddCommandToList ( ref bool ____variableArguments, ref MethodInfo ____methodInfo ) { try {
+         if ( ConsoleCommand == null ) return;
+         ____methodInfo = ConsoleCommand;
+         var param = ConsoleCommand.GetParameters();
+         if ( param?.Length > 0 && param[ param.Length - 1 ].ParameterType.FullName.Equals( "System.String[]" ) )
+            ____variableArguments = true;
+      } catch ( Exception ex ) { Error( ex ); } }
 
       private static void ScanCommands () { try {
          if ( ! InitScanner() ) return;
@@ -108,17 +114,15 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                foreach ( var func in type.GetMethods( BindingFlags.Static | BindingFlags.Public ) ) {
                   var tag = func.GetCustomAttribute( typeof(ConsoleCommandAttribute) ) as ConsoleCommandAttribute;
                   if ( tag == null ) continue;
-                  tag.Command = tag.Command ?? func.Name;
+                  if ( tag.Command == null ) tag.Command = func.Name;
                   if ( Commands.ContainsKey( tag.Command ) ) {
                      Info( "Command exists, cannot register {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
                      continue;
                   }
-                  CmdMethod.SetValue( tag, func );
-                  var param = func.GetParameters();
-                  if ( param.Length > 0 && param[ param.Length - 1 ].ParameterType.FullName.Equals( "System.String[]" ) )
-                     CmdVarArg.SetValue( tag, true );
+                  ConsoleCommand = func;
+                  _ = tag.HasParameters;
                   Commands.Add( tag.Command, tag );
-                  Info( "Command registered: {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
+                  Info( "Command registered: {0} of {1} in {2}.", tag.Command, type.FullName, asm.IsDynamic ? asm.FullName : asm.Location );
                }
             ScannedMods.Add( asm );
          }
