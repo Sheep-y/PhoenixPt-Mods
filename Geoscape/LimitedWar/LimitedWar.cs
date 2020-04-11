@@ -56,7 +56,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
    public class Mod : ZyAdvMod {
       private static ModConfig Config;
 
-      static void Init () => new Mod().MainMod();
+      public static void Init () => new Mod().MainMod();
 
       public void MainMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );

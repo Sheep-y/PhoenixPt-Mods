@@ -16,7 +16,7 @@ namespace Sheepy.PhoenixPt_MarkUnpowered {
       //private static Logging.Logger Log = new Logging.Logger( "Mods/ZyMods.log" );
 
       private static HarmonyInstance harmony;
-      static void Init () { try {
+      public static void Init () { try {
          harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
          Patch( harmony, typeof( PhoenixFacilityController ), "UpdatePowerState", null, "AfterUpdatePowerState_MarkPower" );
          Patch( harmony, typeof( UIModuleBaseLayout ), "Init", "BeforeSwitchState_CreateSet", "AfterSwitchState_StartTimer" );

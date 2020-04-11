@@ -31,7 +31,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
    public class Mod : ZyMod {
       internal static ModConfig Config;
 
-      static void Init () => new Mod().SplashMod();
+      public static void Init () => new Mod().SplashMod();
 
       public void SplashMod ( Func< string, object, object > api = null ) {
          GameConsoleWindow.DisableConsoleAccess = false; // Enable console first no matter what happens
