@@ -71,8 +71,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       }
 
       private static void CheckConfig () {
-         if ( Config.Config_Version < 20200405 )
+         if ( Config.Config_Version < 20200405 ) {
+            Config.Config_Version = 20200405;
             ModnixApi?.Invoke( "config_save", Config );
+         }
       }
 
       private static HashSet< Assembly > ScannedMods;
@@ -124,6 +126,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       [ ConsoleCommand( Command = "modnix", Description = "Call Modnix or compatible api." ) ]
       public static void ApiCommand ( IConsole console, string[] param ) { try {
+         if ( ModnixApi == null ) {
+            console.WriteLine( "<color=fuchsia>Modnix API not found.</color>" );
+            return;
+         }
          if ( param == null || param.Length == 0 ) throw new ApplicationException( "Api action required." );
          object arg = null;
          if ( param.Length > 2 ) {
