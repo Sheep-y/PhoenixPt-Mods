@@ -62,6 +62,7 @@
     <None Include="packages.config" />
     <EmbeddedResource Include="Readme.rtf" />
     <EmbeddedResource Include="UNLICENSE" />
+    <None Include="readme.md" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="mod_info.js" />
