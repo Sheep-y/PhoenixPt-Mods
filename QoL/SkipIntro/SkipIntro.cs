@@ -9,12 +9,10 @@ using PhoenixPoint.Tactical.View.ViewStates;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using System.Diagnostics;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.SkipIntro {
 
-   // Modnix will save and load settings to/from {dll_name}.conf as utf-8 json
    public class ModConfig {
       public bool Skip_Logos = true;
       public bool Skip_HottestYear = true;
@@ -28,53 +26,35 @@ namespace Sheepy.PhoenixPt.SkipIntro {
    }
 
    public class Mod : ZyMod {
-      // PPML v0.1 entry point
       public static void Init () => new Mod().SplashMod();
 
       private static ModConfig Config;
 
-      // Modnix entry point, splash phase
       public void SplashMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
-
-         // I prefer doing manual patch for better control, such as reusing methods, configurable patch flow, or try catch optional patches.
-         // Simpler mods can use Harmony Attributes / Annotation, and it'll work the same.
-
-         // Skip logos and splash
          if ( Config.Skip_Logos ) {
             LogoPatch = TryPatch( typeof( PhoenixGame ), "RunGameLevel", nameof( BeforeRunGameLevel_Skip ) );
             if ( LogoPatch == null ) Config.Skip_Logos = false; // Allow video to be loaded, ditto below
          }
-
-         // Skip "The Hottest Year"
          if ( Config.Skip_HottestYear ) {
             IntroEnterPatch = TryPatch( typeof( UIStateHomeScreenCutscene ), "EnterState", postfix: nameof( AfterHomeCutscene_Skip ) );
             if ( IntroEnterPatch == null ) Config.Skip_HottestYear = false;
          }
-
-         // Skip New Campaign Video
          if ( Config.Skip_NewGameIntro ) {
-            if ( TryPatch( typeof( UIStateGeoCutscene ), "EnterState", postfix: nameof( AfterGeoCutscene_Skip ) ) == null )
-               Config.Skip_NewGameIntro = false;
+            var introPatch = TryPatch( typeof( UIStateGeoCutscene ), "EnterState", postfix: nameof( AfterGeoCutscene_Skip ) );
+            if ( introPatch == null ) Config.Skip_NewGameIntro = false;
          }
-
-         // Skip aircraft landings
          if ( Config.Skip_Landings )
             TryPatch( typeof( UIStateTacticalCutscene ), "EnterState", postfix: nameof( AfterTacCutscene_Skip ) );
-
-         // Don't load skipped videos
          if ( Config.SkipAnyVideo )
             TryPatch( typeof( VideoPlaybackController ), "Setup", nameof( BeforeVideoSetup_Skip ) );
 
-         // Skip curtain drop (opening loading screen)
          if ( Config.Skip_CurtainDrop )
             TryPatch( typeof( UseInkUI ), "Open", nameof( InkOpen_Skip ) );
-         // Skip curtain lift (closing loading screen)
          if ( Config.Skip_CurtainLift )
             TryPatch( typeof( UseInkUI ), "Close", nameof( InkClose_Skip ) );
       }
 
-      // For manual unpatching
       private static IPatch LogoPatch, IntroEnterPatch;
 
       private static bool ShouldSkip ( VideoPlaybackSourceDef def ) {
