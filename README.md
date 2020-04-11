@@ -15,7 +15,7 @@ usually custom jobs or for self use, can be found here.
 
 ## List of Mods
 
-Published mods.
+Mods published on NexusMods.
 
 * [**Debug Console**](https://www.nexusmods.com/phoenixpoint/mods/44/) - Enable console and direct unity log and game log to it.
 * [**Limited War**](https://www.nexusmods.com/phoenixpoint/mods/24) - Tone down the scale and damage of faction war.
@@ -25,24 +25,28 @@ Published mods.
 
 Unpublished mods.  Not guaranteed to work at all.
 
-* Dump Info - dump game text and data in xml form.
-* Flat Difficulty - combat result no longer affect dynamic difficulty system.
-* VersionText - simple mod to demo Modnix best practices.
+* [**Dump Info**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/DumpInfo) - Dump game text and data into xml.
+* [**Flat Difficulty**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/FlatDifficulty) - Combat result no longer affect dynamic difficulty system.
+* [**Version Text**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/VersionText) - Hello World mod to demo modding.
+
+Any other mods you find will be work-in-progress.
 
 ## Loader Compatibility
 
 All published mods are tested with [Modnix](https://github.com/Sheep-y/Modnix),
-and should be compatible with [PPML v0.1](https://github.com/RealityMachina/PhoenixPointModInjector/#readme).
+and usually also with [PPML v0.1](https://github.com/RealityMachina/PhoenixPointModInjector/#readme).
 
 All my mods are *incompatible* with [PPML v0.2](https://github.com/Ijwu/PhoenixPointModLoader/#readme) found on [NexusMods](https://www.nexusmods.com/phoenixpoint/mods/38).
 Because of how PPML v0.2 is designed, mods must choose one to support.
 
 * 0.1 mods will be ignored by 0.2.
-* 0.2 mods will *crash* PPML 0.1.
+* 0.2 and 0.3 mods will *crash* PPML 0.1.
 
 Since 0.1 is still used by old mods, and many players are not experts in mod management,
 I opt for having my mods not work rather than crashing the game, when they are used incorrectly.
 Thanks for your understanding.
+
+(PPML 0.3 can load 0.1 mods, but mod that base itself on 0.3 would still crash PPML 0.1.)
 
 ## Compiling
 
@@ -55,7 +59,7 @@ Steps to build your own dlls from the source code.
 5. In Build menu, click "Build Solution".  For the first build you need to be online, and it may take a while.
 6. If everything is fine, you can find the mods in the `distro` folder.
 
-If things are not fine, well, chances are you need to solve it as a programmer.
+If things are not fine, well, you need programming skill to solve it.
 We need modders. Come join us!
 
 ## Tech Tree
