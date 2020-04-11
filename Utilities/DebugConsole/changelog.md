@@ -1,6 +1,6 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version 3.0, ?
+# Version 3.0, 2020-04-11
 
 * New: Scan mods for console command.
 * New: Console command to run modnix api.
