@@ -41,7 +41,6 @@ namespace VersionText {
 
       /* Modnix entry point, Main Menu phase */
       public static void MainMod ( Func<string, object, object> api = null ) {
-         // If Mod is made non-static, and created here, the fields could be made read-only, the first step to be thread-safe.
          Api = api; // Below: read config from Modnix and update it, or use default config.
          Config = ( api?.Invoke( "config", typeof( ModConfig ) ) as ModConfig )?.Update() ?? new ModConfig();
          HarmonyInstance.Create( typeof( Mod ).Namespace ).PatchAll();
