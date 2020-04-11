@@ -1,5 +1,4 @@
-﻿using Base.Build;
-using Base.Utils.GameConsole;
+﻿using Base.Utils.GameConsole;
 using Harmony;
 using PhoenixPoint.Home.View.ViewModules;
 using PhoenixPoint.Home.View.ViewStates;
@@ -63,9 +62,9 @@ namespace VersionText {
    }
 
    [ HarmonyPatch( typeof( UIModuleBuildRevision ), "SetRevisionNumber" ) ]
-   internal static class UIModuleBuildRevision_SetRevisionNumber {
+   static class UIModuleBuildRevision_SetRevisionNumber {
       private static Text VersionText;
-      private static void Postfix ( UIModuleBuildRevision __instance ) {
+      static void Postfix ( UIModuleBuildRevision __instance ) {
          VersionText = __instance.BuildRevisionNumber;
          RefreshText();
       }
@@ -74,18 +73,18 @@ namespace VersionText {
          VersionText.text = Mod.Config.VersionText + " " + Mod.Config.BuildText;
          UIStateMainMenu_EnterState.Refresh();
       }
-   } 
+   }
 
    [ HarmonyPatch( typeof( UIStateMainMenu ), "EnterState" ) ]
    internal static class UIStateMainMenu_EnterState {
       private static UIStateMainMenu MainMenu;
       private static MethodBase DebugConsoleAdder;
 
-      internal static void Postfix ( UIStateMainMenu __instance ) {
+      private static void Postfix ( UIStateMainMenu __instance ) {
          try {
-            if ( Mod.Api?.Invoke( "version", "Sheepy.DebugConsole" ) == null ) return;
+            var asm = Mod.Api?.Invoke( "assembly", "Sheepy.DebugConsole" ) as Assembly;
+            if ( asm == null ) return;
             MainMenu = __instance;
-            var asm = Mod.Api( "assembly", "Sheepy.DebugConsole" ) as Assembly;
             DebugConsoleAdder = asm.GetType( "Sheepy.PhoenixPt.DebugConsole.Mod" )
                .GetMethod( "AfterMainMenu_AddModCount", BindingFlags.NonPublic | BindingFlags.Static );
          } catch ( Exception ex ) {
@@ -93,8 +92,6 @@ namespace VersionText {
          }
       }
 
-      internal static void Refresh () {
-         DebugConsoleAdder?.Invoke( null, new object[]{ MainMenu } );
-      }
+      internal static void Refresh () => DebugConsoleAdder?.Invoke( null, new object[] { MainMenu } );
    }
 }
