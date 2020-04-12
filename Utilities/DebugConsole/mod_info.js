@@ -13,7 +13,7 @@
       { Id: "ConsoleEnabler", Max: "1.0.0.0" },
    Url: {
       "Nexus"  : "https://nexusmods.com/phoenixpoint/mods/44/",
-      "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods"
+      "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods/"
    },
    ConfigType: "Sheepy.PhoenixPt.DebugConsole.ModConfig",
 

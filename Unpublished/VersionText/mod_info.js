@@ -15,7 +15,7 @@
 
    /* Will be displayed in Modnix's info panel */
    Url : {
-      "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods",
+      "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods/",
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/"
    },
 

@@ -13,8 +13,8 @@
       en : "Skip game intro, loading curtains, and combat landing .",
       zh : "略過遊戲片頭、載入布幕、及戰鬥進場影片。" },
    Url : {
-      "Nexus" : "https://nexusmods.com/phoenixpoint/mods/17",
-      "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods",
+      "Nexus" : "https://nexusmods.com/phoenixpoint/mods/17/",
+      "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods/",
    },
 
    /* Disable pre-modnix version, which has filename-based id. */

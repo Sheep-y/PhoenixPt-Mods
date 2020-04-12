@@ -9,8 +9,8 @@
       en : "Tune down the global faction war by reducing damage, number of attacks, and chance of successful attack.",
       zh : "泠卻派系戰爭。減低傷害，限制攻擊的次數，並提升防守成功的機率。" },
    Url : {
-      "Nexus" : "https://nexusmods.com/phoenixpoint/mods/24",
-      "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods",
+      "Nexus" : "https://nexusmods.com/phoenixpoint/mods/24/",
+      "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods/",
    },
    Disables : [
       { Id: "PhoenixPt_BetterDefence", Max: "1.0.0.0" },

@@ -9,8 +9,8 @@
       en : "Tweaks Geoscape globe - do not unpause on move, pause on rest and heal, centre to new base etc.",
       zh : "微調地球介面 - 移動時不解除暫停，隊伍休息好及康復時暫停，聚焦新基地等。" },
    Url : {
-      "Nexus" : "https://nexusmods.com/phoenixpoint/mods/17",
-      "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods",
+      "Nexus" : "https://nexusmods.com/phoenixpoint/mods/17/",
+      "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods/",
    },
    Disables : [
       { Id: "PhoenixPt_CentreOnNewBase", Max: "1.0.0.0" },
