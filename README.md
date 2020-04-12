@@ -17,6 +17,7 @@ usually custom jobs or for self use, can be found here.
 
 Mods published on NexusMods.
 
+* [**Deaf the Dead**](https://www.nexusmods.com/phoenixpoint/mods/45/) - Prevent dead units from hearing enemy movements.
 * [**Debug Console**](https://www.nexusmods.com/phoenixpoint/mods/44/) - Enable console and direct unity log and game log to it.
 * [**Limited War**](https://www.nexusmods.com/phoenixpoint/mods/24) - Tone down the scale and damage of faction war.
 * [**Scrap Vehicle**](https://www.nexusmods.com/phoenixpoint/mods/26) - Make it possible to recycle vehicles and mutogs.

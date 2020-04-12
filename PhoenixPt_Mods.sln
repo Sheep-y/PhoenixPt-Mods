@@ -25,6 +25,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionText", "Unpublished\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PpmlTest", "Unpublished\PpmlTest\PpmlTest.csproj", "{C9DBB18F-4C9F-43FF-9023-12F686EB2124}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeafTheDead", "Tactical\DeafTheDead\DeafTheDead.csproj", "{C8BD9E4E-C1E7-4AC6-B3AE-023265FA57C7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{345FC9DB-1B23-4388-A225-8B2DB5812A64}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +82,10 @@ Global
 		{C9DBB18F-4C9F-43FF-9023-12F686EB2124}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9DBB18F-4C9F-43FF-9023-12F686EB2124}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9DBB18F-4C9F-43FF-9023-12F686EB2124}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8BD9E4E-C1E7-4AC6-B3AE-023265FA57C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8BD9E4E-C1E7-4AC6-B3AE-023265FA57C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8BD9E4E-C1E7-4AC6-B3AE-023265FA57C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8BD9E4E-C1E7-4AC6-B3AE-023265FA57C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
