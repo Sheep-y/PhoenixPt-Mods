@@ -7,8 +7,8 @@
     <ProjectGuid>{663DC7C4-4351-44FF-9480-25BBB559D29A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sheepy.PhotnixPt.FlatDifficulty</RootNamespace>
-    <AssemblyName>PhotnixPt_FlatDifficulty</AssemblyName>
+    <RootNamespace>Sheepy.PhoenixPt.FlatDifficulty</RootNamespace>
+    <AssemblyName>PhoenixPt_FlatDifficulty</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
