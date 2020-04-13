@@ -16,7 +16,7 @@ namespace Sheepy.PhoenixPt {
 
    /// <summary>
    /// Base mod class to supports manual patching and unpatch, config parsing, and logging shortcuts.
-   /// Subclass must provide a logger for logging to functional.
+   /// Subclass must provide a logger for non-Modnix logging.
    /// </summary>
    public abstract class ZyMod {
 
@@ -117,8 +117,8 @@ namespace Sheepy.PhoenixPt {
 
       private static Func<string> Jsonify ( object obj ) => () => JsonConvert.SerializeObject( obj );
       
-      protected static TextInfo CurrentLang => new CultureInfo( LocalizationManager.CurrentLanguageCode ).TextInfo;
-      protected static string TitleCase ( string txt ) {
+      protected internal static TextInfo CurrentLang => new CultureInfo( LocalizationManager.CurrentLanguageCode ).TextInfo;
+      protected internal static string TitleCase ( string txt ) {
          var lang = CurrentLang;
          return lang.ToTitleCase( lang.ToLower( txt ) );
       }
