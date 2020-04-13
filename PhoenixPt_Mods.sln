@@ -32,6 +32,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecruitInfo", "Geoscape\RecruitInfo\RecruitInfo.csproj", "{4EFFF96E-98D2-438C-8657-9FAF10B606F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,6 +88,10 @@ Global
 		{C8BD9E4E-C1E7-4AC6-B3AE-023265FA57C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8BD9E4E-C1E7-4AC6-B3AE-023265FA57C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8BD9E4E-C1E7-4AC6-B3AE-023265FA57C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EFFF96E-98D2-438C-8657-9FAF10B606F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EFFF96E-98D2-438C-8657-9FAF10B606F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EFFF96E-98D2-438C-8657-9FAF10B606F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EFFF96E-98D2-438C-8657-9FAF10B606F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
