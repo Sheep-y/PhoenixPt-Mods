@@ -9,7 +9,7 @@ Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 * Renamed Pause_On_HP_Only_Heal to Notice_On_HP_Only_Heal.
 * Renamed Pause_On_Stamina_Only_Heal to Notice_On_Stamina_Only_Heal.
 
-# Version 3.0, 2020-03-24
+# Version 3, 2020-03-24
 
 * Updated to Modnix 1.0.
 * New: Pause on full stamina (default on), pause on full health (default off)
@@ -17,12 +17,12 @@ Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 * Fix: Pause on heal now properly updates time controller state.
 * Isolate each features; failure of one would not affect the others.
 
-# Version 2.0, 2020-03-16
+# Version 2, 2020-03-16
 
 * Merged into one mod as a configurable Modnix mod.
 * Now also pause on base heal.
 
-# Version 1.0
+# Version 1
 
 Delivered in form of three mods:
 
