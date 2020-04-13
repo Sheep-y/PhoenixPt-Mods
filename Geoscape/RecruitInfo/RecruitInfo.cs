@@ -10,13 +10,20 @@ using System.Linq;
 using UnityEngine;
 
 namespace Sheepy.PhoenixPt.RecruitInfo {
+   internal class ModConfig {
+      public int Names_Font_Size = 42;
+      public int Names_Min_Font_Size = 10;
+      public int Hints_Font_Size = 42;
+      public int Config_Version = 20200413;
+   }
+
    public class Mod : ZyMod {
       internal static ModConfig Config;
 
       public void Init () => new Mod().MainMod();
 
       public void MainMod ( Func< string, object, object > api = null ) {
-         SetApi( api );
+         SetApi( api, out Config );
          Patch( typeof( HavenFacilityItemController ), "SetRecruitmentGroup", null, "AfterSetRecruitment_ListPerks" );
       }
 
@@ -35,9 +42,9 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          UnityEngine.UI.Text text = skillObj.AddComponent<UnityEngine.UI.Text>();
          text.font = copyFrom.font;
          text.fontStyle = copyFrom.fontStyle; // RecruitName Bold, Cost normal
-         text.fontSize = copyFrom.fontSize; // RecruitName 52, Cost 42
+         text.fontSize = Config.Names_Font_Size; // RecruitName 52, Cost 42
          text.resizeTextForBestFit = true;
-         text.resizeTextMinSize = 10;
+         text.resizeTextMinSize = Config.Names_Min_Font_Size;
          //Log.Info( "{0} {1} {2}", copyFrom.font, copyFrom.fontSize, copyFrom.fontStyle );
 
          Transform rect = skillObj.GetComponent<Transform>();
