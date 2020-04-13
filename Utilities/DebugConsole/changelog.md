@@ -1,5 +1,9 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
+# Version 3.1
+
+* New: Api command to dump gui tree
+
 # Version 3, 2020-04-11
 
 * New: Scan mods for console command.

@@ -53,6 +53,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( api == null ) return;
 
          // Modnix only features
+         api( "api_add zy.ui.tree", (Func<object,bool>) ApiGuiTree );
          if ( Config.Mod_Count_In_Version )
             TryPatch( typeof( UIStateMainMenu ), "EnterState", postfix: nameof( AfterMainMenu_AddModCount ) );
          if ( Config.Log_Modnix_Error || Config.Log_Modnix_Info || Config.Log_Modnix_Verbose ) {
@@ -139,6 +140,31 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             arg = param[1];
          WriteResult( ModnixApi( param[0], arg ) );
       } catch ( Exception ex ) { Error( ex ); } }
+
+      public static bool ApiGuiTree ( object root ) {
+         if ( ! ( root is GameObject obj ) ) return false;
+         DumpComponents( "", new HashSet<object>(), obj );
+         return true;
+      }
+
+      public static void DumpComponents ( string prefix, HashSet<object> logged, GameObject e ) {
+         if ( prefix.Length > 20 ) return;
+         if ( logged.Contains( e ) ) return;
+         logged.Add( e );
+         Info( "{0}> {1} {2}{3} Layer {4}", prefix, e.name, e.GetType(), e.activeSelf ? "" : " (Inactive)", e.layer );
+         foreach ( var c in e.GetComponents<Component>() ) {
+            if ( c is UnityEngine.UI.Text txt )
+               Info( "{0}...{1} {2} {3}", prefix, c.GetType(), txt.color, txt.text );
+            else if ( c is Transform rect )
+               Info( "{0}...{1} Pos {2} Scale {3} Rotate {4}", prefix, c.GetType(), rect.localPosition, rect.localScale, rect.localRotation );
+            else if ( c is UnityEngine.UI.LayoutGroup layout )
+               Info( "{0}...{1} Padding {2}", prefix, c.GetType(), layout.padding );
+            else
+               Info( "{0}...{1}", prefix, c.GetType() );
+         }
+         for ( int i = 0 ; i < e.transform.childCount ; i++ ) 
+            DumpComponents( prefix + "  ", logged, e.transform.GetChild( i ).gameObject );
+      }
 
       private static void WriteResult ( object result ) { try {
          if ( result is string line ) ;

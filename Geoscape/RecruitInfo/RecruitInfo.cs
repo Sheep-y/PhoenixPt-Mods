@@ -85,30 +85,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
             //skillText.GetComponent<UITooltipText>().UpdateText( hint );
             break;
          }
-
-         //DumpComponent( __instance.gameObject );
-
+         ModnixApi?.Invoke( "zy.gui.tree", __instance.gameObject );
       } catch ( Exception ex ) { Error( ex ); } }
-      /*
-      public static void DumpComponent ( GameObject root ) { DumpComponents( "", new HashSet<object>(), root ); }
-      public static void DumpComponents ( string prefix, HashSet<object> logged, GameObject e ) {
-         if ( prefix.Length > 20 ) return;
-         if ( logged.Contains( e ) ) return;
-         logged.Add( e );
-         Log.Info( "{0}> {1} {2}{3} Layer {4}", prefix, e.name, e.GetType(), e.activeSelf ? "" : " (Inactive)", e.layer );
-         foreach ( var c in e.GetComponents<Component>() ) {
-            if ( c is UnityEngine.UI.Text txt )
-               Log.Info( "{0}...{1} {2} {3}", prefix, c.GetType(), txt.color, txt.text );
-            else if ( c is Transform rect )
-               Log.Info( "{0}...{1} Pos {2} Scale {3} Rotate {4}", prefix, c.GetType(), rect.localPosition, rect.localScale, rect.localRotation );
-            else if ( c is UnityEngine.UI.LayoutGroup layout )
-               Log.Info( "{0}...{1} Padding {2}", prefix, c.GetType(), layout.padding );
-            else
-               Log.Info( "{0}...{1}", prefix, c.GetType() );
-         }
-         for ( int i = 0 ; i < e.transform.childCount ; i++ ) 
-            DumpComponents( prefix + "  ", logged, e.transform.GetChild( i ).gameObject );
-      }
-      */
    }
 }
