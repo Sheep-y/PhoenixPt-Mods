@@ -42,7 +42,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
    public class Mod : ZyMod {
       internal static ModConfig Config;
 
-      public void Init () => new Mod().MainMod();
+      public static void Init () => new Mod().MainMod();
 
       public void MainMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
@@ -50,74 +50,91 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          Patch( typeof( HavenFacilityItemController ), "SetRecruitmentGroup", null, "AfterSetRecruitment_ListPerks" );
       }
 
-      private static GameObject CreateNameText ( HavenFacilityItemController ctl, string name ) {
-         Transform owner = ctl.RecruitName?.transform?.parent?.parent;
+      private static GameObject CreateNameText ( HavenFacilityItemController ctl, string name, bool hasHint ) {
+         var owner = ctl.RecruitName?.transform?.parent?.parent;
          if ( owner == null ) throw new InvalidOperationException( "Recruit group not found, cannot add recruit info text" );
-         GameObject skillObj = owner.Find( name )?.gameObject;
-
-         if ( skillObj != null ) return skillObj;
+         var infoText = owner.Find( name )?.gameObject;
+         if ( infoText != null ) return infoText;
          Info( "Create {0} Text", name );
 
-         UnityEngine.UI.Text copyFrom = owner.Find( "RecruitCost" )?.Find( "Name" )?.GetComponent<UnityEngine.UI.Text>();
-         if ( copyFrom == null ) copyFrom = ctl.RecruitName;
-         skillObj = new GameObject( name );
-         skillObj.transform.SetParent( owner );
+         var copyFrom = owner.Find( "RecruitCost" )?.Find( "Name" )?.GetComponent<UnityEngine.UI.Text>() ?? ctl.RecruitName;
+         infoText = new GameObject( name );
+         infoText.transform.SetParent( owner );
 
-         UnityEngine.UI.Text text = skillObj.AddComponent<UnityEngine.UI.Text>();
+         var text = infoText.AddComponent<UnityEngine.UI.Text>();
          text.font = copyFrom.font;
          text.fontStyle = copyFrom.fontStyle; // RecruitName Bold, Cost normal
          text.fontSize = Config.Font_Sizes.Names; // RecruitName 52, Cost 42
          text.resizeTextForBestFit = true;
          text.resizeTextMinSize = Config.Font_Sizes.Names_Min;
 
-         Transform rect = skillObj.GetComponent<Transform>();
+         var rect = infoText.GetComponent<Transform>();
          //rect.localPosition = new Vector3( 200, 0, 0 );
          rect.localScale = new Vector3( 1, 1, 1 );
 
-         UnityEngine.UI.Outline outline = skillObj.AddComponent<UnityEngine.UI.Outline>();
+         var outline = infoText.AddComponent<UnityEngine.UI.Outline>();
          outline.effectColor = Color.black;
          outline.effectDistance = new Vector2( 2, 2 );
 
-         if ( Config.Display.Any_Desc )
-            skillObj.AddComponent<UITooltipText>();
-         skillObj.AddComponent<CanvasRenderer>();
-         return skillObj;
+         if ( hasHint ) infoText.AddComponent<UITooltipText>();
+         infoText.AddComponent<CanvasRenderer>();
+         return infoText;
       }
 
-      private static string BuildHint ( LocalizedTextBind title, LocalizedTextBind desc ) {
-         return $"<size={Config.Font_Sizes.Desc_Title}><b>{title.Localize()}</b></size>\n" +
-                $"<size={Config.Font_Sizes.Desc_Body}>{desc.Localize()}</size>";
+      private static string BuildHint ( KeyValuePair< string, string > pair ) {
+         return $"<size={Config.Font_Sizes.Desc_Title}><b>{pair.Key}</b></size>\n" +
+                $"<size={Config.Font_Sizes.Desc_Body}>{pair.Value}</size>";
       }
 
-      public static void AfterSetRecruitment_ListPerks ( HavenFacilityItemController __instance, GeoHaven ____haven ) { try {
+      private static void AfterSetRecruitment_ListPerks ( HavenFacilityItemController __instance, GeoHaven ____haven ) { try {
          var recruit = ____haven?.AvailableRecruit;
-         if ( Config.Display.Personal_Skill_Names ) ShowPersonalSkills( __instance, recruit );
+         if ( Config.Display.Personal_Skill_Names ) ShowRecruitInfo( __instance, "PersonalSkills", new PersonalSkillInfo( recruit ) );
          //ModnixApi?.Invoke( "zy.ui.dump", __instance.gameObject );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      public static void ShowPersonalSkills ( HavenFacilityItemController __instance, GeoCharacter recruit ) { try {
-         var tracks = recruit?.Progression?.AbilityTracks;
-         GameObject skillText = CreateNameText( __instance, "PersonalSkills" );
-         if ( tracks == null ) {
-            skillText.SetActive( false );
+      private static void ShowRecruitInfo ( HavenFacilityItemController __instance, string id, RecruitInfo info ) { try {
+         var names = info.GetNames();
+         GameObject infoText = CreateNameText( __instance, id, info.ShowDesc );
+         if ( ! names.Any() ) {
+            infoText.SetActive( false );
             return;
          }
-         foreach ( var track in tracks ) {
-            if ( track == null || track.Source != AbilityTrackSource.Personal ) continue;
-            ViewElementDef mainClass = recruit.Progression.MainSpecDef.ViewElementDef;
-            IEnumerable<ViewElementDef> abilities = track.AbilitiesByLevel.Where( e => e?.Ability != null ).Select( e => e.Ability.ViewElementDef );
-            string list = abilities.Select( e => TitleCase( e.DisplayName1.Localize() ) ).Join();
-            skillText.GetComponent<UnityEngine.UI.Text>().text = "     " + list;
-            if ( Config.Display.Any_Desc ) {
-               var tipText = "";
-               if ( Config.Display.Main_Class_Desc ) tipText += BuildHint( mainClass.DisplayName1, mainClass.DisplayName2 ) + "\n\n";
-               if ( Config.Display.Personal_Skill_Desc ) tipText += abilities.Select( e => BuildHint( e.DisplayName1, e.Description ) ).Join( null, "\n\n" );
-               skillText.GetComponent<UITooltipText>().TipText = tipText.Trim();
-            }
-            skillText.SetActive( true );
-            //skillText.GetComponent<UITooltipText>().UpdateText( hint );
-            break;
-         }
+         infoText.GetComponent<UnityEngine.UI.Text>().text = "     " + names.Join();
+         if ( info.ShowDesc )
+            infoText.GetComponent<UITooltipText>().TipText = info.GetDesc().Join( BuildHint, "\n\n" );
       } catch ( Exception ex ) { Error( ex ); } }
+   }
+
+   internal abstract class RecruitInfo {
+      protected readonly GeoCharacter recruit;
+      protected RecruitInfo ( GeoCharacter recruit ) => this.recruit = recruit;
+      internal abstract IEnumerable<string> GetNames();
+      internal abstract bool ShowDesc { get; }
+      internal abstract IEnumerable<KeyValuePair<string,string>> GetDesc();
+      protected KeyValuePair< string, string > Pair ( string title, string body ) => new KeyValuePair< string, string >( title, body );
+      protected KeyValuePair< string, string > Pair ( LocalizedTextBind title, LocalizedTextBind body ) => Pair( title.Localize(), body.Localize() );
+   }
+
+   internal class PersonalSkillInfo : RecruitInfo {
+
+      internal PersonalSkillInfo ( GeoCharacter recruit ) : base( recruit ) { }
+
+      private ViewElementDef MainClass => recruit.Progression.MainSpecDef.ViewElementDef;
+
+      private IEnumerable< ViewElementDef > Abilities =>
+         recruit.Progression?.AbilityTracks?.Where( e => e?.Source == AbilityTrackSource.Personal )
+         ?.SelectMany( e => e.AbilitiesByLevel?.Select( a => a?.Ability?.ViewElementDef ) ).Where( e => e != null );
+
+      internal override IEnumerable<string> GetNames () => Abilities.Select( e => ZyMod.TitleCase( e.DisplayName1?.Localize() ) );
+
+      internal override bool ShowDesc => Mod.Config.Display.Main_Class_Desc || Mod.Config.Display.Personal_Skill_Desc;
+
+      internal override IEnumerable<KeyValuePair<string, string>> GetDesc () {
+         if ( Mod.Config.Display.Main_Class_Desc )
+            yield return Pair( MainClass.DisplayName1, MainClass.DisplayName2 );
+         if ( Mod.Config.Display.Personal_Skill_Desc )
+            foreach ( var e in Abilities )
+               yield return Pair( e.DisplayName1, e.Description );
+      }
    }
 }
