@@ -119,6 +119,7 @@ namespace Sheepy.PhoenixPt {
       
       protected internal static TextInfo CurrentLang => new CultureInfo( LocalizationManager.CurrentLanguageCode ).TextInfo;
       protected internal static string TitleCase ( string txt ) {
+         if ( string.IsNullOrWhiteSpace( txt ) ) return txt;
          var lang = CurrentLang;
          return lang.ToTitleCase( lang.ToLower( txt ) );
       }
