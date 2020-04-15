@@ -27,6 +27,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       public bool Main_Class_Desc = true;
       public bool Graft_Names = true;
       public bool Graft_Desc = true;
+      public bool Equipment_Names = true;
+      public bool Equipment_Desc = true;
 
       public bool Any_Desc => Main_Class_Desc || Personal_Skill_Desc;
       internal void Validate () {
@@ -36,6 +38,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
             ZyMod.Warn( "Personal_Skill_Desc will not work without Personal_Skill_Names" );
          if ( ! Graft_Names && Graft_Desc )
             ZyMod.Warn( "Graft_Desc will not work without Graft_Names" );
+         if ( ! Equipment_Names && Equipment_Desc )
+            ZyMod.Warn( "Equipment_Desc will not work without Equipment_Names" );
       }
    }
 
@@ -100,31 +104,43 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       private static void AfterSetRecruitment_ListPerks ( HavenFacilityItemController __instance, GeoHaven ____haven ) { try {
          var recruit = ____haven?.AvailableRecruit;
-         if ( Config.Display.Personal_Skill_Names ) ShowRecruitInfo( __instance, "PersonalSkills", new PersonalSkillInfo( recruit ) );
-         if ( Config.Display.Graft_Names ) ShowRecruitInfo( __instance, "GraftList", new GraftSkillInfo( recruit ) );
+         if ( Config.Display.Personal_Skill_Names )
+            ShowRecruitInfo( __instance, "PersonalSkills", new PersonalSkillInfo( recruit ) );
+         if ( Config.Display.Graft_Names )
+            ShowRecruitInfo( __instance, "GraftList", new GraftSkillInfo( recruit ) );
+         if ( Config.Display.Equipment_Names )
+            ShowRecruitInfo( __instance, "EquipmentList", new EquipmentInfo( recruit ) );
          //ModnixApi?.Invoke( "zy.ui.dump", __instance.gameObject );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void ShowRecruitInfo ( HavenFacilityItemController __instance, string id, RecruitInfo info ) { try {
          var names = info.GetNames();
-         GameObject infoText = CreateNameText( __instance, id, info.ShowDesc );
+         GameObject infoText = CreateNameText( __instance, id, info.ShouldShowDesc );
          if ( ! names.Any() ) {
             infoText.SetActive( false );
             return;
          }
          infoText.GetComponent<UnityEngine.UI.Text>().text = "     " + names.Join();
-         if ( info.ShowDesc )
+         if ( info.ShouldShowDesc )
             infoText.GetComponent<UITooltipText>().TipText = info.GetDesc().Join( BuildHint, "\n\n" );
       } catch ( Exception ex ) { Error( ex ); } }
    }
 
    internal abstract class RecruitInfo {
       protected readonly GeoCharacter recruit;
+
       protected RecruitInfo ( GeoCharacter recruit ) => this.recruit = recruit;
-      internal abstract bool ShowDesc { get; }
+
+      internal abstract bool ShouldShowDesc { get; }
+
       protected abstract IEnumerable< ViewElementDef > Items { get; }
-      internal abstract IEnumerable<KeyValuePair<string,string>> GetDesc();
+
       internal virtual IEnumerable<string> GetNames () => Items.Select( e => ZyMod.TitleCase( e.DisplayName1?.Localize() ) );
+
+      internal virtual IEnumerable<KeyValuePair<string,string>> GetDesc() {
+         foreach ( var e in Items ) yield return Pair( e.DisplayName1, e.Description );
+      }
+
       protected KeyValuePair< string, string > Pair ( string title, string body ) => new KeyValuePair< string, string >( title, body );
       protected KeyValuePair< string, string > Pair ( LocalizedTextBind title, LocalizedTextBind body ) => Pair( title.Localize(), body.Localize() );
    }
@@ -139,7 +155,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          recruit.Progression?.AbilityTracks?.Where( e => e?.Source == AbilityTrackSource.Personal )
          ?.SelectMany( e => e.AbilitiesByLevel?.Select( a => a?.Ability?.ViewElementDef ) ).Where( e => e != null );
 
-      internal override bool ShowDesc => Mod.Config.Display.Main_Class_Desc || Mod.Config.Display.Personal_Skill_Desc;
+      internal override bool ShouldShowDesc => Mod.Config.Display.Main_Class_Desc || Mod.Config.Display.Personal_Skill_Desc;
 
       internal override IEnumerable<KeyValuePair<string, string>> GetDesc () {
          if ( Mod.Config.Display.Main_Class_Desc )
@@ -159,12 +175,18 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       protected override IEnumerable< ViewElementDef > Items => recruit.ArmourItems.Select( e => e.ItemDef )
          .Where( e => e.Any( tag => tag == AnuMutation || tag == BioAugTag  ) ).Select( e => e.ViewElementDef );
 
-      internal override bool ShowDesc => Mod.Config.Display.Graft_Desc;
+      internal override bool ShouldShowDesc => Mod.Config.Display.Graft_Desc;
+   }
 
-      internal override IEnumerable<KeyValuePair<string, string>> GetDesc () {
-         if ( Mod.Config.Display.Personal_Skill_Desc )
-            foreach ( var e in Items )
-               yield return Pair( e.DisplayName1, e.Description );
-      }
+   internal class EquipmentInfo : RecruitInfo {
+
+      internal EquipmentInfo ( GeoCharacter recruit ) : base( recruit ) { }
+
+      protected override IEnumerable< ViewElementDef > Items =>
+         recruit.EquipmentItems.Concat( recruit.ArmourItems ).Concat( recruit.InventoryItems ).Select( e => e.ItemDef )
+         .Where( e => e.All( tag => tag != GraftSkillInfo.AnuMutation && tag != GraftSkillInfo.BioAugTag  ) )
+         .Select( e => e.ViewElementDef );
+
+      internal override bool ShouldShowDesc => Mod.Config.Display.Equipment_Desc;
    }
 }
