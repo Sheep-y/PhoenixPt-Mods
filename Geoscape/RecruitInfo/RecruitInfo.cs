@@ -17,7 +17,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
    internal class ModConfig {
       public DisplayConfig Display = new DisplayConfig();
       public FontSizeConfig Font_Sizes = new FontSizeConfig();
-      public int Config_Version = 20200414;
+      public int Config_Version = 20200415;
    }
 
    public class DisplayConfig {
