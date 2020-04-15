@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static System.Diagnostics.TraceEventType;
 
 namespace Sheepy.PhoenixPt.RecruitInfo {
 
@@ -45,7 +44,6 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
    public class FontSizeConfig {
       public int Names = 42;
-      public int Names_Min = 10;
       public int Desc_Title = 36;
       public int Desc_Body = 30;
    }
@@ -71,8 +69,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          if ( owner == null ) throw new InvalidOperationException( "Recruit group not found, cannot add recruit info text" );
          var infoText = owner.Find( name )?.gameObject;
          if ( infoText != null ) return infoText;
-         Info( "Create {0} Text", name );
 
+         Verbo( "Creating {0} text", name );
          var copyFrom = owner.Find( "RecruitCost" )?.Find( "Name" )?.GetComponent<UnityEngine.UI.Text>() ?? ctl.RecruitName;
          infoText = new GameObject( name );
          infoText.transform.SetParent( owner );
@@ -82,7 +80,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          text.fontStyle = copyFrom.fontStyle; // RecruitName Bold, Cost normal
          text.fontSize = Config.Font_Sizes.Names; // RecruitName 52, Cost 42
          text.resizeTextForBestFit = true;
-         text.resizeTextMinSize = Config.Font_Sizes.Names_Min;
+         text.resizeTextMinSize = 10;
 
          var rect = infoText.GetComponent<Transform>();
          //rect.localPosition = new Vector3( 200, 0, 0 );
@@ -104,6 +102,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       private static void AfterSetRecruitment_ListPerks ( HavenFacilityItemController __instance, GeoHaven ____haven ) { try {
          var recruit = ____haven?.AvailableRecruit;
+         Info( "Creating Info Text" );
          if ( Config.Display.Personal_Skill_Names )
             ShowRecruitInfo( __instance, "PersonalSkills", new PersonalSkillInfo( recruit ) );
          if ( Config.Display.Graft_Names )
