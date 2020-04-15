@@ -174,7 +174,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private static void WriteResult ( object result ) { try {
          if ( result is string line ) ;
          else if ( result == null ) line = "null";
-         else if ( result is Exception || result is StackTrace ) line = result.ToString();
+         else if ( result is Exception || result is StackTrace || result is MethodInfo ) line = result.ToString();
          else line = JsonConvert.SerializeObject( result, Formatting.None );
          lock ( Buffer ) Buffer.Add( line );
          if ( result is Task<object> task )
