@@ -1,6 +1,9 @@
-﻿using Base.UI;
+﻿using Base.Core;
+using Base.UI;
 using Harmony;
+using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities.Characters;
+using PhoenixPoint.Common.Entities.GameTags;
 using PhoenixPoint.Common.UI;
 using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.View.ViewControllers.HavenDetails;
@@ -15,20 +18,24 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
    internal class ModConfig {
       public DisplayConfig Display = new DisplayConfig();
       public FontSizeConfig Font_Sizes = new FontSizeConfig();
-      public int Config_Version = 20200413;
+      public int Config_Version = 20200414;
    }
 
    public class DisplayConfig {
-      public bool Main_Class_Desc = true;
       public bool Personal_Skill_Names = true;
       public bool Personal_Skill_Desc = true;
+      public bool Main_Class_Desc = true;
+      public bool Graft_Names = true;
+      public bool Graft_Desc = true;
 
       public bool Any_Desc => Main_Class_Desc || Personal_Skill_Desc;
       internal void Validate () {
          if ( ! Personal_Skill_Names && Main_Class_Desc )
-            Mod.Logger?.Invoke( Warning, "Main_Class_Desc will not work without Personal_Skill_Names", null );
+            ZyMod.Warn( "Main_Class_Desc will not work without Personal_Skill_Names" );
          if ( ! Personal_Skill_Names && Personal_Skill_Desc )
-            Mod.Logger?.Invoke( Warning, "Personal_Skill_Desc will not work without Personal_Skill_Names", null );
+            ZyMod.Warn( "Personal_Skill_Desc will not work without Personal_Skill_Names" );
+         if ( ! Graft_Names && Graft_Desc )
+            ZyMod.Warn( "Graft_Desc will not work without Graft_Names" );
       }
    }
 
@@ -47,7 +54,12 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       public void MainMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
          Config.Display.Validate();
-         Patch( typeof( HavenFacilityItemController ), "SetRecruitmentGroup", null, "AfterSetRecruitment_ListPerks" );
+         if ( Config.Display.Graft_Names ) {
+            var sharedData = GameUtl.GameComponent<SharedData>();
+            GraftSkillInfo.AnuMutation = sharedData.SharedGameTags.AnuMutationTag;
+            GraftSkillInfo.BioAugTag = sharedData.SharedGameTags.BionicalTag;
+         }
+         Patch( typeof( HavenFacilityItemController ), "SetRecruitmentGroup", postfix: nameof( AfterSetRecruitment_ListPerks ) );
       }
 
       private static GameObject CreateNameText ( HavenFacilityItemController ctl, string name, bool hasHint ) {
@@ -89,6 +101,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       private static void AfterSetRecruitment_ListPerks ( HavenFacilityItemController __instance, GeoHaven ____haven ) { try {
          var recruit = ____haven?.AvailableRecruit;
          if ( Config.Display.Personal_Skill_Names ) ShowRecruitInfo( __instance, "PersonalSkills", new PersonalSkillInfo( recruit ) );
+         if ( Config.Display.Graft_Names ) ShowRecruitInfo( __instance, "GraftList", new GraftSkillInfo( recruit ) );
          //ModnixApi?.Invoke( "zy.ui.dump", __instance.gameObject );
       } catch ( Exception ex ) { Error( ex ); } }
 
@@ -108,9 +121,10 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
    internal abstract class RecruitInfo {
       protected readonly GeoCharacter recruit;
       protected RecruitInfo ( GeoCharacter recruit ) => this.recruit = recruit;
-      internal abstract IEnumerable<string> GetNames();
       internal abstract bool ShowDesc { get; }
+      protected abstract IEnumerable< ViewElementDef > Items { get; }
       internal abstract IEnumerable<KeyValuePair<string,string>> GetDesc();
+      internal virtual IEnumerable<string> GetNames () => Items.Select( e => ZyMod.TitleCase( e.DisplayName1?.Localize() ) );
       protected KeyValuePair< string, string > Pair ( string title, string body ) => new KeyValuePair< string, string >( title, body );
       protected KeyValuePair< string, string > Pair ( LocalizedTextBind title, LocalizedTextBind body ) => Pair( title.Localize(), body.Localize() );
    }
@@ -121,11 +135,9 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       private ViewElementDef MainClass => recruit.Progression.MainSpecDef.ViewElementDef;
 
-      private IEnumerable< ViewElementDef > Abilities =>
+      protected override IEnumerable< ViewElementDef > Items =>
          recruit.Progression?.AbilityTracks?.Where( e => e?.Source == AbilityTrackSource.Personal )
          ?.SelectMany( e => e.AbilitiesByLevel?.Select( a => a?.Ability?.ViewElementDef ) ).Where( e => e != null );
-
-      internal override IEnumerable<string> GetNames () => Abilities.Select( e => ZyMod.TitleCase( e.DisplayName1?.Localize() ) );
 
       internal override bool ShowDesc => Mod.Config.Display.Main_Class_Desc || Mod.Config.Display.Personal_Skill_Desc;
 
@@ -133,7 +145,25 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          if ( Mod.Config.Display.Main_Class_Desc )
             yield return Pair( MainClass.DisplayName1, MainClass.DisplayName2 );
          if ( Mod.Config.Display.Personal_Skill_Desc )
-            foreach ( var e in Abilities )
+            foreach ( var e in Items )
+               yield return Pair( e.DisplayName1, e.Description );
+      }
+   }
+
+   internal class GraftSkillInfo : RecruitInfo {
+
+      internal static GameTagDef AnuMutation, BioAugTag;
+
+      internal GraftSkillInfo ( GeoCharacter recruit ) : base( recruit ) { }
+
+      protected override IEnumerable< ViewElementDef > Items => recruit.ArmourItems.Select( e => e.ItemDef )
+         .Where( e => e.Any( tag => tag == AnuMutation || tag == BioAugTag  ) ).Select( e => e.ViewElementDef );
+
+      internal override bool ShowDesc => Mod.Config.Display.Graft_Desc;
+
+      internal override IEnumerable<KeyValuePair<string, string>> GetDesc () {
+         if ( Mod.Config.Display.Personal_Skill_Desc )
+            foreach ( var e in Items )
                yield return Pair( e.DisplayName1, e.Description );
       }
    }
