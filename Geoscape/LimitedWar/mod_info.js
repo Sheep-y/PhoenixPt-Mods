@@ -12,6 +12,7 @@
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/24/",
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods/",
    },
+   Requires : { Id: "Phoenix Point", Min: "1.0.56049" },
    Disables : [
       { Id: "PhoenixPt_BetterDefence", Max: "1.0.0.0" },
       { Id: "PhoenixPt_LessWar", Max: "1.0.0.0" },

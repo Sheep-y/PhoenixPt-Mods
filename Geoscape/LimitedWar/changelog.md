@@ -3,6 +3,7 @@ Changelog of Limited War, a Phoenix Point Mod by Sheepy
 # Version ?
 
 * New: Optionally prevent Pandorians from attacking Phoenix Point.
+* Fix: Mod now requires Phoenix Point 1.0.56049 since it will not work on older games.
 
 # Version 2, 2020-03-21
 
