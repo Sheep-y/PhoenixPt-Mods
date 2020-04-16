@@ -1,7 +1,6 @@
 ﻿using Base.Core;
 using Base.UI;
 using Harmony;
-using Newtonsoft.Json;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities.Characters;
 using PhoenixPoint.Common.Entities.GameTags;
@@ -40,8 +39,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          SetApi( api, out Config );
          if ( Config.Grafts.Enabled ) {
             var sharedData = GameUtl.GameComponent<SharedData>();
-            GraftSkillInfo.AnuMutation = sharedData.SharedGameTags.AnuMutationTag;
-            GraftSkillInfo.BioAugTag = sharedData.SharedGameTags.BionicalTag;
+            GraftInfo.AnuMutation = sharedData.SharedGameTags.AnuMutationTag;
+            GraftInfo.BioAugTag = sharedData.SharedGameTags.BionicalTag;
          }
          if ( Config.Skills.Enabled || Config.Grafts.Enabled || Config.Equipments.Enabled )
             Patch( typeof( HavenFacilityItemController ), "SetRecruitmentGroup", postfix: nameof( AfterSetRecruitment_ListPerks ) );
@@ -87,7 +86,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          if ( Config.Skills.Enabled )
             ShowRecruitInfo( __instance, "PersonalSkills", new PersonalSkillInfo( recruit ) );
          if ( Config.Grafts.Enabled )
-            ShowRecruitInfo( __instance, "GraftList", new GraftSkillInfo( recruit ) );
+            ShowRecruitInfo( __instance, "GraftList", new GraftInfo( recruit ) );
          if ( Config.Equipments.Enabled )
             ShowRecruitInfo( __instance, "EquipmentList", new EquipmentInfo( recruit ) );
          //ModnixApi?.Invoke( "zy.ui.dump", __instance.gameObject );
@@ -151,7 +150,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          return defs.Select( e => e.ViewElementDef ).Where( e => e != null );
       }
 
-      internal virtual IEnumerable<string> GetNames () => Items.Select( e => ZyMod.TitleCase( e.DisplayName1?.Localize() ) );
+      internal virtual IEnumerable<string> GetNames () => GetDesc().Select( e => e.Key );
 
       internal virtual IEnumerable<KeyValuePair<string,string>> GetDesc() {
          foreach ( var e in Items ) yield return Pair( e.DisplayName1, e.Description );
@@ -170,22 +169,24 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       protected internal override ListConfig Config => Mod.Config.Skills;
 
+      internal override IEnumerable<string> GetNames () => base.GetDesc().Select( e => e.Key );
+
       internal override IEnumerable<KeyValuePair<string, string>> GetDesc () => ClassDesc().Concat( base.GetDesc() );
 
       private IEnumerable<KeyValuePair<string, string>> ClassDesc () { yield return Pair( MainClass.DisplayName1, MainClass.DisplayName2 ); }
    }
 
-   internal class GraftSkillInfo : RecruitInfo {
+   internal class GraftInfo : RecruitInfo {
 
       internal static GameTagDef AnuMutation, BioAugTag;
 
-      internal GraftSkillInfo ( GeoCharacter recruit ) : base( recruit ) { }
+      internal GraftInfo ( GeoCharacter recruit ) : base( recruit ) { }
 
       protected internal override ListConfig Config => Mod.Config.Skills;
 
       protected override IEnumerable< ViewElementDef > Items => Map( recruit.ArmourItems, IsGraft );
 
-      internal bool IsGraft ( ItemDef def ) => def.Tags.Any( tag => tag == AnuMutation || tag == BioAugTag );
+      internal static bool IsGraft ( ItemDef def ) => def.Tags.Any( tag => tag == AnuMutation || tag == BioAugTag );
    }
 
    internal class EquipmentInfo : RecruitInfo {
@@ -199,10 +200,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       private IEnumerable< ViewElementDef > Equipments => Map( recruit.EquipmentItems.Concat( recruit.InventoryItems ) );
 
       private IEnumerable< ViewElementDef > Armours => Map( recruit.ArmourItems, Mod.Config.Grafts.Enabled ?
-         ( Func< ItemDef, bool > ) ( e => e.All( tag => tag != GraftSkillInfo.AnuMutation && tag != GraftSkillInfo.BioAugTag ) )
-         : null );
-
-      internal override IEnumerable<string> GetNames () => Items.Select( e => e.DisplayName1?.Localize() );
+         ( Func< ItemDef, bool > ) ( e => ! GraftInfo.IsGraft( e ) ) : null );
 
       internal override IEnumerable<KeyValuePair<string, string>> GetDesc () {
          foreach ( var e in Equipments ) yield return Pair( e.DisplayName1.Localize(), e.Description.Localize() );
