@@ -1,5 +1,9 @@
 Changelog of Recruit Info, a Phoenix Point Mod by Sheepy
 
+# Version 2.0.1, 2020-04-17
+
+* Fix: Mutation and armour names now use game names instead of internal names.
+
 # Version 2, 2020-04-17
 
 * New: Show recruit equipments (name and simple description only, no stats).

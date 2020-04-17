@@ -146,12 +146,12 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       protected KeyValuePair< string, string > Stringify ( ViewElementDef view ) {
          string title = view.DisplayName1.Localize(), desc = view.Description.Localize(), key = view.DisplayName1.LocalizationKey;
          if ( view is MutationViewElementDef mut ) { // Mutations
-            title = view.Name;
+            title = view.DisplayName2.Localize();
             desc = mut.MutationDescription.Localize();
          } else if ( key.IndexOf( "_PERSONALTRACK_", StringComparison.Ordinal ) >= 0 || key.IndexOf( "KEY_CLASS_", StringComparison.Ordinal ) == 0 ) { // Class & Skills
             title = ZyMod.TitleCase( title );
-         } else if ( regexBodyParts.IsMatch( key ) ) // Normal equipments
-            title = view.Name;
+         } else if ( regexBodyParts.IsMatch( key ) ) // Armours
+            title = view.DisplayName2.Localize();
          return new KeyValuePair<string, string>( title, desc );
       }
 
