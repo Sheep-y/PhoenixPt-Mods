@@ -11,6 +11,7 @@ using PhoenixPoint.Geoscape.View.ViewControllers.HavenDetails;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Sheepy.PhoenixPt.RecruitInfo {
@@ -137,12 +138,22 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          var pos = txt.LastIndexOf( "..." );
          return pos < 0 ? "" : txt.Substring( pos+3 );
       }
-
-      protected KeyValuePair< string, string > Pair ( string title, string body ) => new KeyValuePair< string, string >( title, body );
-      protected KeyValuePair< string, string > Pair ( LocalizedTextBind title, LocalizedTextBind body ) => Pair( title.Localize(), body.Localize() );
       #endregion
 
-      protected abstract IEnumerable< ViewElementDef > Items { get; }
+      #region Helpers
+      private static Regex regexBodyParts = new Regex( "^KEY_(TORSO|HEAD|LEGS)_NAME$", RegexOptions.Compiled );
+
+      protected KeyValuePair< string, string > Stringify ( ViewElementDef view ) {
+         string title = view.DisplayName1.Localize(), desc = view.Description.Localize(), key = view.DisplayName1.LocalizationKey;
+         if ( view is MutationViewElementDef mut ) { // Mutations
+            title = view.Name;
+            desc = mut.MutationDescription.Localize();
+         } else if ( key.IndexOf( "_PERSONALTRACK_", StringComparison.Ordinal ) >= 0 || key.IndexOf( "KEY_CLASS_", StringComparison.Ordinal ) == 0 ) { // Class & Skills
+            title = ZyMod.TitleCase( title );
+         } else if ( regexBodyParts.IsMatch( key ) ) // Normal equipments
+            title = view.Name;
+         return new KeyValuePair<string, string>( title, desc );
+      }
 
       protected IEnumerable< ViewElementDef > Map ( IEnumerable< GeoItem > items, Func< ItemDef, bool > filter = null ) {
          var defs = items.Select( e => e.ItemDef );
@@ -150,10 +161,14 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          return defs.Select( e => e.ViewElementDef ).Where( e => e != null );
       }
 
+      #endregion
+
+      protected abstract IEnumerable< ViewElementDef > Items { get; }
+
       internal virtual IEnumerable<string> GetNames () => GetDesc().Select( e => e.Key );
 
       internal virtual IEnumerable<KeyValuePair<string,string>> GetDesc() {
-         foreach ( var e in Items ) yield return Pair( e.DisplayName1, e.Description );
+         foreach ( var e in Items ) yield return Stringify( e );
       }
    }
 
@@ -173,7 +188,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       internal override IEnumerable<KeyValuePair<string, string>> GetDesc () => ClassDesc().Concat( base.GetDesc() );
 
-      private IEnumerable<KeyValuePair<string, string>> ClassDesc () { yield return Pair( MainClass.DisplayName1, MainClass.DisplayName2 ); }
+      private IEnumerable<KeyValuePair<string, string>> ClassDesc () { yield return Stringify( MainClass ); }
    }
 
    internal class GraftInfo : RecruitInfo {
@@ -203,8 +218,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          ( Func< ItemDef, bool > ) ( e => ! GraftInfo.IsGraft( e ) ) : null );
 
       internal override IEnumerable<KeyValuePair<string, string>> GetDesc () {
-         foreach ( var e in Equipments ) yield return Pair( e.DisplayName1.Localize(), e.Description.Localize() );
-         foreach ( var e in Armours ) yield return Pair( e.Name, e.Description.Localize() );
+         foreach ( var e in Equipments ) yield return Stringify( e );
+         foreach ( var e in Armours ) yield return Stringify( e );
       }
    }
 }
