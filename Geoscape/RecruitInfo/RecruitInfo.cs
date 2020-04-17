@@ -20,15 +20,15 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       public ListConfig Skills = new ListConfig();
       public ListConfig Grafts = new ListConfig();
       public ListConfig Equipments = new ListConfig{ Name = "<size=36>...</size>" };
-      public int Config_Version = 20200416;
+      public int Config_Version = 20200417;
    }
 
    public class ListConfig {
       public bool Enabled = true;
-      public bool Mouse_Over_Desc = true;
+      public bool Mouse_Over_Popup = true;
       public string Name = "<size=42>...</size>";
-      public string Desc_Title = "<size=36><b>...</b></size>";
-      public string Desc_Body = "<size=30>...</size>";
+      public string Popup_Title = "<size=36><b>...</b></size>";
+      public string Popup_Body = "<size=30>...</size>";
    }
 
    public class Mod : ZyMod {
@@ -95,13 +95,13 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       private static void ShowRecruitInfo ( HavenFacilityItemController __instance, string id, RecruitInfo info ) { try {
          var names = info.GetNames();
-         GameObject infoText = CreateNameText( __instance, id, info.Config.Mouse_Over_Desc );
+         GameObject infoText = CreateNameText( __instance, id, info.Config.Mouse_Over_Popup );
          if ( ! names.Any() ) {
             infoText.SetActive( false );
             return;
          }
          infoText.GetComponent<UnityEngine.UI.Text>().text = "     " + info.NameTags[0] + names.Join() + info.NameTags[1];
-         if ( info.Config.Mouse_Over_Desc ) {
+         if ( info.Config.Mouse_Over_Popup ) {
             info.SetTags();
             infoText.GetComponent<UITooltipText>().TipText = info.GetDesc().Join( e => BuildHint( e, info.DescTags ), "\n\n" );
          }
@@ -124,7 +124,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       internal void SetTags () {
          if ( DescTags == null )
-            DescTags = new string[] { Prefix( Config.Desc_Title ), Postfix( Config.Desc_Title ), Prefix( Config.Desc_Body ), Postfix( Config.Desc_Body ) };
+            DescTags = new string[] { Prefix( Config.Popup_Title ), Postfix( Config.Popup_Title ), Prefix( Config.Popup_Body ), Postfix( Config.Popup_Body ) };
       }
 
       private string Prefix ( string txt ) {
