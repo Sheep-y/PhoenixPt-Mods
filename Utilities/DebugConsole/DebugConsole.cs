@@ -143,7 +143,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       public static object ApiGuiTree ( object root ) {
          if ( root is Transform t ) root = t.gameObject;
-         if ( ! ( root is GameObject obj ) ) return false;
+         if ( ! ( root is GameObject obj ) ) {
+            Warn( new ArgumentException( "Not a Unity GameObject: " + root?.GetType().FullName ?? "null" ) );
+            return false;
+         }
          DumpComponents( "", new HashSet<object>(), obj );
          return true;
       }
