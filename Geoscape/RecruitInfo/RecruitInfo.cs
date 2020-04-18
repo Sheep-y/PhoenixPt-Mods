@@ -82,8 +82,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          $"{tags[0]}{pair.Key}{tags[1]}\n{tags[2]}{pair.Value}{tags[3]}";
 
       private static void AfterSetRecruitment_ListPerks ( HavenFacilityItemController __instance, GeoHaven ____haven ) { try {
-         Info( "Creating Info Panel" );
          var recruit = ____haven?.AvailableRecruit;
+         Info( "Creating Info Panel" );
          if ( Config.Skills.Enabled )
             ShowRecruitInfo( __instance, "PersonalSkills", new PersonalSkillInfo( recruit ) );
          if ( Config.Grafts.Enabled )

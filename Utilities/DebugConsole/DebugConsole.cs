@@ -74,7 +74,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private static void CheckConfig () {
          if ( Config.Config_Version < 20200405 ) {
             Config.Config_Version = 20200405;
-            ModnixApi?.Invoke( "config_save", Config );
+            Api( "config_save", Config );
          }
       }
 
@@ -127,7 +127,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       [ ConsoleCommand( Command = "modnix", Description = "Call Modnix or compatible api." ) ]
       public static void ApiCommand ( IConsole console, string[] param ) { try {
-         if ( ModnixApi == null ) {
+         if ( ! HasApi ) {
             console.WriteLine( "<color=fuchsia>Modnix API not found.</color>" );
             return;
          }
@@ -138,7 +138,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             Array.Copy( param, 1, arg as string[], 0, param.Length - 1 );
          } else if ( param.Length == 2 )
             arg = param[1];
-         WriteResult( ModnixApi( param[0], arg ) );
+         WriteResult( Api( param[0], arg ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
       public static object ApiGuiTree ( object root ) {
@@ -187,10 +187,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       private static void AfterMainMenu_AddModCount ( UIStateMainMenu __instance ) { try {
          var revision = typeof( UIStateMainMenu ).GetProperty( "_buildRevisionModule", BindingFlags.NonPublic | BindingFlags.Instance )?.GetValue( __instance ) as UIModuleBuildRevision;
-         var list = ModnixApi( "mod_list", null ) as IEnumerable<string>;
+         var list = Api( "mod_list", null ) as IEnumerable<string>;
          if ( revision == null || list == null ) return;
          Info( "Adding to main menu version string" );
-         var loader_ver = new Regex( "(?:\\.0){1,2}$" ).Replace( ModnixApi( "version", "loader" ).ToString(), "" );
+         var loader_ver = new Regex( "(?:\\.0){1,2}$" ).Replace( Api( "version", "loader" ).ToString(), "" );
          revision.BuildRevisionNumber.text += $", Modnix {loader_ver}, {list.Count()} mods.";
       } catch ( Exception ex ) { Error( ex ); } }
 
