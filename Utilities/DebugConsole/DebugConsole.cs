@@ -142,6 +142,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       } catch ( Exception ex ) { Error( ex ); } }
 
       public static object ApiGuiTree ( object root ) {
+         if ( root is Transform t ) root = t.gameObject;
          if ( ! ( root is GameObject obj ) ) return false;
          DumpComponents( "", new HashSet<object>(), obj );
          return true;
