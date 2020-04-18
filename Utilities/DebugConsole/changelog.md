@@ -2,7 +2,7 @@ Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
 # Version 3.1
 
-* New: Api command to dump gui tree.
+* New: Api command "zy.gui.dump" to dump gui tree of given GameObject / Transform to modnix loader log.
 * Fix: MethodInfo result from API will now be displayed by ToString.
 
 # Version 3, 2020-04-11
