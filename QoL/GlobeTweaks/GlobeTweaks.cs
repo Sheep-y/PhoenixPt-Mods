@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.GlobeTweaks {
 
-   public class ModConfig {
+   internal class ModConfig {
       public bool Base_Centre_On_Heal = true;
       public bool Base_Pause_On_Heal = true;
       public bool Center_On_New_Base = true;
@@ -13,12 +13,26 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public bool Notice_On_Stamina_Only_Heal = true;
       public bool Vehicle_Centre_On_Heal = true;
       public bool Vehicle_Pause_On_Heal = true;
-      public int  Config_Version = 20200324;
+      public HavenIconConfig Haven_Icons = new HavenIconConfig();
+      public int  Config_Version = 20200419;
+
+      internal void Upgrade () {
+         if ( Config_Version < 20200419 ) {
+            Config_Version = 20200419;
+            ZyMod.Api( "config save", this );
+         }
+      }
+   }
+
+   internal class HavenIconConfig {
+      public bool Always_Show_Recruit = true;
+      public bool Always_Show_Soldier = true;
+      public bool Always_Show_Trade   = true;
    }
 
    public class Mod : ZyAdvMod {
 
-      public static ModConfig Config;
+      internal static ModConfig Config;
 
       public static void Init () => new Mod().MainMod();
 

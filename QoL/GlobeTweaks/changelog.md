@@ -1,5 +1,10 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
+# Version 4
+
+* New: Always show haven icons by default.
+* Updated to Modnix 2.
+
 # Version 3.1.1, 2020-03-25
 
 * Fix: Heal message and rest message are no longer swapped.
