@@ -92,7 +92,7 @@ namespace Sheepy.PhoenixPt {
       private static Func< string, object, object > ModnixApi;
 
       protected internal static bool HasApi { get {
-         lock ( _Lock ) return ModnixApi == null;
+         lock ( _Lock ) return ModnixApi != null;
       } }
 
       protected internal static object Api ( string action, object param = null ) {
