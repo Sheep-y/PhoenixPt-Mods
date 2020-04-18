@@ -2,6 +2,7 @@
 using Base.Utils.GameConsole;
 using Harmony;
 using Newtonsoft.Json;
+using PhoenixPoint.Geoscape.View;
 using PhoenixPoint.Home.View.ViewModules;
 using PhoenixPoint.Home.View.ViewStates;
 using System;
@@ -166,6 +167,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                Info( "{0}...{1} {2}", prefix, typeName, loc.mTerm );
             else if ( c is UnityEngine.UI.LayoutGroup layout )
                Info( "{0}...{1} Padding {2}", prefix, typeName, layout.padding );
+            else if ( c is FovControllableBehavior fov )
+               Info( "{0}...{1} Invis {2} Billboard {3}-{4}", prefix, typeName, fov.ControllingDef.InvisibleOverFov, fov.ControllingDef.BillboardStartFov, fov.ControllingDef.BillboardFullFov );
             else
                Info( "{0}...{1}", prefix, typeName );
          }
