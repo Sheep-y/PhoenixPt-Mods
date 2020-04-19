@@ -14,7 +14,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public bool Vehicle_Centre_On_Heal = true;
       public bool Vehicle_Pause_On_Heal = true;
       public HavenIconConfig Haven_Icons = new HavenIconConfig();
-      public int  Config_Version = 20200419;
+      public uint  Config_Version = 20200419;
 
       internal void Upgrade () {
          if ( Config_Version < 20200419 ) {
@@ -28,7 +28,9 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public bool Always_Show_Recruit = true;
       public bool Always_Show_Soldier = true;
       public bool Always_Show_Trade   = true;
-      public bool Show_Recruit_Class_In_Mouseover = true;
+      public bool Popup_Show_Recruit_Class = true;
+      public bool Popup_Show_Resource_Stock = true;
+      public string Stock_Line = "<size=28>{0} {1} > {2} {3} ({4})</size>\n";
    }
 
    public class Mod : ZyAdvMod {

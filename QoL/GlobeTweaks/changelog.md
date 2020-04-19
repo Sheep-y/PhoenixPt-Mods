@@ -1,8 +1,10 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
-# Version 4
+# Version 4, 2020-04-19
 
-* New: Always show haven icons by default.
+* New: Always show haven recruit icons and resources icons regardless of zoom.
+* New: Always show base soldier count tag regardless of zoom.
+* New: Show recruit class and trade offers in haven mouseover hint.
 * Updated to Modnix 2.
 
 # Version 3.1.1, 2020-03-25
