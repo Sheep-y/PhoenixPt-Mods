@@ -28,6 +28,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public bool Always_Show_Recruit = true;
       public bool Always_Show_Soldier = true;
       public bool Always_Show_Trade   = true;
+      public bool Show_Recruit_Class_In_Mouseover = true;
    }
 
    public class Mod : ZyAdvMod {

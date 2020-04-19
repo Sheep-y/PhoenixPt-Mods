@@ -1,4 +1,6 @@
-﻿using PhoenixPoint.Geoscape.View;
+﻿using PhoenixPoint.Geoscape.Entities;
+using PhoenixPoint.Geoscape.View;
+using PhoenixPoint.Geoscape.View.ViewModules;
 using System;
 using UnityEngine;
 
@@ -10,10 +12,12 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public void DoPatches () {
          var conf = Mod.Config.Haven_Icons ?? new HavenIconConfig();
          if ( conf.Always_Show_Recruit || conf.Always_Show_Soldier || conf.Always_Show_Trade )
-            FovPatch = TryPatch( typeof( GeoSiteVisualsController ), "Awake", postfix: nameof( GeoSiteVisualsController_AfterAwake ) );
+            FovPatch = TryPatch( typeof( GeoSiteVisualsController ), "Awake", postfix: nameof( AfterAwake_DisableFov ) );
+         if ( conf.Show_Recruit_Class_In_Mouseover )
+            TryPatch( typeof( UIModuleSelectionInfoBox ), "SetHaven", postfix: nameof( AfterSetHaven_ShowRecruitClass ) );
       }
 
-      private static void GeoSiteVisualsController_AfterAwake ( GeoSiteVisualsController __instance ) { try {
+      private static void AfterAwake_DisableFov ( GeoSiteVisualsController __instance ) { try {
          var conf = Mod.Config.Haven_Icons ?? new HavenIconConfig();
          if ( conf.Always_Show_Recruit ) DisableFov( __instance.RecruitAvailableIcon .transform.parent, "RecruitAvailableIcon"  );
          if ( conf.Always_Show_Soldier ) DisableFov( __instance.SoldiersAvailableIcon.transform.parent, "SoldiersAvailableIcon" );
@@ -28,6 +32,16 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
             fov.ControllingDef.InvisibleOverFov = -1;
          else
             Warn( "Fov not found, cannot set always visible: {0}", type );
+      }
+
+      private static string OriginalRecruitText;
+
+      private static void AfterSetHaven_ShowRecruitClass ( UIModuleSelectionInfoBox __instance, GeoSite ____site, bool showRecruits ) {
+         if ( ! showRecruits ) return;
+         var recruit = ____site.GetComponent<GeoHaven>()?.AvailableRecruit;
+         if ( recruit == null ) return;
+         if ( OriginalRecruitText == null ) OriginalRecruitText = __instance.RecruitAvailableText.text;
+         __instance.RecruitAvailableText.text = OriginalRecruitText + " (" + recruit.Progression.MainSpecDef.ViewElementDef.DisplayName1.Localize() + ')';
       }
    }
 }
