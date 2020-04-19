@@ -8,7 +8,7 @@ using System.Linq;
 using UnityEngine;
 
 namespace Sheepy.PhoenixPt.GlobeTweaks {
-   internal class GlyphModule : ZyAdvMod {
+   internal class GlyphModule : ZyMod {
 
       private static IPatch FovPatch;
 
