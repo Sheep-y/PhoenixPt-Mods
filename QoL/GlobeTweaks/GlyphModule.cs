@@ -14,19 +14,20 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
       public void DoPatches () {
          var conf = Mod.Config.Haven_Icons ?? new HavenIconConfig();
-         if ( conf.Always_Show_Recruit || conf.Always_Show_Soldier || conf.Always_Show_Trade )
+         if ( conf.Always_Show_Action || conf.Always_Show_Soldier )
             FovPatch = TryPatch( typeof( GeoSiteVisualsController ), "Awake", postfix: nameof( AfterAwake_DisableFov ) );
          if ( conf.Popup_Show_Recruit_Class )
             TryPatch( typeof( UIModuleSelectionInfoBox ), "SetHaven", postfix: nameof( AfterSetHaven_ShowRecruitClass ) );
-         if ( conf.Popup_Show_Resource_Stock )
+         if ( conf.Popup_Show_Trade )
             TryPatch( typeof( UIModuleSelectionInfoBox ), "SetHaven", postfix: nameof( AfterSetHaven_ShowResourceStock ) );
       }
 
       private static void AfterAwake_DisableFov ( GeoSiteVisualsController __instance ) { try {
          var conf = Mod.Config.Haven_Icons ?? new HavenIconConfig();
-         if ( conf.Always_Show_Recruit ) DisableFov( __instance.RecruitAvailableIcon .transform.parent, "RecruitAvailableIcon"  );
+         if ( conf.Always_Show_Action ) DisableFov( __instance.RecruitAvailableIcon .transform.parent, "RecruitAvailableIcon"  );
          if ( conf.Always_Show_Soldier ) DisableFov( __instance.SoldiersAvailableIcon.transform.parent, "SoldiersAvailableIcon" );
-         if ( conf.Always_Show_Trade   ) DisableFov( __instance.SuppliesResourcesIcon.transform.parent, "SuppliesResourcesIcon" );
+         // Supply FOV is same as recruit
+         // if ( conf.Always_Show_Trade   ) DisableFov( __instance.SuppliesResourcesIcon.transform.parent, "SuppliesResourcesIcon" );
          //Api( "zy.ui.dump", __instance.RecruitAvailableIcon.transform.parent.parent ); // Dump gui tree with debug console
          FovPatch.Unpatch();
       } catch ( Exception ex ) { Error( ex ); } }
@@ -46,14 +47,19 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          var recruit = ____site.GetComponent<GeoHaven>()?.AvailableRecruit;
          if ( recruit == null ) return;
          if ( OriginalRecruitText == null ) OriginalRecruitText = __instance.RecruitAvailableText.text;
-         __instance.RecruitAvailableText.text = OriginalRecruitText + " (" + recruit.Progression.MainSpecDef.ViewElementDef.DisplayName1.Localize() + ')';
+         __instance.RecruitAvailableText.text = OriginalRecruitText + " (" + GetClassName( recruit ) + ')';
       } catch ( Exception ex ) { Error( ex ); } }
+
+      private static string GetClassName ( GeoCharacter recruit ) => recruit.Progression.MainSpecDef.ViewElementDef.DisplayName1.Localize();
 
       private static void AfterSetHaven_ShowResourceStock ( UIModuleSelectionInfoBox __instance, GeoSite ____site ) { try {
          var res = ____site.GetComponent<GeoHaven>()?.GetResourceTrading();
          if ( res == null || res.Count == 0 ) return;
-         __instance.LeaderMottoText.text = string.Join( "", res.Select( e => string.Format( Mod.Config.Haven_Icons.Stock_Line,
-            e.WantsQuantity, ResName( e.HavenWants ), e.OfferQuantity, ResName( e.HavenOffers ), e.ResourceStock ) ) ).Trim();
+         var conf = Mod.Config.Haven_Icons;
+         __instance.LeaderMottoText.text = string.Join( "", res.Select( e =>
+            string.Format( e.ResourceStock >= e.OfferQuantity ? conf.In_Stock_Line : conf.Out_Of_Stock_Line,
+            e.WantsQuantity, ResName( e.HavenWants ), e.OfferQuantity, ResName( e.HavenOffers ), e.ResourceStock )
+         ) ).Trim();
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static string ResName ( ResourceType type ) {
