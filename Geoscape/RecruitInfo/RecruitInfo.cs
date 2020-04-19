@@ -23,7 +23,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       public int Config_Version = 20200417;
    }
 
-   public class ListConfig {
+   internal class ListConfig {
       public bool Enabled = true;
       public bool Mouse_Over_Popup = true;
       public string Name = "<size=42>...</size>";
@@ -160,7 +160,6 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          if ( filter != null ) defs = defs.Where( filter );
          return defs.Select( e => e.ViewElementDef ).Where( e => e != null );
       }
-
       #endregion
 
       protected abstract IEnumerable< ViewElementDef > Items { get; }
