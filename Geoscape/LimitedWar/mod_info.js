@@ -12,7 +12,9 @@
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/24/",
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods/",
    },
-   Requires : { Id: "Phoenix Point", Min: "1.0.56049" },
+   // Disabled because Modnix Manager does not process game version correctly.
+   // Not very useful when it shows as "disabled" in the manager but actually works in game.
+   /*Requires : { Id: "Phoenix Point", Min: "1.0.56049" },*/
    Disables : [
       { Id: "PhoenixPt_BetterDefence", Max: "1.0.0.0" },
       { Id: "PhoenixPt_LessWar", Max: "1.0.0.0" },
@@ -48,6 +50,6 @@
       },
       No_Alien_Attack_On_PhoenixPoint : false,
 
-      public long Config_Version : 20200325,
+      Config_Version : 20200325,
    }
 })

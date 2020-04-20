@@ -1,12 +1,13 @@
 Changelog of Skip Intro, a Phoenix Point Mod by Sheepy
 
-# Version ?
+# Version 4.0.1, 2020-04-20
 
-* Isolate each feature's patching so that the others can keep working when one fails.
+* Update to Modnix 2. This removes the deprecated warning on Modnix 2.
+* Isolate each feature's patching so that when something fails, the others can keep working.
 
 # Version 4, 2020-03-16
 
-* Update to Modnix 1.0.
+* Update to Modnix 1.
 * New: Optionally skip opening of new campaign.
 * Fix: Properly prevents skipped videos from being loaded.
 * Reduce verbose logging from skipping curtain.
