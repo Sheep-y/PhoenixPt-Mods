@@ -49,7 +49,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          GameConsoleWindow.DisableConsoleAccess = false; // Enable console first no matter what happens
          Verbo( "Console Enabled" );
          if ( Config.Log_Game_Error || Config.Log_Game_Info ) {
-            Application.logMessageReceived += UnityToConsole; // Non-main thread will cause inconsistent formats.
+            Application.logMessageReceivedThreaded += UnityToConsole;
             TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
          }
          if ( Config.Scan_Mods_For_Command && InitScanner() ) {
@@ -140,7 +140,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       private readonly static List<string> Buffer = new List<string>();
 
-      internal static void ConsoleWrite ( string line ) {
+      internal static void ConsoleWriteAsync ( string line ) {
          if ( string.IsNullOrWhiteSpace( line ) ) return;
          lock ( Buffer ) Buffer.Add( line );
       }
@@ -150,47 +150,45 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private static void ModnixToConsole ( object entry, string txt ) { try {
          txt = txt.Trim();
          if ( txt.Length == 0 || txt.Length > 1000 || txt.Contains( ".ModnixToConsole" ) || txt.Contains( "BeforeAppendToLogFile_ProcessModnixLine" ) ) return;
+         string prefix = "";
          if ( ModnixLogEntryLevel != null ) {
             var level = (TraceEventType) ModnixLogEntryLevel.GetValue( entry );
-            string prefix;
             lock ( _Lock ) switch ( level ) {
                case TraceEventType.Critical: case TraceEventType.Error:
                   if ( ! Config.Log_Modnix_Error ) return;
-                  prefix = "<color=fuchsia>Error";
+                  prefix = "<color=fuchsia>[ERROR] ";
                   break;
                 case TraceEventType.Warning:
                   if ( ! Config.Log_Modnix_Error ) return;
-                  prefix = "<color=orange>Warning";
+                  prefix = "<color=orange>[WARN] ";
                   break;
                case TraceEventType.Information :
                   if ( ! Config.Log_Modnix_Info ) return;
-                  prefix = "<color=lime>Log [INFO]";
+                  prefix = "<color=lime>[INFO] ";
                   break;
                default :
                   if ( ! Config.Log_Modnix_Verbose ) return;
-                  prefix = "<color=aqua>Log [VEBO]";
+                  prefix = "<color=aqua>[VEBO] ";
                   break;
             }
-            txt = $"{prefix} {Time.frameCount} ({Time.time.ToString("0.000")}) {txt}</color>";
          }
-         ConsoleWrite( txt );
+         txt = $"{prefix}{Time.frameCount} ({Time.time.ToString("0.000")}) {txt}</color>";
+         ConsoleWriteAsync( txt );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static Regex RegexModnixLine = new Regex( "\\] \\d+ \\(\\d+\\.\\d{3}\\) ", RegexOptions.Compiled );
       private static Regex RegexModnixColour = new Regex( "^<color=#?\\w+>", RegexOptions.Compiled );
+      private static Regex RegexModnixLine = new Regex( "^(\\[\\w+\\] )?\\d+ \\(\\d+\\.\\d{3}\\) ", RegexOptions.Compiled );
 
       [ HarmonyPriority( Priority.VeryLow ) ]
       private static bool BeforeAppendToLogFile_ProcessModnixLine ( ref string line ) { try {
          if ( string.IsNullOrWhiteSpace( line ) ) return true;
          line = EscLine( line ); // Prevent log writer thread from throwing error on string.format.
-         if ( ! RegexModnixLine.IsMatch( line ) ) return true;
-         if ( ! Config.Write_Modnix_To_Console_Logfile ) return false;
          if ( line.StartsWith( "<color=", StringComparison.Ordinal ) ) {
             line = RegexModnixColour.Replace( line, "", 1 );
             if ( line.EndsWith( "</color>", StringComparison.Ordinal ) )
                line = line.Substring( 0, line.Length - 8 );
          }
-         return true;
+         return ! RegexModnixLine.IsMatch( line ) || Config.Write_Modnix_To_Console_Logfile;
       } catch ( Exception ex ) { return Error( ex ); } }
 
       private static void UnityToConsole ( string condition, string stackTrace, LogType type ) { try {
@@ -205,9 +203,9 @@ namespace Sheepy.PhoenixPt.DebugConsole {
               condition.Contains( "Called from a secondary Thread" ) ||
               stackTrace?.Contains( "UnityTools.LogFormatter" ) == true )
            return;
-         var line = $"{type} {condition}   {stackTrace}".Trim();
+         var line = $"{condition}   {stackTrace}".Trim();
          if ( line.Length == 0 ) return;
-         ConsoleWrite( line );
+         ConsoleWriteAsync( line );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void BufferToConsole () { try {
