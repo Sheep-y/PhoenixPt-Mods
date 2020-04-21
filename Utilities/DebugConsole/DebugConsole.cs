@@ -107,7 +107,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private static void ModnixToConsole ( object entry, string txt ) { try {
          txt = txt.Trim();
          if ( txt.Length == 0 || txt.Length > 1000 || txt.Contains( ".ModnixToConsole" ) || txt.Contains( "BeforeAppendToLogFile_ProcessModnixLine" ) ) return;
-         string prefix = "";
+         var prefix = "<color=lime>[MODX] ";
          if ( ModnixLogEntryLevel != null ) {
             var level = (TraceEventType) ModnixLogEntryLevel.GetValue( entry );
             lock ( _Lock ) switch ( level ) {
