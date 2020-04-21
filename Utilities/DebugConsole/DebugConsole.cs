@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace Sheepy.PhoenixPt.DebugConsole {
 
-   public class ModConfig {
+   internal class ModConfig {
       public bool Mod_Count_In_Version = true;
       public bool Log_Game_Error = true;
       public bool Log_Game_Info = true;
@@ -32,7 +32,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       internal void Update () {
          if ( Config_Version < 20200405 ) {
             Config_Version = 20200405;
-            Mod.Api( "config_save", this );
+            ZyMod.Api( "config_save", this );
          }
       }
    }
@@ -43,12 +43,18 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       public static void Init () => new Mod().SplashMod();
 
       public void SplashMod ( Func< string, object, object > api = null ) {
+         TryClearConsole();
          SetApi( api, out Config ).Update();
-         // Delete console log for the game, since the modnix log and early console initialisation will prevent the game from doing it
-         if ( File.Exists( "Console.log" ) ) File.Delete( "Console.log" );
          GeneralPatch();
          ModnixPatch();
       }
+
+      private static void TryClearConsole () { try {
+         // Delete console log for the game, since the modnix log and early console initialisation will prevent the game from doing it
+         if ( ! File.Exists( "Console.log" ) ) return;
+         Info( "Deleting Console.log" );
+         File.Delete( "Console.log" );
+      } catch ( SystemException ex ) { Info( ex ); } }
 
       private void GeneralPatch () {
          GameConsoleWindow.DisableConsoleAccess = false; // Enable console first no matter what happens
@@ -76,14 +82,14 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             var loader = Api( "assembly", "modnix" ) as Assembly
                ?? AppDomain.CurrentDomain.GetAssemblies().First( e => e.FullName.StartsWith( "ModnixLoader", StringComparison.Ordinal ) );
             var type = loader?.GetType( "Sheepy.Logging.FileLogger" );
-            if ( type != null ) {
-               ModnixLogEntryLevel = loader.GetType( "Sheepy.Logging.LogEntry" ).GetField( "Level" );
-               if ( ModnixLogEntryLevel == null ) Warn( "Modnix log level not found. All log forwarded." );
-               TryPatch( type, "ProcessEntry", postfix: nameof( ModnixToConsole ) );
-               if ( ! Config.Write_Modnix_To_Console_Logfile )
-                  TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( SkipAppendLogFile_IfModnix ) );
-            } else
+            if ( type == null ) {
                Info( "Modnix assembly not found, log not forwarded." );
+               return;
+            }
+            ModnixLogEntryLevel = loader.GetType( "Sheepy.Logging.LogEntry" ).GetField( "Level" );
+            if ( ModnixLogEntryLevel == null ) Warn( "Modnix log level not found. All log forwarded." );
+            TryPatch( type, "ProcessEntry", postfix: nameof( ModnixToConsole ) );
+            TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( BeforeAppendToLogFile_ProcessModnixLine ) );
          }
       }
 
@@ -150,7 +156,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          WriteResult( Api( param[0], arg ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      public static object ApiGuiTree ( object root ) {
+      internal static object ApiGuiTree ( object root ) {
          if ( root is Transform t ) root = t.gameObject;
          if ( ! ( root is GameObject obj ) ) {
             Warn( new ArgumentException( "Not a Unity GameObject: " + root?.GetType().FullName ?? "null" ) );
@@ -160,7 +166,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          return true;
       }
 
-      public static void DumpComponents ( string prefix, HashSet<object> logged, GameObject e ) {
+      internal static void DumpComponents ( string prefix, HashSet<object> logged, GameObject e ) {
          if ( prefix.Length > 20 ) return;
          if ( logged.Contains( e ) ) return;
          logged.Add( e );
@@ -215,7 +221,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       private static void ModnixToConsole ( object entry, string txt ) { try {
          txt = txt.Trim();
-         if ( txt.Length == 0 || txt.Length > 1000 || txt.Contains( ".ModnixToConsole" ) ) return;
+         if ( txt.Length == 0 || txt.Length > 1000 || txt.Contains( ".ModnixToConsole" ) || txt.Contains( "BeforeAppendToLogFile_ProcessModnixLine" ) ) return;
          if ( ModnixLogEntryLevel != null ) {
             var level = (TraceEventType) ModnixLogEntryLevel.GetValue( entry );
             string prefix;
@@ -242,10 +248,22 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          lock ( Buffer ) Buffer.Add( txt );
       } catch ( Exception ex ) { Error( ex ); } }
 
+      private static Regex RegexModnixLine = new Regex( "\\] \\d+ \\(\\d+\\.\\d{3}\\) ", RegexOptions.Compiled );
+      private static Regex RegexModnixColour = new Regex( "\\| <color=#?\\w+>", RegexOptions.Compiled );
+
       [ HarmonyPriority( Priority.VeryLow ) ]
-      private static bool SkipAppendLogFile_IfModnix ( string line ) {
-         return ! string.IsNullOrWhiteSpace( line ) && line.IndexOf( '┊' ) < 0;
-      }
+      private static bool BeforeAppendToLogFile_ProcessModnixLine ( ref string line ) { try {
+         return true;
+         if ( string.IsNullOrWhiteSpace( line ) || ! RegexModnixLine.IsMatch( line ) ) return true;
+         if ( ! Config.Write_Modnix_To_Console_Logfile ) return false;
+         var match = RegexModnixColour.Match( line, 6, 25 );
+         if ( match.Success ) {
+            line = RegexModnixColour.Replace( line, "| ", 1 );
+            if ( line.EndsWith( "</color>", StringComparison.Ordinal ) )
+               line = line.Substring( 0, line.Length - 8 );
+         }
+         return true;
+      } catch ( Exception ex ) { return Error( ex ); } }
 
       private static void UnityToConsole ( string condition, string stackTrace, LogType type ) { try {
          switch ( type ) {
