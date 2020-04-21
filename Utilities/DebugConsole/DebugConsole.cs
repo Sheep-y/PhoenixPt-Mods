@@ -8,6 +8,7 @@ using PhoenixPoint.Home.View.ViewStates;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -43,6 +44,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       public void SplashMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config ).Update();
+         // Delete console log for the game, since the modnix log and early console initialisation will prevent the game from doing it
+         if ( File.Exists( "Console.log" ) ) File.Delete( "Console.log" );
          GeneralPatch();
          ModnixPatch();
       }
