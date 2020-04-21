@@ -1,14 +1,11 @@
 ﻿using Base.Core;
 using Base.Utils.GameConsole;
 using Harmony;
-using Newtonsoft.Json;
-using PhoenixPoint.Geoscape.View;
 using PhoenixPoint.Home.View.ViewModules;
 using PhoenixPoint.Home.View.ViewStates;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -43,18 +40,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       public static void Init () => new Mod().SplashMod();
 
       public void SplashMod ( Func< string, object, object > api = null ) {
-         TryClearConsole();
          SetApi( api, out Config ).Update();
          GeneralPatch();
          ModnixPatch();
       }
-
-      private static void TryClearConsole () { try {
-         // Delete console log for the game, since the modnix log and early console initialisation will prevent the game from doing it
-         if ( ! File.Exists( "Console.log" ) ) return;
-         Info( "Deleting Console.log" );
-         File.Delete( "Console.log" );
-      } catch ( SystemException ex ) { Info( ex ); } }
 
       private void GeneralPatch () {
          GameConsoleWindow.DisableConsoleAccess = false; // Enable console first no matter what happens
@@ -188,16 +177,16 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static Regex RegexModnixLine = new Regex( "\\] \\d+ \\(\\d+\\.\\d{3}\\) ", RegexOptions.Compiled );
-      private static Regex RegexModnixColour = new Regex( "\\| <color=#?\\w+>", RegexOptions.Compiled );
+      private static Regex RegexModnixColour = new Regex( "^<color=#?\\w+>", RegexOptions.Compiled );
 
       [ HarmonyPriority( Priority.VeryLow ) ]
       private static bool BeforeAppendToLogFile_ProcessModnixLine ( ref string line ) { try {
-         return true;
-         if ( string.IsNullOrWhiteSpace( line ) || ! RegexModnixLine.IsMatch( line ) ) return true;
+         if ( string.IsNullOrWhiteSpace( line ) ) return true;
+         line = EscLine( line ); // Prevent log writer thread from throwing error on string.format.
+         if ( ! RegexModnixLine.IsMatch( line ) ) return true;
          if ( ! Config.Write_Modnix_To_Console_Logfile ) return false;
-         var match = RegexModnixColour.Match( line, 6, 25 );
-         if ( match.Success ) {
-            line = RegexModnixColour.Replace( line, "| ", 1 );
+         if ( line.StartsWith( "<color=", StringComparison.Ordinal ) ) {
+            line = RegexModnixColour.Replace( line, "", 1 );
             if ( line.EndsWith( "</color>", StringComparison.Ordinal ) )
                line = line.Substring( 0, line.Length - 8 );
          }

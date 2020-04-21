@@ -1,5 +1,10 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
+# Version 3.1.1
+
+* Fix: Clear console log on game launch.
+* Fix: Modnix lines now have their line colours removed from console log.
+
 # Version 3.1
 
 * New: Api command "zy.gui.dump" to dump gui tree of given GameObject / Transform to modnix loader log.
