@@ -13,7 +13,7 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.SkipIntro {
 
-   public class ModConfig {
+   internal class ModConfig {
       public bool Skip_Logos = true;
       public bool Skip_HottestYear = true;
       public bool Skip_NewGameIntro = false;

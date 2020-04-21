@@ -15,7 +15,7 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.LimitedWar {
 
-   public class ModConfig {
+   internal class ModConfig {
       public bool Faction_Attack_Zone = true;
       public bool Pandora_Attack_Zone = false;
       public bool Attack_Raise_Alertness = true;
@@ -35,7 +35,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
       public long Config_Version = 20200325;
    }
 
-   public class DefenseMultiplier {
+   internal class DefenseMultiplier {
       public float Default = 1;
       public float Alert    = 1.2f;
       public float High_Alert = 1.1f;
