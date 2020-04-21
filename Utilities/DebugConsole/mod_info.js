@@ -1,6 +1,6 @@
 ({
    Id: "Sheepy.DebugConsole",
-   LoadIndex : -1000,
+   LoadIndex : -500,
 
    Lang: "en",
    Duration : "temp",
