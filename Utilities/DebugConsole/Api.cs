@@ -12,6 +12,54 @@ using UnityEngine;
 
 namespace Sheepy.PhoenixPt.DebugConsole {
    internal class Extensions : ZyMod {
+
+      private static HashSet< Assembly > ScannedMods;
+      private static FieldInfo CmdMethod;
+      private static FieldInfo CmdVarArg;
+      private static SortedList<string, ConsoleCommandAttribute> Commands;
+
+      internal static bool InitScanner () {
+         CmdMethod = typeof( ConsoleCommandAttribute ).GetField( "_methodInfo", BindingFlags.NonPublic | BindingFlags.Instance );
+         CmdVarArg = typeof( ConsoleCommandAttribute ).GetField( "_variableArguments", BindingFlags.NonPublic | BindingFlags.Instance );
+         Commands =  typeof( ConsoleCommandAttribute ).GetField( "CommandToInfo", BindingFlags.NonPublic | BindingFlags.Static ).GetValue( null ) as SortedList<string, ConsoleCommandAttribute> ;
+         if ( CmdMethod == null || CmdVarArg == null || Commands == null ) return false;
+         ScannedMods = new HashSet< Assembly >();
+         return true;
+      }
+
+      internal static void ScanCommands () { try {
+         Assembly[] asmAry = AppDomain.CurrentDomain.GetAssemblies();
+         if ( asmAry.Length == ScannedMods.Count ) return;
+         foreach ( var asm in asmAry ) {
+            if ( ScannedMods.Contains( asm ) ) continue;
+            if ( asm.FullName.StartsWith( "UnityEngine.", StringComparison.Ordinal ) ||
+                 asm.FullName.StartsWith( "Unity.", StringComparison.Ordinal ) ||
+                 asm.FullName.StartsWith( "Assembly-CSharp,", StringComparison.Ordinal ) ||
+                 asm.FullName.StartsWith( "System.", StringComparison.Ordinal ) ) {
+               ScannedMods.Add( asm );
+               continue;
+            }
+            Verbo( "Scanning {0} for console commands.", asm.FullName );
+            foreach ( var type in asm.GetTypes() )
+               foreach ( var func in type.GetMethods( BindingFlags.Static | BindingFlags.Public ) ) {
+                  var tag = func.GetCustomAttribute( typeof(ConsoleCommandAttribute) ) as ConsoleCommandAttribute;
+                  if ( tag == null ) continue;
+                  if ( tag.Command == null ) tag.Command = func.Name;
+                  if ( Commands.ContainsKey( tag.Command ) ) {
+                     Info( "Command exists, cannot register {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
+                     continue;
+                  }
+                  CmdMethod.SetValue( tag, func );
+                  var param = func.GetParameters();
+                  if ( param.Length > 0 && param[ param.Length - 1 ].ParameterType.FullName.Equals( "System.String[]" ) )
+                     CmdVarArg.SetValue( tag, true );
+                  Commands.Add( tag.Command, tag );
+                  Info( "Command registered: {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
+               }
+            ScannedMods.Add( asm );
+         }
+      } catch ( Exception ex ) { Error( ex ); } }
+
       [ ConsoleCommand( Command = "modnix", Description = "Call Modnix or compatible api." ) ]
       public static void ApiCommand ( IConsole console, string[] param ) { try {
          if ( ! HasApi ) {

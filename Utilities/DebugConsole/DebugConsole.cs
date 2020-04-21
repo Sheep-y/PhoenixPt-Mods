@@ -52,7 +52,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             Application.logMessageReceivedThreaded += UnityToConsole;
             TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
          }
-         if ( Config.Scan_Mods_For_Command && InitScanner() ) {
+         if ( Config.Scan_Mods_For_Command && Extensions.InitScanner() ) {
             TryPatch( typeof( UIStateMainMenu ), "EnterState", prefix: nameof( ScanCommands ) );
             TryPatch( typeof( GameConsoleWindow ), "ToggleVisibility", postfix: nameof( ScanCommands ) );
             // Scan before lists are accessed. Messages are buffered and will appear after the commands.
@@ -82,52 +82,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          }
       }
 
-      private static HashSet< Assembly > ScannedMods;
-      private static FieldInfo CmdMethod;
-      private static FieldInfo CmdVarArg;
-      private static SortedList<string, ConsoleCommandAttribute> Commands;
-
-      private static bool InitScanner () {
-         CmdMethod = typeof( ConsoleCommandAttribute ).GetField( "_methodInfo", BindingFlags.NonPublic | BindingFlags.Instance );
-         CmdVarArg = typeof( ConsoleCommandAttribute ).GetField( "_variableArguments", BindingFlags.NonPublic | BindingFlags.Instance );
-         Commands =  typeof( ConsoleCommandAttribute ).GetField( "CommandToInfo", BindingFlags.NonPublic | BindingFlags.Static ).GetValue( null ) as SortedList<string, ConsoleCommandAttribute> ;
-         if ( CmdMethod == null || CmdVarArg == null || Commands == null ) return false;
-         ScannedMods = new HashSet< Assembly >();
-         return true;
-      }
-
-      private static void ScanCommands () { try {
-         Assembly[] asmAry = AppDomain.CurrentDomain.GetAssemblies();
-         if ( asmAry.Length == ScannedMods.Count ) return;
-         foreach ( var asm in asmAry ) {
-            if ( ScannedMods.Contains( asm ) ) continue;
-            if ( asm.FullName.StartsWith( "UnityEngine.", StringComparison.Ordinal ) ||
-                 asm.FullName.StartsWith( "Unity.", StringComparison.Ordinal ) ||
-                 asm.FullName.StartsWith( "Assembly-CSharp,", StringComparison.Ordinal ) ||
-                 asm.FullName.StartsWith( "System.", StringComparison.Ordinal ) ) {
-               ScannedMods.Add( asm );
-               continue;
-            }
-            Verbo( "Scanning {0} for console commands.", asm.FullName );
-            foreach ( var type in asm.GetTypes() )
-               foreach ( var func in type.GetMethods( BindingFlags.Static | BindingFlags.Public ) ) {
-                  var tag = func.GetCustomAttribute( typeof(ConsoleCommandAttribute) ) as ConsoleCommandAttribute;
-                  if ( tag == null ) continue;
-                  if ( tag.Command == null ) tag.Command = func.Name;
-                  if ( Commands.ContainsKey( tag.Command ) ) {
-                     Info( "Command exists, cannot register {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
-                     continue;
-                  }
-                  CmdMethod.SetValue( tag, func );
-                  var param = func.GetParameters();
-                  if ( param.Length > 0 && param[ param.Length - 1 ].ParameterType.FullName.Equals( "System.String[]" ) )
-                     CmdVarArg.SetValue( tag, true );
-                  Commands.Add( tag.Command, tag );
-                  Info( "Command registered: {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
-               }
-            ScannedMods.Add( asm );
-         }
-      } catch ( Exception ex ) { Error( ex ); } }
+      private static void ScanCommands () => Extensions.ScanCommands();
 
       private static void AfterMainMenu_AddModCount ( UIStateMainMenu __instance ) { try {
          var revision = typeof( UIStateMainMenu ).GetProperty( "_buildRevisionModule", BindingFlags.NonPublic | BindingFlags.Instance )?.GetValue( __instance ) as UIModuleBuildRevision;
@@ -138,11 +93,11 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          revision.BuildRevisionNumber.text += $", Modnix {loader_ver}, {list.Count()} mods.";
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private readonly static List<string> Buffer = new List<string>();
+      private readonly static List<string> ConsoleBuffer = new List<string>();
 
       internal static void ConsoleWriteAsync ( string line ) {
          if ( string.IsNullOrWhiteSpace( line ) ) return;
-         lock ( Buffer ) Buffer.Add( line );
+         lock ( ConsoleBuffer ) ConsoleBuffer.Add( line );
       }
 
       private static FieldInfo ModnixLogEntryLevel;
@@ -179,18 +134,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private static Regex RegexModnixColour = new Regex( "^<color=#?\\w+>", RegexOptions.Compiled );
       private static Regex RegexModnixLine = new Regex( "^(\\[\\w+\\] )?\\d+ \\(\\d+\\.\\d{3}\\) ", RegexOptions.Compiled );
 
-      [ HarmonyPriority( Priority.VeryLow ) ]
-      private static bool BeforeAppendToLogFile_ProcessModnixLine ( ref string line ) { try {
-         if ( string.IsNullOrWhiteSpace( line ) ) return true;
-         line = EscLine( line ); // Prevent log writer thread from throwing error on string.format.
-         if ( line.StartsWith( "<color=", StringComparison.Ordinal ) ) {
-            line = RegexModnixColour.Replace( line, "", 1 );
-            if ( line.EndsWith( "</color>", StringComparison.Ordinal ) )
-               line = line.Substring( 0, line.Length - 8 );
-         }
-         return ! RegexModnixLine.IsMatch( line ) || Config.Write_Modnix_To_Console_Logfile;
-      } catch ( Exception ex ) { return Error( ex ); } }
-
       private static void UnityToConsole ( string condition, string stackTrace, LogType type ) { try {
          switch ( type ) {
             case LogType.Exception: case LogType.Error: case LogType.Warning:
@@ -210,15 +153,27 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       private static void BufferToConsole () { try {
          string[] lines;
-         lock ( Buffer ) {
-            if ( Buffer.Count == 0 ) return;
-            lines = Buffer.ToArray();
-            Buffer.Clear();
+         lock ( ConsoleBuffer ) {
+            if ( ConsoleBuffer.Count == 0 ) return;
+            lines = ConsoleBuffer.ToArray();
+            ConsoleBuffer.Clear();
          }
          var console = GameConsoleWindow.Create();
          foreach ( var line in lines )
             console.WriteLine( EscLine( line ) );
       } catch ( Exception ex ) { Error( ex ); } }
+
+      [ HarmonyPriority( Priority.VeryLow ) ]
+      private static bool BeforeAppendToLogFile_ProcessModnixLine ( ref string line ) { try {
+         if ( string.IsNullOrWhiteSpace( line ) ) return true;
+         line = EscLine( line ); // Prevent log writer thread from throwing error on string.format.
+         if ( line.StartsWith( "<color=", StringComparison.Ordinal ) ) {
+            line = RegexModnixColour.Replace( line, "", 1 );
+            if ( line.EndsWith( "</color>", StringComparison.Ordinal ) )
+               line = line.Substring( 0, line.Length - 8 );
+         }
+         return ! RegexModnixLine.IsMatch( line ) || Config.Write_Modnix_To_Console_Logfile;
+      } catch ( Exception ex ) { return Error( ex ); } }
 
       private static string EscLine ( string line ) => line.Replace( "{", "{{" ).Replace( "}", "}}" );
    }
