@@ -63,6 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Api.cs" />
     <Compile Include="DebugConsole.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ZyMod.cs" />
