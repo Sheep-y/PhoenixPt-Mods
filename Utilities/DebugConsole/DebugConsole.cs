@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -78,7 +79,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             ModnixLogEntryLevel = loader.GetType( "Sheepy.Logging.LogEntry" ).GetField( "Level" );
             if ( ModnixLogEntryLevel == null ) Warn( "Modnix log level not found. All log forwarded." );
             TryPatch( type, "ProcessEntry", postfix: nameof( ModnixToConsole ) );
-            TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( BeforeAppendToLogFile_ProcessModnixLine ) );
+            TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( OverrideAppendToLogFile_AddToQueue ) );
          }
       }
 
@@ -93,9 +94,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          revision.BuildRevisionNumber.text += $", Modnix {loader_ver}, {list.Count()} mods.";
       } catch ( Exception ex ) { Error( ex ); } }
 
+      #region Forward logs to Console
       private readonly static List<string> ConsoleBuffer = new List<string>();
 
-      internal static void ConsoleWriteAsync ( string line ) {
+      internal static void AddToConsoleBuffer ( string line ) {
          if ( string.IsNullOrWhiteSpace( line ) ) return;
          lock ( ConsoleBuffer ) ConsoleBuffer.Add( line );
       }
@@ -128,11 +130,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             }
          }
          txt = $"{prefix}{Time.frameCount} ({Time.time.ToString("0.000")}) {txt}</color>";
-         ConsoleWriteAsync( txt );
+         AddToConsoleBuffer( txt );
       } catch ( Exception ex ) { Error( ex ); } }
-
-      private static Regex RegexModnixColour = new Regex( "^<color=#?\\w+>", RegexOptions.Compiled );
-      private static Regex RegexModnixLine = new Regex( "^(\\[\\w+\\] )?\\d+ \\(\\d+\\.\\d{3}\\) ", RegexOptions.Compiled );
 
       private static void UnityToConsole ( string condition, string stackTrace, LogType type ) { try {
          switch ( type ) {
@@ -143,12 +142,13 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          }
          // Skip long message which can cause the 65000 vertices error.
          if ( condition.Length > 1000 || stackTrace.Length > 1000 ||
+              condition.StartsWith( "[CONSOLE] " ) ||
               condition.Contains( "Called from a secondary Thread" ) ||
               stackTrace?.Contains( "UnityTools.LogFormatter" ) == true )
-           return;
+            return;
          var line = $"{condition}   {stackTrace}".Trim();
          if ( line.Length == 0 ) return;
-         ConsoleWriteAsync( line );
+         AddToConsoleBuffer( line );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void BufferToConsole () { try {
@@ -162,18 +162,56 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          foreach ( var line in lines )
             console.WriteLine( EscLine( line ) );
       } catch ( Exception ex ) { Error( ex ); } }
+      #endregion
+
+      #region Write console to console log
+      private readonly static List<KeyValuePair<DateTime,string>> WriteBuffer = new List<KeyValuePair<DateTime,string>>();
+      private static Queue<string> LogFileQueue;
+      private static Task LogWriteTask;
 
       [ HarmonyPriority( Priority.VeryLow ) ]
-      private static bool BeforeAppendToLogFile_ProcessModnixLine ( ref string line ) { try {
-         if ( string.IsNullOrWhiteSpace( line ) ) return true;
-         line = EscLine( line ); // Prevent log writer thread from throwing error on string.format.
+      private static bool OverrideAppendToLogFile_AddToQueue ( string line, Queue<string> ____logFileQueue ) {
+         var entry = new KeyValuePair<DateTime,string>( DateTime.Now, line );
+         if ( LogFileQueue == null ) LogFileQueue = ____logFileQueue;
+         lock ( WriteBuffer ) {
+            WriteBuffer.Add( entry );
+            if ( LogWriteTask == null )
+               LogWriteTask = Task.Run( BufferToWriteQueue );
+         }
+         return false;
+      }
+
+      private static void BufferToWriteQueue () { try {
+         KeyValuePair<DateTime,string>[] entries;
+         lock ( WriteBuffer ) {
+            entries = WriteBuffer.ToArray();
+            WriteBuffer.Clear();
+            LogWriteTask = null;
+         }
+         var lines = entries.Select( FormatConsoleLog ).Where( e => e != null ).ToArray();
+         lock ( LogFileQueue ) {
+            foreach ( var line in lines )
+               LogFileQueue.Enqueue( line );
+            Monitor.Pulse( LogFileQueue );
+         }
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      private static Regex RegexModnixColour = new Regex( "^<color=#?\\w+>", RegexOptions.Compiled );
+      private static Regex RegexModnixLine = new Regex( "^(\\[\\w+\\] )?\\d+ \\(\\d+\\.\\d{3}\\) ", RegexOptions.Compiled );
+
+      private static string FormatConsoleLog ( KeyValuePair<DateTime,string> entry ) {
+         var line = entry.Value;
+         if ( string.IsNullOrWhiteSpace( line ) ) return null;
+         line = EscLine( line ); // Prevent log writer thread from throwing error on string.Format.
          if ( line.StartsWith( "<color=", StringComparison.Ordinal ) ) {
             line = RegexModnixColour.Replace( line, "", 1 );
             if ( line.EndsWith( "</color>", StringComparison.Ordinal ) )
                line = line.Substring( 0, line.Length - 8 );
          }
-         return ! RegexModnixLine.IsMatch( line ) || Config.Write_Modnix_To_Console_Logfile;
-      } catch ( Exception ex ) { return Error( ex ); } }
+         if ( RegexModnixLine.IsMatch( line ) && ! Config.Write_Modnix_To_Console_Logfile ) return null;
+         return entry.Key.ToString( "u" ).Substring( 11, 8 ) + " | " + line;
+      }
+      #endregion
 
       private static string EscLine ( string line ) => line.Replace( "{", "{{" ).Replace( "}", "}}" );
    }

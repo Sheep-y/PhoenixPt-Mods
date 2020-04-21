@@ -1,9 +1,10 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version 3.1.1
+# Version 3.1
 
-* Fix: Clear console log on game launch.
+* New: Replace game's Console.log writer to improve performance and make time sortable.
 * Fix: Modnix lines now have their line colours removed from console log.
+* Fix: Log lines with curry brackets no longer crash the console log writer. This is a vanilla bug.
 
 # Version 3.1
 
