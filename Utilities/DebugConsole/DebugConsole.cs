@@ -27,6 +27,13 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       public bool Scan_Mods_For_Command = true;
       public bool Write_Modnix_To_Console_Logfile = false;
       public int  Config_Version = 20200405;
+
+      internal void Update () {
+         if ( Config_Version < 20200405 ) {
+            Config_Version = 20200405;
+            Mod.Api( "config_save", this );
+         }
+      }
    }
 
    public class Mod : ZyMod {
@@ -35,9 +42,13 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       public static void Init () => new Mod().SplashMod();
 
       public void SplashMod ( Func< string, object, object > api = null ) {
+         SetApi( api, out Config ).Update();
+         GeneralPatch();
+         ModnixPatch();
+      }
+
+      private void GeneralPatch () {
          GameConsoleWindow.DisableConsoleAccess = false; // Enable console first no matter what happens
-         SetApi( api, out Config );
-         CheckConfig();
          Verbo( "Console Enabled" );
          if ( Config.Log_Game_Error || Config.Log_Game_Info ) {
             Application.logMessageReceived += UnityToConsole; // Non-main thread will cause inconsistent formats.
@@ -51,14 +62,15 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             TryPatch( typeof( ConsoleCommandAttribute ), "GetInfo", prefix: nameof( ScanCommands ) );
             TryPatch( typeof( ConsoleCommandAttribute ), "HasCommand", prefix: nameof( ScanCommands ) );
          }
-         if ( api == null ) return;
+      }
 
-         // Modnix only features
-         api( "api_add zy.ui.dump", (Func<object,object>) ApiGuiTree );
+      private void ModnixPatch () {
+         if ( ! HasApi ) return;
+         Api( "api_add zy.ui.dump", (Func<object,object>) ApiGuiTree );
          if ( Config.Mod_Count_In_Version )
             TryPatch( typeof( UIStateMainMenu ), "EnterState", postfix: nameof( AfterMainMenu_AddModCount ) );
          if ( Config.Log_Modnix_Error || Config.Log_Modnix_Info || Config.Log_Modnix_Verbose ) {
-            var loader = api( "assembly", "modnix" ) as Assembly
+            var loader = Api( "assembly", "modnix" ) as Assembly
                ?? AppDomain.CurrentDomain.GetAssemblies().First( e => e.FullName.StartsWith( "ModnixLoader", StringComparison.Ordinal ) );
             var type = loader?.GetType( "Sheepy.Logging.FileLogger" );
             if ( type != null ) {
@@ -69,13 +81,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                   TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( SkipAppendLogFile_IfModnix ) );
             } else
                Info( "Modnix assembly not found, log not forwarded." );
-         }
-      }
-
-      private static void CheckConfig () {
-         if ( Config.Config_Version < 20200405 ) {
-            Config.Config_Version = 20200405;
-            Api( "config_save", Config );
          }
       }
 
