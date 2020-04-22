@@ -1,23 +1,10 @@
 ﻿using Base.Defs;
-using Base.UI;
 using I2.Loc;
-using PhoenixPoint.Common.Entities.Addons;
-using PhoenixPoint.Geoscape.Levels;
-using PhoenixPoint.Tactical.Entities;
-using PhoenixPoint.Tactical.Entities.Equipments;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Reflection;
-using System.Security;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using UnityEngine;
-using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
