@@ -79,8 +79,6 @@ namespace Sheepy.PhoenixPt.Zht {
          Correct( ref trad, '并', '並' );
          Correct( ref trad, '圣', '聖' );
          Correct( ref trad, '于', '於' );
-         Correct( ref trad, "，", "，​" );
-         Correct( ref trad, "。", "。​" );
          Correct( ref trad, "飛行器", "航空器" );
          Correct( ref trad, "次級兵種", "兼職" );
          Correct( ref trad,  "兵種", "職業" );
@@ -290,15 +288,15 @@ namespace Sheepy.PhoenixPt.Zht {
          case "KEY_SYMESTUTORIAL1_05" : return "快馬加鞭、一路順風。";
 
          case "KEY_PP_INTRO1_01": return "鳳凰計劃創立於 1945 年 10 月 24 日。";
-         case "KEY_PP_INTRO1_02": return "終結戰爭的大戰，剛完了第二次。";
-         case "KEY_PP_INTRO1_04": return "有些人明白我們不能再受國家、帝國的視角所限。";
+         case "KEY_PP_INTRO1_02": return "終結戰爭的大戰，第二次來了又去。";
+         case "KEY_PP_INTRO1_04": return "有些人醒悟到我們不能繼續受國家所限。";
          case "KEY_PP_INTRO2_01": return "曾幾何時，鳳凰計劃成功駕馭了那個時代的政治衝突。";
-         case "KEY_PP_INTRO2_02": return "那是我們的黃金時代。鳳凰計劃的特工遊遍世界尋找蜘絲馬跡。";
+         case "KEY_PP_INTRO2_02": return "那是我們的黃金時代。鳳凰計劃的特工遊歷世界尋找蜘絲馬跡。";
          case "KEY_PP_INTRO2_03": return "我們在二十多個國家設立基地。連天空都攔不住我們。";
          case "KEY_PP_INTRO3_01": return "然而，就在遙遠的月球背面，我們的命運逆轉了。";
          case "KEY_PP_INTRO3_02": return "“鳳凰２號”任務失敗，聯合國中的敵人乘虛而入。";
          case "KEY_PP_INTRO3_03": return "資源被奪，人員四散。";
-         case "KEY_PP_INTRO3_04": return "我們變成了一個秘密…一段回憶。";
+         case "KEY_PP_INTRO3_04": return "我們變成一個秘密…一段回憶。";
          case "KEY_PP_INTRO4_01": return "當潘多拉病毒蘇醒時，我們本應是第一道防線。";
          case "KEY_PP_INTRO4_02": return "當海上出現巨大迷霧，當人們開始消失，";
          case "KEY_PP_INTRO4_03": return "我們本應能發現真相。";
