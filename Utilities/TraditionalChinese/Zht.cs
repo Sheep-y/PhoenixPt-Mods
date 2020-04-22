@@ -269,7 +269,7 @@ namespace Sheepy.PhoenixPt.Zht {
          case "KEY_INTROVOICE1_01" : return "今年可能是有史以來最熱的一年";
          case "KEY_INTROVOICE1_02" : return "科學家觀察到南極的永凍土發生劇烈變化";
          case "KEY_INTROVOICE2_01" : return "“潘多拉病毒”是一種巨型病毒，它的基因組大於所有已知病毒";
-         case "KEY_INTROVOICE3_01" : return "這些螃蟹變得具攻擊性，也不怕比自己巨大的捕食者";
+         case "KEY_INTROVOICE3_01" : return "這些螃蟹變得具攻擊性，也不怕比自己巨大的天敵";
          case "KEY_INTROVOICE4_01" : return "一種新型異常天氣席捲世界各地的多處海岸";
          case "KEY_INTROVOICE4_02" : return "美國太空總署正在研究這些迷霧";
          case "KEY_INTROVOICE5_01" : return "我們發現裡面含有大量有機化合物";
