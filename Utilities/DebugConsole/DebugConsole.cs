@@ -23,13 +23,14 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       public bool Log_Modnix_Error = true;
       public bool Log_Modnix_Info = true;
       public bool Log_Modnix_Verbose = false;
+      public bool Optimise_Log_File = true;
       public bool Scan_Mods_For_Command = true;
       public bool Write_Modnix_To_Console_Logfile = false;
-      public int  Config_Version = 20200405;
+      public int  Config_Version = 20200422;
 
       internal void Update () {
-         if ( Config_Version < 20200405 ) {
-            Config_Version = 20200405;
+         if ( Config_Version < 20200422 ) {
+            Config_Version = 20200422;
             ZyMod.Api( "config_save", this );
          }
       }
@@ -61,7 +62,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             TryPatch( typeof( ConsoleCommandAttribute ), "GetInfo", prefix: nameof( ScanCommands ) );
             TryPatch( typeof( ConsoleCommandAttribute ), "HasCommand", prefix: nameof( ScanCommands ) );
          }
-         TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( OverrideAppendToLogFile_AddToQueue ) );
+         if ( Config.Optimise_Log_File )
+            TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( OverrideAppendToLogFile_AddToQueue ) );
       }
 
       private void ModnixPatch () {
