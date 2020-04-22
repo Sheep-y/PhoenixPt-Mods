@@ -13,10 +13,21 @@ using UnityEngine;
 namespace Sheepy.PhoenixPt.DebugConsole {
    internal class Extensions : ZyMod {
 
-      [ ConsoleCommand( Command = "debug_level", Description = "Set console log level: e(rror), i(nfo), v(erbose), or n(one)" ) ]
+      [ ConsoleCommand( Command = "debug_level", Description = "Get or set console log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
       public static void ConsoleCommandDebugLevel ( IConsole console, string level ) { try {
          var config = Mod.Config;
          if ( level != null && level.Length >= 1 ) switch ( Char.ToLower( level[0] ) ) {
+            case 'g' :
+               List<string> levels = new List<string>();
+               if ( config.Log_Game_Error ) levels.Add( "Game Error" );
+               if ( config.Log_Game_Info ) levels.Add( "Game Info" );
+               if ( config.Log_Modnix_Error ) levels.Add( "Modnix Error" );
+               if ( config.Log_Modnix_Info ) levels.Add( "Modnix Info" );
+               if ( config.Log_Modnix_Verbose ) levels.Add( "Modnix Verbose" );
+               if ( level.Length == 0 ) levels.Add( "(None)" );
+               console.WriteLine( "Console log level: " + String.Join( ", ", levels ) );
+               return;
+
             case 'e' :
                config.Log_Game_Error = config.Log_Modnix_Error = true;
                config.Log_Game_Info = config.Log_Modnix_Info = config.Log_Modnix_Verbose = false;
@@ -38,9 +49,48 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             case 'n' :
                config.Log_Game_Error = config.Log_Modnix_Error = config.Log_Game_Info = config.Log_Modnix_Info = config.Log_Modnix_Verbose = false;
                console.WriteLine( "Console log level set to None." );
-               break;
+               return;
          }
-         WriteError( $"Unknown level '{level}'. Level must be e, i, or n." );
+         WriteError( $"Unknown level '{level}'. Level must be g, e, i, or n." );
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      [ ConsoleCommand( Command = "debug_level_modnix", Description = "Get or set modnix log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
+      public static void ConsoleCommandModnixDebugLevel ( IConsole console, string level ) { try {
+         if ( ! HasApi ) { WriteError( "Modnix API not found." ); return; }
+         // This should be called rarely, so the reflections are not cached.
+         var asm = Api( "assembly", "modnix" ) as Assembly;
+         var loggerField = asm?.GetType( "Sheepy.Modnix.ModLoader" )?.GetField( "Log", BindingFlags.NonPublic | BindingFlags.Static );
+         var levelField = asm?.GetType( "Sheepy.Logging.Logger" )?.GetProperty( "Level" );
+         var logger = loggerField?.GetValue( null );
+         string levelText = logger != null ? levelField.GetValue( logger )?.ToString() : null;
+         if ( levelText == null ) { WriteError( "Modnix logger not found or not recognised." ); return; }
+         
+         if ( level != null && level.Length >= 1 ) switch ( Char.ToLower( level[0] ) ) {
+            case 'g' :
+               console.WriteLine( "Modnix log level: " + levelText );
+               return;
+
+            case 'e' :
+               levelField.SetValue( logger, SourceLevels.Warning );
+               console.WriteLine( "Modnix log level set to Error." );
+               return;
+
+            case 'i' :
+               levelField.SetValue( logger, SourceLevels.Information );
+               console.WriteLine( "Modnix log level set to Information." );
+               return;
+
+            case 'v' :
+               levelField.SetValue( logger, SourceLevels.Verbose );
+               console.WriteLine( "Modnix log level set to Verbose." );
+               return;
+
+            case 'n' :
+               levelField.SetValue( logger, SourceLevels.Off );
+               console.WriteLine( "Modnix log level set to None." );
+               return;
+         }
+         WriteError( $"Unknown level '{level}'. Level must be g, e, i, v, or n." );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static HashSet< Assembly > ScannedMods;
