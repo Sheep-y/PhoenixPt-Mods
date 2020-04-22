@@ -75,22 +75,45 @@ namespace Sheepy.PhoenixPt.Zht {
       private static string ToTraditional ( string simp ) {
          var trad = new String( ' ', simp.Length );
          _ = LCMapString( LOCALE_SYSTEM_DEFAULT, LCMAP_TRADITIONAL_CHINESE, simp, simp.Length, trad, simp.Length );
-         if ( trad.IndexOf( '么' ) >= 0 ) trad = trad.Replace( '么', '麽' );
+         Correct( ref trad, '么', '麽' );
+         Correct( ref trad, '并', '並' );
+         Correct( ref trad, '圣', '聖' );
+         Correct( ref trad, '于', '於' );
+         Correct( ref trad, "，", "，​" );
+         Correct( ref trad, "。", "。​" );
+         Correct( ref trad, "飛行器", "航空器" );
+         Correct( ref trad, "次級兵種", "兼職" );
+         Correct( ref trad,  "兵種", "職業" );
          return trad;
+      }
+
+      private static void Correct ( ref string txt, char from, char to ) {
+         if ( txt.IndexOf( from ) < 0 ) return;
+         txt = txt.Replace( from, to );
+      }
+
+      private static void Correct ( ref string txt, string from, string to ) {
+         if ( txt.IndexOf( from, StringComparison.Ordinal ) < 0 ) return;
+         txt = txt.Replace( from, to );
       }
 
       internal static string Convert ( string term, string text ) {
          var result = ToTraditional( text );
          if ( term.StartsWith( "KEY_TUTORIAL_", StringComparison.Ordinal ) ) {
-            if ( result.IndexOf( "手柄" ) >= 0 ) result = result.Replace( "手柄", "控制器" );
+            Correct( ref result, "手柄", "控制器" );
          }
          return result;
       }
 
       internal static string TextMap ( string term ) { switch ( term ) {
+         case "Base Screen/KEY_BASE_AIRCRAFT" : return "航空器";
+         case "Base Screen/KEY_BASE_CURRENT_BASE_NAME" : return "基地";
+         case "Base Screen/KEY_BASE_OPERATION_REQUIREMENTS" : return "耗電";
+         case "Base Screen/KEY_BASE_PERSONNEL" : return "駐員";
+         case "Base Screen/KEY_BASE_VEHICLES" : return "戰車";
          case "Base Screen/KEY_GEOSCAPE_AIRCRAFTS" : return "航空器";
          case "Base Screen/KEY_GEOSCAPE_BASES" : return "基地";
-         case "Character Progression/KEY_NEW_CLASS_HEADER" : return "選擇副職業";
+         case "Character Progression/KEY_NEW_CLASS_HEADER" : return "選擇兼職";
          case "Character Progression/KEY_PROGRESSION_COST" : return "使用技能點";
          case "Controls/KEY_CONTROLS_BINDINGS_COMMON" : return "通用指令";
          case "Controls/KEY_CONTROLS_BINDINGS_GEOSCAPE" : return "世界指令";
@@ -109,6 +132,11 @@ namespace Sheepy.PhoenixPt.Zht {
          case "Geoscape/KEY_SECTION_GEOSCAPE" : return "世界";
          case "KEY_ALN_CRABMAN_NAME" : return "蟹人";
          case "KEY_ASSAULT_PROFICIENCY_DESCRIPTION" : return "熟練使用 突擊步槍 和 霰彈槍。";
+         case "KEY_BASE_FACILITY_ACCESS_LIFT_NAME" : return "出入口";
+         case "KEY_BASE_FACILITY_FABRICATION_PLANT_NAME" : return "工房";
+         case "KEY_BASE_FACILITY_LAB_NAME" : return "研究所";
+         case "KEY_BASE_FACILITY_SATELLITE_UPLINK_NAME" : return "衛星通訊器";
+         case "KEY_BASE_FACILITY_VEHICLE_BAY_NAME" : return "機庫";
          case "KEY_CONTROLS_ACTION_ABILITY_CONFIRM" : return "使用技能";
          case "KEY_CONTROLS_ACTION_ABILITY_OVERWATCH" : return "進入警戒模式";
          case "KEY_CONTROLS_ACTION_ABILITY_RELOAD" : return "裝填彈藥";
@@ -142,6 +170,7 @@ namespace Sheepy.PhoenixPt.Zht {
          case "KEY_CONTROLS_GEOSCAPE_LB" : return "下一輛航天器";
          case "KEY_CONTROLS_GEOSCAPE_LT" : return "拉遠";
          case "KEY_CONTROLS_GEOSCAPE_LTHUMB" : return "移動光標";
+         case "KEY_CONTROLS_GEOSCAPE_LTHUMB_PRESS" : return "航空器資訊";
          case "KEY_CONTROLS_GEOSCAPE_RB" : return "上一輛航天器";
          case "KEY_CONTROLS_GEOSCAPE_RT" : return "拉近";
          case "KEY_CONTROLS_GEOSCAPE_RTHUMB" : return "轉動地球";
@@ -211,15 +240,36 @@ namespace Sheepy.PhoenixPt.Zht {
          case "Roster Screen/KEY_DEPLOY_SQUAD" : return "部署";
          case "Roster Screen/KEY_GEOROSTER_MOUNTS" : return "附加";
          case "Tactical/KEY_ACCURACY_COLON" : return "精準：";
+         case "KEY_ITEM_STAT_STEALTH" : return "隱匿";
+         case "KEY_PROGRESSION_ACCURACY" : return "精準";
          case "Tactical/KEY_ACTION_POINTS_CLEAN" : return "AP";
          case "Tactical/KEY_HIT_POINTS_CLEAN" : return "HP";
          case "Tactical/KEY_STEALTH_COLON" : return "隱匿：";
          case "Tactical/KEY_WILL_POINTS_CLEAN" : return "意志";
+         case "KEY_PHOENIXPEDIA_GUIDE_ATTRIBUTES_NAME" : return "角色能力值";
+         case "KEY_PHOENIXPEDIA_GUIDE_DAMAGE_SYSTEM_NAME" : return "普通傷害";
+         case "KEY_PHOENIXPEDIA_GUIDE_SHOCK_NAME" : return "衝擊傷害";
+         case "KEY_PHOENIXPEDIA_GUIDE_SHRED_NAME" : return "破甲傷害";
+         case "KEY_PHOENIXPEDIA_GUIDE_PSYCHIC_NAME" : return "精神傷害";
+         case "KEY_ITEM_STAT_AMMO_CAPACITY" : return "裝彈數";
+         case "KEY_SCARAB_NAME" : return "鳳凰甲蟲戰車";
+         case "KEY_PX_AIRSHIP_DESCRIPTION" : return "鳳凰航空器";
+         case "KEY_MANUFACTURE_TAB_EQUIPMENT_TT" : return "製作裝備";
+         case "KEY_MEDKIT_DESCRIPTION" : return "恢復 {GeneralHealAmount} HP，并移除“流血”和“中毒”效果";
+
+         case "KEY_PX_GRENADE_DESCRIPTION" : return "鳳凰手榴彈";
+         case "KEY_PX_GRENADE_NAME" : return "奧丁手榴彈";
+         case "KEY_PX_HEAVY_BODY_NAME2" : return "哥林 B 型軀體護甲";
+         case "KEY_PX_HEAVY_HELMET_NAME2" : return "哥林 B 型頭盔";
+         case "KEY_PX_HEAVY_LEGS_NAME2" : return "哥林 B 型腿部護甲";
+         case "KEY_PX_SNIPER_BODY_NAME2" : return "幽靈軀體護甲";
+         case "KEY_PX_SNIPER_HELMET_NAME2" : return "幽靈頭盔";
+         case "KEY_PX_SNIPER_LEGS_NAME2" : return "幽靈腿部護甲";
 
          case "KEY_INTROVOICE1_01" : return "今年可能是有史以來最熱的一年";
          case "KEY_INTROVOICE1_02" : return "科學家觀察到南極的永凍土發生劇烈變化";
          case "KEY_INTROVOICE2_01" : return "“潘多拉病毒”是一種巨型病毒，它的基因組大於所有已知病毒";
-         case "KEY_INTROVOICE3_01" : return "這些螃蟹展現出明顯攻擊性，也不怕比自己巨大的捕食者";
+         case "KEY_INTROVOICE3_01" : return "這些螃蟹變得具攻擊性，也不怕比自己巨大的捕食者";
          case "KEY_INTROVOICE4_01" : return "一種新型異常天氣席捲世界各地的多處海岸";
          case "KEY_INTROVOICE4_02" : return "美國太空總署正在研究這些迷霧";
          case "KEY_INTROVOICE5_01" : return "我們發現裡面含有大量有機化合物";
@@ -244,7 +294,7 @@ namespace Sheepy.PhoenixPt.Zht {
          case "KEY_PP_INTRO1_04": return "有些人明白我們不能再受國家、帝國的視角所限。";
          case "KEY_PP_INTRO2_01": return "曾幾何時，鳳凰計劃成功駕馭了那個時代的政治衝突。";
          case "KEY_PP_INTRO2_02": return "那是我們的黃金時代。鳳凰計劃的特工遊遍世界尋找蜘絲馬跡。";
-         case "KEY_PP_INTRO2_03": return "我們在二十多個國家設立基地。連天空都阻不住我們。";
+         case "KEY_PP_INTRO2_03": return "我們在二十多個國家設立基地。連天空都攔不住我們。";
          case "KEY_PP_INTRO3_01": return "然而，就在遙遠的月球背面，我們的命運逆轉了。";
          case "KEY_PP_INTRO3_02": return "“鳳凰２號”任務失敗，聯合國中的敵人乘虛而入。";
          case "KEY_PP_INTRO3_03": return "資源被奪，人員四散。";
