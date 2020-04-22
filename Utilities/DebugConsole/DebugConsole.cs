@@ -61,6 +61,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             TryPatch( typeof( ConsoleCommandAttribute ), "GetInfo", prefix: nameof( ScanCommands ) );
             TryPatch( typeof( ConsoleCommandAttribute ), "HasCommand", prefix: nameof( ScanCommands ) );
          }
+         TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( OverrideAppendToLogFile_AddToQueue ) );
       }
 
       private void ModnixPatch () {
@@ -79,7 +80,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             ModnixLogEntryLevel = loader.GetType( "Sheepy.Logging.LogEntry" ).GetField( "Level" );
             if ( ModnixLogEntryLevel == null ) Warn( "Modnix log level not found. All log forwarded." );
             TryPatch( type, "ProcessEntry", postfix: nameof( ModnixToConsole ) );
-            TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( OverrideAppendToLogFile_AddToQueue ) );
          }
       }
 
@@ -208,7 +208,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             if ( line.EndsWith( "</color>", StringComparison.Ordinal ) )
                line = line.Substring( 0, line.Length - 8 );
          }
-         if ( RegexModnixLine.IsMatch( line ) && ! Config.Write_Modnix_To_Console_Logfile ) return null;
+         if ( HasApi && RegexModnixLine.IsMatch( line ) && ! Config.Write_Modnix_To_Console_Logfile ) return null;
          return entry.Key.ToString( "u" ).Substring( 11, 8 ) + " | " + line;
       }
       #endregion
