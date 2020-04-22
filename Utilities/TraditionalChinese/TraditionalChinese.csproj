@@ -57,6 +57,7 @@
     <Compile Include="ZyMod.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="changelog.md" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

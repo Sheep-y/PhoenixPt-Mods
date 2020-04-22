@@ -19,11 +19,12 @@ Mods published on NexusMods.
 
 * [**Deaf the Dead**](https://www.nexusmods.com/phoenixpoint/mods/45/) - Prevent dead units from hearing enemy movements.
 * [**Debug Console**](https://www.nexusmods.com/phoenixpoint/mods/44/) - Enable console and direct unity log and game log to it.
+* [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centering.
 * [**Limited War**](https://www.nexusmods.com/phoenixpoint/mods/24) - Tone down the scale and damage of faction war.
 * [**Recruit Info**](https://www.nexusmods.com/phoenixpoint/mods/28) - See recruit's skills, grafts, and equipments on haven screen.
 * [**Scrap Vehicle**](https://www.nexusmods.com/phoenixpoint/mods/26) - Make it possible to recycle vehicles and mutogs.
 * [**Skip Intro**](https://www.nexusmods.com/phoenixpoint/mods/17) - Skip logos, openings, and landings.
-* [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centering.
+* [**Traditional Chinese**](https://www.nexusmods.com/phoenixpoint/mods/47) - Convert Simplified Chinese to Traditional Chinese.
 
 Unpublished mods.  Not guaranteed to work at all.
 
