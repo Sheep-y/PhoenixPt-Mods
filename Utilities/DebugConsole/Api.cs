@@ -13,6 +13,36 @@ using UnityEngine;
 namespace Sheepy.PhoenixPt.DebugConsole {
    internal class Extensions : ZyMod {
 
+      [ ConsoleCommand( Command = "debug_level", Description = "Set console log level: e(rror), i(nfo), v(erbose), or n(one)" ) ]
+      public static void ConsoleCommandDebugLevel ( IConsole console, string level ) { try {
+         var config = Mod.Config;
+         if ( level != null && level.Length >= 1 ) switch ( Char.ToLower( level[0] ) ) {
+            case 'e' :
+               config.Log_Game_Error = config.Log_Modnix_Error = true;
+               config.Log_Game_Info = config.Log_Modnix_Info = config.Log_Modnix_Verbose = false;
+               console.WriteLine( "Console log level set to Error." );
+               return;
+
+            case 'i' :
+               config.Log_Game_Error = config.Log_Modnix_Error = config.Log_Game_Info = config.Log_Modnix_Info = true;
+               config.Log_Modnix_Verbose = false;
+               console.WriteLine( "Console log level set to Information." );
+               return;
+
+            case 'v' :
+               config.Log_Game_Error = config.Log_Modnix_Error = config.Log_Game_Info = config.Log_Modnix_Info = config.Log_Modnix_Verbose = true;
+               console.WriteLine( "Console log level set to Verbose." );
+               //ConsoleCommandModnixDebugLevel( console, "v" );
+               return;
+
+            case 'n' :
+               config.Log_Game_Error = config.Log_Modnix_Error = config.Log_Game_Info = config.Log_Modnix_Info = config.Log_Modnix_Verbose = false;
+               console.WriteLine( "Console log level set to None." );
+               break;
+         }
+         WriteError( $"Unknown level '{level}'. Level must be e, i, or n." );
+      } catch ( Exception ex ) { Error( ex ); } }
+
       private static HashSet< Assembly > ScannedMods;
       private static FieldInfo CmdMethod;
       private static FieldInfo CmdVarArg;
@@ -40,7 +70,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                continue;
             }
             Verbo( "Scanning {0} for console commands.", asm.FullName );
-            foreach ( var type in asm.GetTypes() )
+            foreach ( var type in asm.GetTypes() ) {
                foreach ( var func in type.GetMethods( BindingFlags.Static | BindingFlags.Public ) ) {
                   var tag = func.GetCustomAttribute( typeof(ConsoleCommandAttribute) ) as ConsoleCommandAttribute;
                   if ( tag == null ) continue;
@@ -56,14 +86,15 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                   Commands.Add( tag.Command, tag );
                   Info( "Command registered: {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
                }
+            }
             ScannedMods.Add( asm );
          }
       } catch ( Exception ex ) { Error( ex ); } }
 
       [ ConsoleCommand( Command = "modnix", Description = "Call Modnix or compatible api." ) ]
-      public static void ApiCommand ( IConsole console, string[] param ) { try {
+      public static void ConsoleCommandModnix ( IConsole console, string[] param ) { try {
          if ( ! HasApi ) {
-            console.WriteLine( "<color=fuchsia>Modnix API not found.</color>" );
+            WriteError( "Modnix API not found." );
             return;
          }
          if ( param == null || param.Length == 0 ) throw new ApplicationException( "Api action required." );
@@ -85,6 +116,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          DumpComponents( "", new HashSet<object>(), obj );
          return true;
       }
+
+      private static void WriteError ( string line ) => GameConsoleWindow.Create().WriteLine( $"<color=red>{line}</color>" );
 
       internal static void DumpComponents ( string prefix, HashSet<object> logged, GameObject e ) {
          if ( prefix.Length > 20 ) return;
