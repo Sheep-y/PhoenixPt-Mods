@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Lib.Harmony.1.2.0.1\lib\net45\0Harmony.dll</HintPath>
+      <HintPath>..\..\packages\Lib.Harmony.1.2.0.1\lib\net45\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
@@ -54,10 +54,8 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="changelog.md" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="mod_info.js" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
