@@ -13,7 +13,58 @@ using UnityEngine;
 namespace Sheepy.PhoenixPt.DebugConsole {
    internal class Extensions : ZyMod {
 
-      [ ConsoleCommand( Command = "debug_level", Description = "Get or set console log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
+      #region Scanner
+      private static HashSet< Assembly > ScannedMods;
+      private static FieldInfo CmdMethod;
+      private static FieldInfo CmdVarArg;
+      private static SortedList<string, ConsoleCommandAttribute> Commands;
+
+      internal static bool InitScanner () {
+         CmdMethod = typeof( ConsoleCommandAttribute ).GetField( "_methodInfo", BindingFlags.NonPublic | BindingFlags.Instance );
+         CmdVarArg = typeof( ConsoleCommandAttribute ).GetField( "_variableArguments", BindingFlags.NonPublic | BindingFlags.Instance );
+         Commands =  typeof( ConsoleCommandAttribute ).GetField( "CommandToInfo", BindingFlags.NonPublic | BindingFlags.Static ).GetValue( null ) as SortedList<string, ConsoleCommandAttribute> ;
+         if ( CmdMethod == null || CmdVarArg == null || Commands == null ) return false;
+         ScannedMods = new HashSet< Assembly >();
+         return true;
+      }
+
+      internal static void ScanCommands () { try {
+         Assembly[] asmAry = AppDomain.CurrentDomain.GetAssemblies();
+         if ( asmAry.Length == ScannedMods.Count ) return;
+         foreach ( var asm in asmAry ) {
+            if ( ScannedMods.Contains( asm ) ) continue;
+            if ( asm.FullName.StartsWith( "UnityEngine.", StringComparison.Ordinal ) ||
+                 asm.FullName.StartsWith( "Unity.", StringComparison.Ordinal ) ||
+                 asm.FullName.StartsWith( "Assembly-CSharp,", StringComparison.Ordinal ) ||
+                 asm.FullName.StartsWith( "System.", StringComparison.Ordinal ) ) {
+               ScannedMods.Add( asm );
+               continue;
+            }
+            Verbo( "Scanning {0} for console commands.", asm.FullName );
+            foreach ( var type in asm.GetTypes() ) {
+               foreach ( var func in type.GetMethods( BindingFlags.Static | BindingFlags.Public ) ) {
+                  var tag = func.GetCustomAttribute( typeof(ConsoleCommandAttribute) ) as ConsoleCommandAttribute;
+                  if ( tag == null ) continue;
+                  if ( tag.Command == null ) tag.Command = func.Name;
+                  if ( Commands.ContainsKey( tag.Command ) ) {
+                     Info( "Command exists, cannot register {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
+                     continue;
+                  }
+                  CmdMethod.SetValue( tag, func );
+                  var param = func.GetParameters();
+                  if ( param.Length > 0 && param[ param.Length - 1 ].ParameterType.FullName.Equals( "System.String[]" ) )
+                     CmdVarArg.SetValue( tag, true );
+                  Commands.Add( tag.Command, tag );
+                  Info( "Command registered: {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
+               }
+            }
+            ScannedMods.Add( asm );
+         }
+      } catch ( Exception ex ) { Error( ex ); } }
+      #endregion
+
+      #region Console commands
+      [ConsoleCommand( Command = "debug_level", Description = "Get or set console log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
       public static void ConsoleCommandDebugLevel ( IConsole console, string level ) { try {
          var config = Mod.Config;
          if ( level != null && level.Length >= 1 ) switch ( Char.ToLower( level[0] ) ) {
@@ -93,54 +144,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          WriteError( $"Unknown level '{level}'. Level must be g, e, i, v, or n." );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static HashSet< Assembly > ScannedMods;
-      private static FieldInfo CmdMethod;
-      private static FieldInfo CmdVarArg;
-      private static SortedList<string, ConsoleCommandAttribute> Commands;
-
-      internal static bool InitScanner () {
-         CmdMethod = typeof( ConsoleCommandAttribute ).GetField( "_methodInfo", BindingFlags.NonPublic | BindingFlags.Instance );
-         CmdVarArg = typeof( ConsoleCommandAttribute ).GetField( "_variableArguments", BindingFlags.NonPublic | BindingFlags.Instance );
-         Commands =  typeof( ConsoleCommandAttribute ).GetField( "CommandToInfo", BindingFlags.NonPublic | BindingFlags.Static ).GetValue( null ) as SortedList<string, ConsoleCommandAttribute> ;
-         if ( CmdMethod == null || CmdVarArg == null || Commands == null ) return false;
-         ScannedMods = new HashSet< Assembly >();
-         return true;
-      }
-
-      internal static void ScanCommands () { try {
-         Assembly[] asmAry = AppDomain.CurrentDomain.GetAssemblies();
-         if ( asmAry.Length == ScannedMods.Count ) return;
-         foreach ( var asm in asmAry ) {
-            if ( ScannedMods.Contains( asm ) ) continue;
-            if ( asm.FullName.StartsWith( "UnityEngine.", StringComparison.Ordinal ) ||
-                 asm.FullName.StartsWith( "Unity.", StringComparison.Ordinal ) ||
-                 asm.FullName.StartsWith( "Assembly-CSharp,", StringComparison.Ordinal ) ||
-                 asm.FullName.StartsWith( "System.", StringComparison.Ordinal ) ) {
-               ScannedMods.Add( asm );
-               continue;
-            }
-            Verbo( "Scanning {0} for console commands.", asm.FullName );
-            foreach ( var type in asm.GetTypes() ) {
-               foreach ( var func in type.GetMethods( BindingFlags.Static | BindingFlags.Public ) ) {
-                  var tag = func.GetCustomAttribute( typeof(ConsoleCommandAttribute) ) as ConsoleCommandAttribute;
-                  if ( tag == null ) continue;
-                  if ( tag.Command == null ) tag.Command = func.Name;
-                  if ( Commands.ContainsKey( tag.Command ) ) {
-                     Info( "Command exists, cannot register {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
-                     continue;
-                  }
-                  CmdMethod.SetValue( tag, func );
-                  var param = func.GetParameters();
-                  if ( param.Length > 0 && param[ param.Length - 1 ].ParameterType.FullName.Equals( "System.String[]" ) )
-                     CmdVarArg.SetValue( tag, true );
-                  Commands.Add( tag.Command, tag );
-                  Info( "Command registered: {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
-               }
-            }
-            ScannedMods.Add( asm );
-         }
-      } catch ( Exception ex ) { Error( ex ); } }
-
       [ ConsoleCommand( Command = "modnix", Description = "Call Modnix or compatible api." ) ]
       public static void ConsoleCommandModnix ( IConsole console, string[] param ) { try {
          if ( ! HasApi ) {
@@ -157,6 +160,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          WriteResult( Api( param[0], arg ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
+      private static void WriteError ( string line ) => GameConsoleWindow.Create().WriteLine( $"<color=red>{line}</color>" );
+      #endregion
+
+      #region Gui Tree
       internal static object GuiTree ( object root ) {
          if ( root is Transform t ) root = t.gameObject;
          if ( ! ( root is GameObject obj ) ) {
@@ -166,8 +173,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          DumpComponents( "", new HashSet<object>(), obj );
          return true;
       }
-
-      private static void WriteError ( string line ) => GameConsoleWindow.Create().WriteLine( $"<color=red>{line}</color>" );
 
       internal static void DumpComponents ( string prefix, HashSet<object> logged, GameObject e ) {
          if ( prefix.Length > 20 ) return;
@@ -208,5 +213,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                else WriteResult( e.Result );
             } );
       } catch ( Exception ex ) { Error( ex ); } }
+      #endregion
    }
 }

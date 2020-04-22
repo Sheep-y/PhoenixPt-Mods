@@ -1,6 +1,6 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version 4
+# Version 4, 2020-04-22
 
 * New: Replace game's Console.log writer to improve performance and make time sortable.
 * New: Console command "debug_level" and "debug_level_modnix" to get and set console and modnix log level.
