@@ -37,7 +37,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
    }
 
    public class Mod : ZyMod {
-      internal static ModConfig Config;
+      internal static volatile ModConfig Config;
 
       public static void Init () => new Mod().SplashMod();
 
