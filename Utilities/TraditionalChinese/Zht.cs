@@ -31,7 +31,8 @@ namespace Sheepy.PhoenixPt.Zht {
 
       private static void DoLangPatch () { lock ( _Lock ) {
          if ( LangPatch != null ) return;
-         LangPatch = Instance.Patch( typeof( LanguageSourceData ), "GetTermData", postfix: nameof( Translate ) );
+         //LangPatch = Instance.Patch( typeof( LanguageSourceData ), "GetTermData", postfix: nameof( Translate ) );
+         LangPatch = Instance.Patch( typeof( TermData ), "GetTranslation", postfix: nameof( Translate ) );
       } }
 
       private static void UndoLangPatch () { lock ( _Lock ) {
@@ -42,26 +43,23 @@ namespace Sheepy.PhoenixPt.Zht {
 
       private static readonly HashSet<string> Translated = new HashSet<string>();
 
-      private static void Translate ( LanguageSourceData __instance, string term, TermData __result ) { try {
+      private static void Translate ( TermData __instance, int idx, ref string __result ) { try {
+         var term = __instance.Term;
          if ( string.IsNullOrEmpty( term ) ) return;
          lock ( Translated ) {
             if ( Translated.Contains( term ) ) return;
             Translated.Add( term );
          }
-
-         var trans = __result?.Languages;
-         if ( trans == null ) { Info( "Empty translation {0}", term ); return; }
-         var idx = __instance.GetLanguageIndex( "Chinese (Simplified)", true, false );
-
+         var trans = __instance.Languages;
          var result = TextMap( term );
          if ( result == null ) {
             var text = idx >= 0 && idx < trans.Length ? trans[ idx ] : null;
-            if ( string.IsNullOrEmpty( text ) ) { Info( "Untranslated {0} {1}", term, __result.Languages[0] ); return; }
+            if ( string.IsNullOrEmpty( text ) ) return;
             result = Convert( term, text );
             if ( result.Equals( text ) ) return;
-            Verbo( "Translated {0} {1} => {2}", term, text, result );
+            //Verbo( "Translated {0} {1} => {2}", term, text, result );
          }
-         trans[ idx ] = result;
+         __result = trans[ idx ] = result;
       } catch ( Exception ex ) { Error( ex ); } }
 
       #region Translation
