@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.Zht {
    public class Mod : ZyMod {
@@ -53,13 +52,12 @@ namespace Sheepy.PhoenixPt.Zht {
          if ( idx < 0 ) return;
          var text = __result.Languages[ idx ];
          if ( string.IsNullOrEmpty( text ) ) return;
-         var result = Convertor.ToTraditional( text );
+         var result = TextMap( term ) ?? ToTraditional( text );
          __result.Languages[ idx ] = result;
          Verbo( "Translated {0} {1} => {2}", term, text, result );
       } catch ( Exception ex ) { Error( ex ); } }
-   }
-      
-   internal static class Convertor {
+
+      #region Translation
       internal const int LOCALE_SYSTEM_DEFAULT = 0x0800;
       internal const int LCMAP_SIMPLIFIED_CHINESE = 0x02000000;
       internal const int LCMAP_TRADITIONAL_CHINESE = 0x04000000;
@@ -67,10 +65,18 @@ namespace Sheepy.PhoenixPt.Zht {
       [ DllImport( "kernel32", CharSet = CharSet.Unicode, SetLastError = true ) ]
       internal static extern int LCMapString ( int Locale, int dwMapFlags, string lpSrcStr, int cchSrc, [Out] string lpDestStr, int cchDest );
 
-      public static string ToTraditional ( string pSource ) {
-         var tTarget = new String( ' ', pSource.Length );
-         var tReturn = LCMapString( LOCALE_SYSTEM_DEFAULT, LCMAP_TRADITIONAL_CHINESE, pSource, pSource.Length, tTarget, pSource.Length );
-         return tTarget;
+      public static string ToTraditional ( string simp ) {
+         var trad = new String( ' ', simp.Length );
+         _ = LCMapString( LOCALE_SYSTEM_DEFAULT, LCMAP_TRADITIONAL_CHINESE, simp, simp.Length, trad, simp.Length );
+         return trad;
       }
+
+      public static string TextMap ( string term ) {
+         switch ( term ) {
+            case "" : return "";
+            default: return null;
+         }
+      }
+      #endregion
    }
 }
