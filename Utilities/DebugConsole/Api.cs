@@ -1,5 +1,8 @@
-﻿using Base.Utils.GameConsole;
+﻿using Base.Cameras;
+using Base.Core;
+using Base.Utils.GameConsole;
 using Newtonsoft.Json;
+using PhoenixPoint.Common.Utils;
 using PhoenixPoint.Geoscape.View;
 using System;
 using System.Collections.Generic;
@@ -9,6 +12,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Sheepy.PhoenixPt.DebugConsole {
    internal class Extensions : ZyMod {
@@ -64,7 +68,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       #endregion
 
       #region Console commands
-      [ConsoleCommand( Command = "debug_level", Description = "Get or set console log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
+      [ConsoleCommand( Command = "debug_level", Description = "[level] - Get or set console log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
       public static void ConsoleCommandDebugLevel ( IConsole console, string level ) { try {
          var config = Mod.Config;
          if ( level != null && level.Length >= 1 ) switch ( Char.ToLower( level[0] ) ) {
@@ -105,7 +109,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          WriteError( $"Unknown level '{level}'. Level must be g, e, i, or n." );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      [ ConsoleCommand( Command = "debug_level_modnix", Description = "Get or set modnix log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
+      [ ConsoleCommand( Command = "debug_level_modnix", Description = "[level] - Get or set modnix log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
       public static void ConsoleCommandModnixDebugLevel ( IConsole console, string level ) { try {
          if ( ! HasApi ) { WriteError( "Modnix API not found." ); return; }
          // This should be called rarely, so the reflections are not cached.
@@ -144,7 +148,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          WriteError( $"Unknown level '{level}'. Level must be g, e, i, v, or n." );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      [ ConsoleCommand( Command = "modnix", Description = "Call Modnix or compatible api." ) ]
+      [ ConsoleCommand( Command = "modnix", Description = "[spec] [param] - Call Modnix or compatible api." ) ]
       public static void ConsoleCommandModnix ( IConsole console, string[] param ) { try {
          if ( ! HasApi ) {
             WriteError( "Modnix API not found." );
@@ -159,6 +163,40 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             arg = param[1];
          WriteResult( Api( param[0], arg ) );
       } catch ( Exception ex ) { Error( ex ); } }
+
+      [ ConsoleCommand( Command = "dump_gui", Description = "Dump GUI component tree starting at point of cursor." ) ]
+      public static void ConsoleCommandGuiDump ( IConsole console ) { try {
+         var module = EventSystem.current.currentInputModule as PointerInputModule;
+         var ray = ( GameUtl.Game().GetComponent<CameraManager>()?.Camera ?? Camera.main ).ScreenPointToRay( Input.mousePosition );
+         if ( FoundObject( ray, UnityLayers.UI ) ) return;
+         if ( FoundObject( ray, UnityLayers.WorldUI ) ) return;
+         if ( FoundObject( ray, UnityLayers.Globe ) ) return;
+         if ( FoundObject( ray, UnityLayers.Sites ) ) return;
+         if ( FoundObject( ray, UnityLayers.Characters ) ) return;
+         if ( FoundObject( ray, UnityLayers.Objects ) ) return;
+         if ( FoundObject( ray, UnityLayers.FloorWallsAll ) ) return;
+         if ( FoundObject( ray, UnityLayers.Environment ) ) return;
+         console.WriteLine( "No object found at " + Input.mousePosition );
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      private static bool FoundObject ( Ray ray, int layer ) {
+         if ( ! Physics.Raycast( ray, out RaycastHit hit, Mathf.Infinity, layer ) ) return false;
+         GuiTree( hit.collider.gameObject );
+         return true;
+      }
+      /*
+      private static GameView CurrentView () {
+         var level = GameUtl.CurrentLevel();
+         if ( level == null || level.CurrentState != Level.State.Playing ) return null;
+         if ( level.GetComponent<MenuLevelController>() != null )
+            return level.GetComponent<HomeScreenView>();
+         if ( level.GetComponent<GeoLevelController>() != null )
+            return level.GetComponent<GeoscapeView>();
+         if ( level.GetComponent<TacticalLevelController>() != null )
+            return level.GetComponent<TacticalView>();
+         return null;
+      }
+      */
 
       private static void WriteError ( string line ) => GameConsoleWindow.Create().WriteLine( $"<color=red>{line}</color>" );
       #endregion
@@ -178,12 +216,15 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( prefix.Length > 20 ) return;
          if ( logged.Contains( e ) ) return;
          logged.Add( e );
-         Info( "{0}> {1} {2}{3} Layer {4}", prefix, e.name, TypeName( e ), e.activeSelf ? "" : " (Inactive)", e.layer );
+         var rect = e.GetComponent<Transform>();
+         Info( "{0}> {1} {2}{3} Layer {4} Pos {5} Scale {6} Rot {7}", prefix, e.name, TypeName( e ), e.activeSelf ? "" : " (Inactive)", e.layer,
+            rect.localPosition, rect.localScale, rect.localRotation );
          foreach ( var c in e.GetComponents<Component>() ) {
             var typeName = TypeName( c );
-            if ( c is Transform rect )
-               Info( "{0}...{1} Pos {2} Scale {3} Rotate {4}", prefix, typeName, rect.localPosition, rect.localScale, rect.localRotation );
-            else if ( c is UnityEngine.UI.Text txt )
+            if ( c is Transform cRect ) {
+               if ( c != rect )
+                  Info( "{0}...{1} Pos {2} Scale {3} Rotate {4}", prefix, typeName, cRect.localPosition, cRect.localScale, cRect.localRotation );
+            } else if ( c is UnityEngine.UI.Text txt )
                Info( "{0}...{1} {2} {3}", prefix, typeName, txt.color, txt.text );
             else if ( c is I2.Loc.Localize loc )
                Info( "{0}...{1} {2}", prefix, typeName, loc.mTerm );
@@ -192,7 +233,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             else if ( c is FovControllableBehavior fov )
                Info( "{0}...{1} Invis {2} Billboard {3}-{4}", prefix, typeName, fov.ControllingDef.InvisibleOverFov, fov.ControllingDef.BillboardStartFov, fov.ControllingDef.BillboardFullFov );
             else
-               Info( "{0}...{1}", prefix, typeName );
+               Info( "{0}...{1} {2}", prefix, typeName, c.name );
          }
          for ( int i = 0 ; i < e.transform.childCount ; i++ ) 
             DumpComponents( prefix + "  ", logged, e.transform.GetChild( i ).gameObject );
