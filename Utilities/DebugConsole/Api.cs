@@ -173,14 +173,11 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       #region Gui Tree
       internal static object GuiTreeApi ( object root ) => DumpGui( null, root ?? DefaultDumpSubject() );
 
-      [ ConsoleCommand( Command = "dump_gui", Description = " - Dump module component tree." ) ]
+      [ ConsoleCommand( Command = "dump_gui", Description = "[name] - Find a named component and dump its tree, or dump current view's tree." ) ]
       public static void ConsoleCommandGuiDump ( IConsole console, string[] names ) { try {
          if ( names?.Length > 0 ) {
-            foreach ( var name in names ) {
-               var obj = GameObject.Find( name );
-               if ( obj == null ) console.WriteLine( "'" + name + "' does not exist or is inactive." );
-               else DumpGui( console, obj );
-            }
+            foreach ( var name in names )
+               DumpGui( console, name );
          } else
             DumpGui( console, DefaultDumpSubject() );
       } catch ( Exception ex ) { Error( ex ); } }
@@ -199,6 +196,13 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       }
 
       internal static object DumpGui ( IConsole output, object root ) {
+         if ( root is string txt ) {
+            root = GameObject.Find( txt );
+            if ( root == null ) {
+               Output( output, "GameObject '{0}' does not exist or is inactive", txt );
+               return false;
+            }
+         }
          if ( root is Component c ) root = c.gameObject;
          if ( ! ( root is GameObject obj ) ) {
             Output( output, new ArgumentException( "Not a Unity GameObject: " + root?.GetType().FullName ?? "null" ) );
