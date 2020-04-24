@@ -1,9 +1,13 @@
-﻿using Base.Cameras;
-using Base.Core;
+﻿using Base.Core;
+using Base.Levels;
 using Base.Utils.GameConsole;
 using Newtonsoft.Json;
-using PhoenixPoint.Common.Utils;
+using PhoenixPoint.Common.Levels;
+using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Geoscape.View;
+using PhoenixPoint.Home.View;
+using PhoenixPoint.Tactical.Levels;
+using PhoenixPoint.Tactical.View;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,7 +16,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Sheepy.PhoenixPt.DebugConsole {
    internal class Extensions : ZyMod {
@@ -164,79 +167,74 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          WriteResult( Api( param[0], arg ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      [ ConsoleCommand( Command = "dump_gui", Description = "Dump GUI component tree starting at point of cursor." ) ]
-      public static void ConsoleCommandGuiDump ( IConsole console ) { try {
-         var module = EventSystem.current.currentInputModule as PointerInputModule;
-         var ray = ( GameUtl.Game().GetComponent<CameraManager>()?.Camera ?? Camera.main ).ScreenPointToRay( Input.mousePosition );
-         if ( FoundObject( ray, UnityLayers.UI ) ) return;
-         if ( FoundObject( ray, UnityLayers.WorldUI ) ) return;
-         if ( FoundObject( ray, UnityLayers.Globe ) ) return;
-         if ( FoundObject( ray, UnityLayers.Sites ) ) return;
-         if ( FoundObject( ray, UnityLayers.Characters ) ) return;
-         if ( FoundObject( ray, UnityLayers.Objects ) ) return;
-         if ( FoundObject( ray, UnityLayers.FloorWallsAll ) ) return;
-         if ( FoundObject( ray, UnityLayers.Environment ) ) return;
-         console.WriteLine( "No object found at " + Input.mousePosition );
-      } catch ( Exception ex ) { Error( ex ); } }
-
-      private static bool FoundObject ( Ray ray, int layer ) {
-         if ( ! Physics.Raycast( ray, out RaycastHit hit, Mathf.Infinity, layer ) ) return false;
-         GuiTree( hit.collider.gameObject );
-         return true;
-      }
-      /*
-      private static GameView CurrentView () {
-         var level = GameUtl.CurrentLevel();
-         if ( level == null || level.CurrentState != Level.State.Playing ) return null;
-         if ( level.GetComponent<MenuLevelController>() != null )
-            return level.GetComponent<HomeScreenView>();
-         if ( level.GetComponent<GeoLevelController>() != null )
-            return level.GetComponent<GeoscapeView>();
-         if ( level.GetComponent<TacticalLevelController>() != null )
-            return level.GetComponent<TacticalView>();
-         return null;
-      }
-      */
-
       private static void WriteError ( string line ) => GameConsoleWindow.Create().WriteLine( $"<color=red>{line}</color>" );
       #endregion
 
       #region Gui Tree
-      internal static object GuiTree ( object root ) {
-         if ( root is Transform t ) root = t.gameObject;
+      [ ConsoleCommand( Command = "dump_gui", Description = " - Dump module component tree." ) ]
+      public static void ConsoleCommandGuiDump ( IConsole console ) { try {
+         var level = GameUtl.CurrentLevel();
+         if ( level == null || level.CurrentState != Level.State.Playing ) {
+            DumpGui( console, level.gameObject );
+            return;
+         }
+         if ( level.GetComponent<MenuLevelController>() != null ) {
+            var view = level.GetComponent<HomeScreenView>();
+            DumpGui( console, view.HomeScreenModules );
+         }
+         else if ( level.GetComponent<GeoLevelController>() != null ) {
+            var view = level.GetComponent<GeoscapeView>();
+            DumpGui( console, view.GeoscapeModules );
+         }
+         else if ( level.GetComponent<TacticalLevelController>() != null ) {
+            var view = level.GetComponent<TacticalView>();
+            DumpGui( console, view.TacticalModules );
+         }
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      internal static object GuiTreeApi ( object root ) => DumpGui( null, root );
+
+      internal static object DumpGui ( IConsole output, object root ) {
+         if ( root is Component c ) root = c.gameObject;
          if ( ! ( root is GameObject obj ) ) {
-            Warn( new ArgumentException( "Not a Unity GameObject: " + root?.GetType().FullName ?? "null" ) );
+            Output( output, new ArgumentException( "Not a Unity GameObject: " + root?.GetType().FullName ?? "null" ) );
             return false;
          }
-         DumpComponents( "", new HashSet<object>(), obj );
+         DumpComponents( output, "", new HashSet<object>(), obj );
          return true;
       }
 
-      internal static void DumpComponents ( string prefix, HashSet<object> logged, GameObject e ) {
+      internal static void DumpComponents ( IConsole output, string prefix, HashSet<object> logged, GameObject e ) {
          if ( prefix.Length > 20 ) return;
          if ( logged.Contains( e ) ) return;
          logged.Add( e );
          var rect = e.GetComponent<Transform>();
-         Info( "{0}> {1} {2}{3} Layer {4} / Pos {5} Scale {6} Rot {7}", prefix, e.name, TypeName( e ), e.activeSelf ? "" : " (Inactive)", e.layer,
+         Output( output, "{0}> {1} {2}{3} Layer {4} / Pos {5} Scale {6} Rot {7}", prefix, e.name, TypeName( e ), e.activeSelf ? "" : " (Inactive)", e.layer,
             rect?.localPosition, rect?.localScale, rect?.localRotation );
-         foreach ( var c in e.GetComponents<Component>() ) {
-            var typeName = TypeName( c );
-            if ( c is Transform cRect ) {
-               if ( c != rect )
-                  Info( "{0}...{1} Pos {2} Scale {3} Rotate {4}", prefix, typeName, cRect.localPosition, cRect.localScale, cRect.localRotation );
-            } else if ( c is UnityEngine.UI.Text txt )
-               Info( "{0}...{1} {2} {3}", prefix, typeName, txt.color, txt.text );
-            else if ( c is I2.Loc.Localize loc )
-               Info( "{0}...{1} {2}", prefix, typeName, loc.mTerm );
-            else if ( c is UnityEngine.UI.LayoutGroup layout )
-               Info( "{0}...{1} Padding {2}", prefix, typeName, layout.padding );
-            else if ( c is FovControllableBehavior fov )
-               Info( "{0}...{1} Invis {2} Billboard {3}-{4}", prefix, typeName, fov.ControllingDef.InvisibleOverFov, fov.ControllingDef.BillboardStartFov, fov.ControllingDef.BillboardFullFov );
-            else
-               Info( "{0}...{1} {2}", prefix, typeName, c.name );
-         }
+         if ( output == null || prefix.Length == 0 )
+            foreach ( var c in e.GetComponents<Component>() ) {
+               var typeName = TypeName( c );
+               if ( c is Transform cRect ) {
+                  if ( c != rect )
+                     Output( output, "{0}...{1} Pos {2} Scale {3} Rotate {4}", prefix, typeName, cRect.localPosition, cRect.localScale, cRect.localRotation );
+               } else if ( c is UnityEngine.UI.Text txt )
+                  Output( output, "{0}...{1} {2} {3}", prefix, typeName, txt.color, txt.text );
+               else if ( c is I2.Loc.Localize loc )
+                  Output( output, "{0}...{1} {2}", prefix, typeName, loc.mTerm );
+               else if ( c is UnityEngine.UI.LayoutGroup layout )
+                  Output( output, "{0}...{1} Padding {2}", prefix, typeName, layout.padding );
+               else if ( c is FovControllableBehavior fov )
+                  Output( output, "{0}...{1} Invis {2} Billboard {3}-{4}", prefix, typeName, fov.ControllingDef.InvisibleOverFov, fov.ControllingDef.BillboardStartFov, fov.ControllingDef.BillboardFullFov );
+               else
+                  Output( output, "{0}...{1}", prefix, typeName );
+            }
          for ( int i = 0 ; i < e.transform.childCount ; i++ ) 
-            DumpComponents( prefix + "  ", logged, e.transform.GetChild( i ).gameObject );
+            DumpComponents( output, prefix + "  ", logged, e.transform.GetChild( i ).gameObject );
+      }
+
+      private static void Output ( IConsole output, object param, params object[] args ) {
+         if ( output == null ) Info( param, args );
+         else output.WriteLine( param?.ToString(), args );
       }
 
       private static string TypeName ( object e ) => e?.GetType().FullName.Replace( "UnityEngine.", "UE." );

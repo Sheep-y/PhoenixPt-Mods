@@ -68,7 +68,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       private void ModnixPatch () {
          if ( ! HasApi ) return;
-         Api( "api_add zy.ui.dump", (Func<object,object>) Extensions.GuiTree );
+         Api( "api_add zy.ui.dump", (Func<object,object>) Extensions.GuiTreeApi );
          if ( Config.Mod_Count_In_Version )
             TryPatch( typeof( UIStateMainMenu ), "EnterState", postfix: nameof( AfterMainMenu_AddModCount ) );
          if ( Config.Log_Modnix_Error || Config.Log_Modnix_Info || Config.Log_Modnix_Verbose ) {
