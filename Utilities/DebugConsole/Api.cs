@@ -177,8 +177,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       public static void ConsoleCommandGuiDump ( IConsole console, string[] names ) { try {
          if ( names?.Length > 0 ) {
             foreach ( var name in names ) {
-               var obj = GameObject.Find( name )?.transform ?? DefaultDumpSubject()?.transform.Find( name );
-               if ( obj == null ) console.WriteLine( "Cannot find " + name );
+               var obj = GameObject.Find( name );
+               if ( obj == null ) console.WriteLine( "'" + name + "' does not exist or is inactive." );
                else DumpGui( console, obj );
             }
          } else
@@ -212,7 +212,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( prefix.Length > 20 ) return;
          if ( logged.Contains( e ) ) return;
          logged.Add( e );
-         Output( output, "{0}> '{1}':{2} {3}{4} Layer {5} : {6}", prefix, e.name, e.tag, TypeName( e ), e.activeSelf ? "" : " (Inactive)", e.layer, ToString( e.GetComponent<Transform>() ) );
+         Output( output, "{0}- '{1}'{2} {3}{4}{5} : {6}", prefix, e.name, ToTag( e.tag ), TypeName( e ), 
+            e.activeSelf ? "" : " (Inactive)", ToLayer( e.layer ), ToString( e.GetComponent<Transform>() ) );
          if ( output == null || prefix.Length == 0 )
             foreach ( var c in e.GetComponents<Component>() ) {
                var typeName = TypeName( c );
@@ -231,6 +232,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          for ( int i = 0 ; i < e.transform.childCount ; i++ )
             DumpComponents( output, prefix + "  ", logged, e.transform.GetChild( i ).gameObject );
       }
+
+      private static Func<string> ToTag ( string tag ) => () => "Untagged".Equals( tag ) ? "" : $":{tag}";
+
+      private static Func<string> ToLayer ( int layer ) => () => layer == 0 ? "" : $" Layer {layer}";
 
       private static Func<string> ToString ( Transform t ) { return () => {
          if ( t == null ) return "null";
