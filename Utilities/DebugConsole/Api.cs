@@ -177,18 +177,18 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       public static void ConsoleCommandGuiDump ( IConsole console, string[] names ) { try {
          if ( names?.Length > 0 ) {
             foreach ( var name in names ) {
-               var obj = GameObject.Find( name.Trim() );
+               var obj = GameObject.Find( name )?.transform ?? DefaultDumpSubject()?.transform.Find( name );
                if ( obj == null ) console.WriteLine( "Cannot find " + name );
                else DumpGui( console, obj );
             }
-         }
-         DumpGui( console, DefaultDumpSubject() );
+         } else
+            DumpGui( console, DefaultDumpSubject() );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static object DefaultDumpSubject () {
+      private static Component DefaultDumpSubject () {
          var level = GameUtl.CurrentLevel();
          if ( level == null || level.CurrentState != Level.State.Playing )
-            return level.gameObject;
+            return level.gameObject.transform;
          if ( level.GetComponent<MenuLevelController>() != null )
             return level.GetComponent<HomeScreenView>()?.HomeScreenModules;
          if ( level.GetComponent<GeoLevelController>() != null )
@@ -212,8 +212,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( prefix.Length > 20 ) return;
          if ( logged.Contains( e ) ) return;
          logged.Add( e );
-         var rect = e.GetComponent<Transform>();
-         Output( output, "{0}> '{1}' {2}{3} Layer {4} : {5}", prefix, e.name, TypeName( e ), e.activeSelf ? "" : " (Inactive)", e.layer, ToString( rect ) );
+         Output( output, "{0}> '{1}':{2} {3}{4} Layer {5} : {6}", prefix, e.name, e.tag, TypeName( e ), e.activeSelf ? "" : " (Inactive)", e.layer, ToString( e.GetComponent<Transform>() ) );
          if ( output == null || prefix.Length == 0 )
             foreach ( var c in e.GetComponents<Component>() ) {
                var typeName = TypeName( c );
@@ -229,7 +228,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                else
                   Output( output, "{0}...{1}", prefix, typeName );
             }
-         for ( int i = 0 ; i < e.transform.childCount ; i++ ) 
+         for ( int i = 0 ; i < e.transform.childCount ; i++ )
             DumpComponents( output, prefix + "  ", logged, e.transform.GetChild( i ).gameObject );
       }
 
