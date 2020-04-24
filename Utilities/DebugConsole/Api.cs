@@ -217,8 +217,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( logged.Contains( e ) ) return;
          logged.Add( e );
          var rect = e.GetComponent<Transform>();
-         Info( "{0}> {1} {2}{3} Layer {4} Pos {5} Scale {6} Rot {7}", prefix, e.name, TypeName( e ), e.activeSelf ? "" : " (Inactive)", e.layer,
-            rect.localPosition, rect.localScale, rect.localRotation );
+         Info( "{0}> {1} {2}{3} Layer {4} / Pos {5} Scale {6} Rot {7}", prefix, e.name, TypeName( e ), e.activeSelf ? "" : " (Inactive)", e.layer,
+            rect?.localPosition, rect?.localScale, rect?.localRotation );
          foreach ( var c in e.GetComponents<Component>() ) {
             var typeName = TypeName( c );
             if ( c is Transform cRect ) {
