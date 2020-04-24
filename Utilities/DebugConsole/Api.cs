@@ -71,7 +71,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       #endregion
 
       #region Console commands
-      [ConsoleCommand( Command = "debug_level", Description = "[level] - Get or set console log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
+      [ConsoleCommand( Command = "log_level", Description = "[level] - Get or set console log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
       public static void ConsoleCommandDebugLevel ( IConsole console, string level ) { try {
          var config = Mod.Config;
          if ( level != null && level.Length >= 1 ) switch ( Char.ToLower( level[0] ) ) {
@@ -112,7 +112,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          WriteError( $"Unknown level '{level}'. Level must be g, e, i, or n." );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      [ ConsoleCommand( Command = "debug_level_modnix", Description = "[level] - Get or set modnix log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
+      [ ConsoleCommand( Command = "log_level_modnix", Description = "[level] - Get or set modnix log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
       public static void ConsoleCommandModnixDebugLevel ( IConsole console, string level ) { try {
          if ( ! HasApi ) { WriteError( "Modnix API not found." ); return; }
          // This should be called rarely, so the reflections are not cached.

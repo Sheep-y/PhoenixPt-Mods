@@ -1,11 +1,11 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version 4, 2020-04-22
+# Version 4, 2020-04-24
 
 * New: Replace game's Console.log writer to improve performance and make time sortable.
-* New: Console command "dump_gui" to write gui tree to console.
-* New: Api command "zy.gui.dump" to do the same to Modnix log.
-* New: Console command "debug_level" and "debug_level_modnix" to get and set console and modnix log level.
+* New: Api command "zy.gui.dump" to dump gui tree to Modnix log.
+* New: Console command "dump_gui" to do the same to console.
+* New: Console command "log_level" and "log_level_modnix" to get and set console and modnix log level.
 * Fix: Log lines now have their line colours removed from console log.
 * Fix: Log lines with curry brackets no longer crash the console log writer. This is (was) a vanilla bug.
 * Fix: MethodInfo result from API are now displayed by ToString.

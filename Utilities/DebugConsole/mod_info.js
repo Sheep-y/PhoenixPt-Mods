@@ -10,7 +10,7 @@
    Description :
 "Enable in-game console and route game log, unity log, and modnix log to it, showing game messages and errors, recorded in Console.log.  Provide console and api extension that aids in mod development.
 
-Errors and warnings caused from using Modinx API through console will be logged by Modnix, then picked up and reported. Modnix does not make an exception for this mod and the mod itself should not cause errors or warnings.",
+Errors and warnings caused from using Modinx API through console will be picked up by Modnix and reported. Modnix does not make an exception for this mod and the mod itself should not cause errors or warnings.",
    Disables:
       { Id: "ConsoleEnabler", Max: "1.0.0.0" },
    Url: {
