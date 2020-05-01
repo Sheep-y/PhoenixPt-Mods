@@ -57,8 +57,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          if ( res == null || res.Count == 0 ) return;
          var conf = Mod.Config.Haven_Icons;
          __instance.LeaderMottoText.text = string.Join( "", res.Select( e =>
-            string.Format( e.ResourceStock >= e.OfferQuantity ? conf.In_Stock_Line : conf.Out_Of_Stock_Line,
-            e.WantsQuantity, ResName( e.HavenWants ), e.OfferQuantity, ResName( e.HavenOffers ), e.ResourceStock )
+            string.Format( e.ResourceStock >= e.HavenOfferQuantity ? conf.In_Stock_Line : conf.Out_Of_Stock_Line,
+            e.HavenReceiveQuantity, ResName( e.HavenWants ), e.HavenOfferQuantity, ResName( e.HavenOffers ), e.ResourceStock )
          ) ).Trim();
       } catch ( Exception ex ) { Error( ex ); } }
 

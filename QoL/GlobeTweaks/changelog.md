@@ -1,5 +1,9 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
+# Version 4.1, 2020-04-19
+
+* New: Update to game version 1.0.57335. Haven popup will stop showing trade offers in earlier game versions.
+
 # Version 4, 2020-04-19
 
 * New: Always show haven recruit icons and resources icons regardless of zoom.
