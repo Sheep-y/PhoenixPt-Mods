@@ -1,12 +1,13 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
-# Version 5, 2020-05-01
+# Version 5, 2020-05-02
 
-* Updated to game version 1.0.57335. Haven popup will stop showing trade offers in earlier game versions.
+* Updated to game version 1.0.57335.  Haven popup will not show trade offers in earlier game versions.
 * New: Hide_Recruit_Stickman, default true.
-* New: Show_Airplane_Action_Time, default true.
-* Haven popup trade offer text no longer show in italic.
+* New: Show_Airplane_Action_Time, default true, and related format strings Hours_Format and Days_Format.
+* Trade text in haven popup is no longer italic.  Motto text unaffected.
 * Mod no longer configurable with Modnix 1.
+* Fixed NexusMods link.
 
 # Version 4, 2020-04-19
 

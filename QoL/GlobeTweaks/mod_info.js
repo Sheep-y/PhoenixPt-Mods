@@ -7,7 +7,7 @@
       zh : "地球介面微調" },
    Description : "Tweaks Geoscape globe - always show haven action icons, more info in haven popup, pause and centreing tweaks, etc.",
    Url : {
-      "Nexus" : "https://nexusmods.com/phoenixpoint/mods/17/",
+      "Nexus" : "https://nexusmods.com/phoenixpoint/mods/13/",
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods/",
    },
    Disables : [
