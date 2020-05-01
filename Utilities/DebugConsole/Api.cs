@@ -216,8 +216,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( prefix.Length > 20 ) return;
          if ( logged.Contains( e ) ) return;
          logged.Add( e );
-         var text = output != null && prefix.Length > 0 ?  FindText( e ) : null;
-         Output( output, "{0}- '{1}'{2} {3}{4}{5}{6} : {7}", prefix, e.name, ToTag( e.tag ), text, TypeName( e ),
+         var text = output != null && prefix.Length > 0 ? FindText( e ) : () => "";
+         Output( output, "{0}- '{1}'{2} {3}{4}{5}{6} :{7}", prefix, e.name, ToTag( e.tag ), text, TypeName( e ),
             e.activeSelf ? "" : " (Inactive)", ToLayer( e.layer ), ToString( e.GetComponent<Transform>() ) );
          if ( output == null || prefix.Length == 0 )
             foreach ( var c in e.GetComponents<Component>() ) {
@@ -249,8 +249,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private static Func<string> ToLayer ( int layer ) => () => layer == 0 ? "" : $" Layer {layer}";
 
       private static Func<string> ToString ( Transform t ) { return () => {
-         if ( t == null ) return "null";
-         var result = string.Format( "Pos {0} Scale {1} Rotate {2}", t.localPosition, t.localScale, t.localRotation );
+         if ( t == null ) return "";
+         var result = string.Format( " Pos {0} Scale {1} Rotate {2}", t.localPosition, t.localScale, t.localRotation );
          return result.Replace( ".0,", "," ).Replace( ".0)", ")" )
             .Replace( "Pos (0, 0, 0)", "" )
             .Replace( "Scale (1, 1, 1)", "" )

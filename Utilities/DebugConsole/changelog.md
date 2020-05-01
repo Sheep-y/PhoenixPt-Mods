@@ -1,5 +1,10 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
+# Version 5, in development
+
+* Updated to Modnix 2.3.  Older Modnix would lost ui dump api.  No longer configurable on Modnix 1.
+* [zy.ui.dump] Show component text in simplified tree.
+
 # Version 4, 2020-04-24
 
 * New: Replace game's Console.log writer to improve performance and make time sortable.
