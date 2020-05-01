@@ -54,29 +54,24 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public void MainMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
          if ( Config.Show_Airplane_Action_Time )
-            Patch( typeof( UIModuleSiteContextualMenu ), "SetMenuItems", postfix: nameof( AfterSetMenuItems_CalcTime ) );
+            TryPatch( typeof( UIModuleSiteContextualMenu ), "SetMenuItems", postfix: nameof( AfterSetMenuItems_CalcTime ) );
          new PauseModule().DoPatches();
          new GlyphModule().DoPatches();
       }
 
       private static void AfterSetMenuItems_CalcTime ( GeoSite site, List<SiteContextualMenuItem> ____menuItems ) { try {
          foreach ( var menu in ____menuItems ) {
-            if ( menu.Ability is MoveVehicleAbility move && move.GeoActor is GeoVehicle flier ) {
-               var time = FlightHours( site, flier );
-               if ( time > 0 )
-                  menu.ItemText.text += HoursToText( time );
-            } else if ( menu.Ability is ExploreSiteAbility explore ) {
+            if ( menu.Ability is MoveVehicleAbility move && move.GeoActor is GeoVehicle flier )
+               menu.ItemText.text += HoursToText( FlightHours( site, flier ) );
+            else if ( menu.Ability is ExploreSiteAbility explore )
                menu.ItemText.text += HoursToText( (float) site.ExplorationTime.TimeSpan.TotalMinutes / 60f );
-            //} else if ( menu.Ability is EmergencyRepairAbility repair ) { // Unused as of game ver 1.0.57335
-            //   menu.ItemText.text += HoursToText( repair.EmergencyRepairAbilityDef.TimeInHours );
-            }
          }
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static float FlightHours ( GeoSite site, GeoVehicle vehicle ) {
          var pos = vehicle.CurrentSite?.WorldPosition ?? vehicle.WorldPosition;
          var path = vehicle.Navigation.FindPath( pos, site.WorldPosition, out bool hasPath );
-         if ( ! hasPath ) return -1;
+         if ( ! hasPath || path.Count < 2 ) return -1;
          float distance = 0;
          for ( int i = 0, len = path.Count - 1 ; i < len ; )
             distance += GeoMap.Distance( path[i].Pos.WorldPosition, path[++i].Pos.WorldPosition ).Value;
@@ -84,6 +79,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       }
 
       private static string HoursToText ( float hours ) {
+         if ( hours < 0 ) return "";
          int intHour = (int) hours;
          int d = Math.DivRem( intHour, 24, out int h ), m = (int) Math.Ceiling( ( hours - intHour ) * 60 );
          return string.Format( d > 0 ? Config.Days_Format : Config.Hours_Format, d, h, m, hours, hours * 60 );
