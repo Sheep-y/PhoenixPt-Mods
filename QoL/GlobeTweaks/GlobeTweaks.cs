@@ -1,10 +1,15 @@
-﻿using System;
+﻿using PhoenixPoint.Geoscape.Entities.Abilities;
+using PhoenixPoint.Geoscape.View.ViewControllers;
+using PhoenixPoint.Geoscape.View.ViewModules;
+using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.GlobeTweaks {
 
    internal class ModConfig {
+      public bool Show_Airplane_Action_Time = true;
       public bool Base_Centre_On_Heal = true;
       public bool Base_Pause_On_Heal = true;
       public bool Center_On_New_Base = true;
@@ -42,9 +47,17 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
       public void MainMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
+         if ( Config.Show_Airplane_Action_Time )
+            Patch( typeof( UIModuleSiteContextualMenu ), "SetMenuItems", postfix: nameof( AfterSetMenuItems_CalcTime ) );
          new PauseModule().DoPatches();
          new GlyphModule().DoPatches();
       }
 
+      private static void AfterSetMenuItems_CalcTime ( List<SiteContextualMenuItem> ____menuItems ) { try {
+         foreach ( var menu in ____menuItems ) {
+            if ( menu.Ability is MoveVehicleAbility )
+               menu.ItemText.text += " (12h)";
+         }
+      } catch ( Exception ex ) { Error( ex ); } }
    }
 }
