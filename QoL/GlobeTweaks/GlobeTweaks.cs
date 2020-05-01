@@ -1,4 +1,5 @@
-﻿using PhoenixPoint.Geoscape.Entities;
+﻿using Base.Core;
+using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.Entities.Abilities;
 using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Geoscape.View.ViewControllers;
@@ -60,12 +61,14 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
       private static void AfterSetMenuItems_CalcTime ( GeoSite site, List<SiteContextualMenuItem> ____menuItems ) { try {
          foreach ( var menu in ____menuItems ) {
-            if ( menu.Ability is MoveVehicleAbility move && move.GeoActor is GeoVehicle plane ) {
-               var time = FlightHours( site, plane );
+            if ( menu.Ability is MoveVehicleAbility move && move.GeoActor is GeoVehicle flier ) {
+               var time = FlightHours( site, flier );
                if ( time > 0 )
                   menu.ItemText.text += HoursToText( time );
             } else if ( menu.Ability is ExploreSiteAbility explore ) {
                menu.ItemText.text += HoursToText( (float) site.ExplorationTime.TimeSpan.TotalMinutes / 60f );
+            //} else if ( menu.Ability is EmergencyRepairAbility repair ) { // Unused as of game ver 1.0.57335
+            //   menu.ItemText.text += HoursToText( repair.EmergencyRepairAbilityDef.TimeInHours );
             }
          }
       } catch ( Exception ex ) { Error( ex ); } }
