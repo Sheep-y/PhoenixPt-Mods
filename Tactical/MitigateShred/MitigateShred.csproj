@@ -7,7 +7,7 @@
     <ProjectGuid>{F3680CFB-86F1-4911-9D13-1DE8801A012B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sheepy.PhoenixPt_MitigateShred</RootNamespace>
+    <RootNamespace>Sheepy.PhoenixPt.MitigateShred</RootNamespace>
     <AssemblyName>PhoenixPt_MitigateShred</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -31,8 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>C:\Program Files\Epic Games\PhoenixPoint\PhoenixPointWin64_Data\Managed\0Harmony.dll</HintPath>
+    <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Lib.Harmony.1.2.0.1\lib\net45\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
@@ -52,5 +52,18 @@
     <Compile Include="MitigateShred.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>cd "$(SolutionDir)Utilities\ZyMod"
+copy ZyMod.cs "$(ProjectDir)"</PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>cd "$(SolutionDir)"
+mkdir distro
+cd distro
+copy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" .</PostBuildEvent>
+  </PropertyGroup>
 </Project>

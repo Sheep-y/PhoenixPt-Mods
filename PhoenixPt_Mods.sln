@@ -36,6 +36,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecruitInfo", "Geoscape\Rec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TraditionalChinese", "Utilities\TraditionalChinese\TraditionalChinese.csproj", "{15285271-67F5-400C-818E-981AEFC01DDC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MitigateShred", "Tactical\MitigateShred\MitigateShred.csproj", "{F3680CFB-86F1-4911-9D13-1DE8801A012B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,6 +100,10 @@ Global
 		{15285271-67F5-400C-818E-981AEFC01DDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15285271-67F5-400C-818E-981AEFC01DDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15285271-67F5-400C-818E-981AEFC01DDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3680CFB-86F1-4911-9D13-1DE8801A012B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3680CFB-86F1-4911-9D13-1DE8801A012B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3680CFB-86F1-4911-9D13-1DE8801A012B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3680CFB-86F1-4911-9D13-1DE8801A012B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
