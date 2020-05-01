@@ -54,12 +54,16 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
       private static void AfterSetHaven_ShowResourceStock ( UIModuleSelectionInfoBox __instance, GeoSite ____site ) { try {
          var res = ____site.GetComponent<GeoHaven>()?.GetResourceTrading();
-         if ( res == null || res.Count == 0 ) return;
-         var conf = Mod.Config.Haven_Icons;
-         __instance.LeaderMottoText.text = string.Join( "", res.Select( e =>
-            string.Format( e.ResourceStock >= e.HavenOfferQuantity ? conf.In_Stock_Line : conf.Out_Of_Stock_Line,
-            e.HavenReceiveQuantity, ResName( e.HavenWants ), e.HavenOfferQuantity, ResName( e.HavenOffers ), e.ResourceStock )
-         ) ).Trim();
+         var text = __instance.LeaderMottoText;
+         if ( res?.Count > 0 && text != null ) {
+            var conf = Mod.Config.Haven_Icons;
+            text.text = string.Join( "", res.Select( e =>
+               string.Format( e.ResourceStock >= e.HavenOfferQuantity ? conf.In_Stock_Line : conf.Out_Of_Stock_Line,
+               e.HavenReceiveQuantity, ResName( e.HavenWants ), e.HavenOfferQuantity, ResName( e.HavenOffers ), e.ResourceStock )
+            ) ).Trim();
+            text.fontStyle = FontStyle.Normal;
+         } else
+            text.fontStyle = FontStyle.Italic;
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static string ResName ( ResourceType type ) {

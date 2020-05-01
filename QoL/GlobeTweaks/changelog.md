@@ -1,8 +1,10 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
-# Version 4.1, 2020-04-19
+# Version 4.1, 2020-05-01
 
-* New: Update to game version 1.0.57335. Haven popup will stop showing trade offers in earlier game versions.
+* Update to game version 1.0.57335. Haven popup will stop showing trade offers in earlier game versions.
+* Haven popup trade offer text no longer show in italic.
+* Mod no longer configurable with Modnix 1.
 
 # Version 4, 2020-04-19
 
