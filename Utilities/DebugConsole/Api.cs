@@ -171,7 +171,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       #endregion
 
       #region Gui Tree
-      internal static object GuiTreeApi ( object root ) => DumpGui( null, root ?? DefaultDumpSubject() );
+      internal static bool GuiTreeApi ( object root ) => DumpGui( null, root ?? DefaultDumpSubject() );
 
       [ ConsoleCommand( Command = "dump_gui", Description = "[name] - Find a named component and dump its tree, or dump current view's tree." ) ]
       public static void ConsoleCommandGuiDump ( IConsole console, string[] names ) { try {
@@ -195,7 +195,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          return null;
       }
 
-      internal static object DumpGui ( IConsole output, object root ) {
+      internal static bool DumpGui ( IConsole output, object root ) {
          if ( root is string txt ) {
             root = GameObject.Find( txt );
             if ( root == null ) {
@@ -216,7 +216,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( prefix.Length > 20 ) return;
          if ( logged.Contains( e ) ) return;
          logged.Add( e );
-         Output( output, "{0}- '{1}'{2} {3}{4}{5} : {6}", prefix, e.name, ToTag( e.tag ), TypeName( e ), 
+         var text = output != null && prefix.Length > 0 ?  FindText( e ) : null;
+         Output( output, "{0}- '{1}'{2} {3}{4}{5}{6} : {7}", prefix, e.name, ToTag( e.tag ), text, TypeName( e ),
             e.activeSelf ? "" : " (Inactive)", ToLayer( e.layer ), ToString( e.GetComponent<Transform>() ) );
          if ( output == null || prefix.Length == 0 )
             foreach ( var c in e.GetComponents<Component>() ) {
@@ -238,6 +239,12 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       }
 
       private static Func<string> ToTag ( string tag ) => () => "Untagged".Equals( tag ) ? "" : $":{tag}";
+
+      private static Func<string> FindText ( GameObject obj ) => () => {
+         var text = obj.GetComponent< UnityEngine.UI.Text >()?.text;
+         if ( text == null ) return "";
+         return $"\"{text}\" ";
+      };
 
       private static Func<string> ToLayer ( int layer ) => () => layer == 0 ? "" : $" Layer {layer}";
 
