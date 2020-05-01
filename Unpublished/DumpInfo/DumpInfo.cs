@@ -6,6 +6,7 @@ using I2.Loc;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities;
 using PhoenixPoint.Common.Entities.Characters;
+using PhoenixPoint.Common.Entities.GameTags;
 using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Common.Levels.Missions;
 using PhoenixPoint.Geoscape.Entities;
@@ -68,7 +69,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                AddDataToExport( name, typeof( TermData ), term.Value );
          }
          Info( "Scanning data" );
-         Type[] wanted = new Type[] { typeof( ResearchDef ),
+         Type[] wanted = new Type[] { typeof( ResearchDef ), typeof( GameTagDef ),
             typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ), typeof( TacticalItemDef ),
             typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( SpecializationDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
             typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( TacticalActorDef ),
