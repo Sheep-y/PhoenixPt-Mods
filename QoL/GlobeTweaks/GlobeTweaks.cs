@@ -1,8 +1,11 @@
-﻿using PhoenixPoint.Geoscape.Entities.Abilities;
+﻿using PhoenixPoint.Geoscape.Entities;
+using PhoenixPoint.Geoscape.Entities.Abilities;
+using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Geoscape.View.ViewControllers;
 using PhoenixPoint.Geoscape.View.ViewModules;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,6 +13,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
    internal class ModConfig {
       public bool Show_Airplane_Action_Time = true;
+      public string Hours_Format = "{1}:{2:D2}";
+      public string Days_Format = "{3:F0}:{2:D2}";
       public bool Base_Centre_On_Heal = true;
       public bool Base_Pause_On_Heal = true;
       public bool Center_On_New_Base = true;
@@ -53,11 +58,30 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          new GlyphModule().DoPatches();
       }
 
-      private static void AfterSetMenuItems_CalcTime ( List<SiteContextualMenuItem> ____menuItems ) { try {
+      private static void AfterSetMenuItems_CalcTime ( GeoSite site, List<SiteContextualMenuItem> ____menuItems ) { try {
          foreach ( var menu in ____menuItems ) {
-            if ( menu.Ability is MoveVehicleAbility )
-               menu.ItemText.text += " (12h)";
+            if ( menu.Ability is MoveVehicleAbility move && move.GeoActor is GeoVehicle plane ) {
+               var time = FlightHours( site, plane );
+               if ( time > 0 )
+                  menu.ItemText.text += " (" + HoursToText( time ) + ")";
+            }
          }
       } catch ( Exception ex ) { Error( ex ); } }
+
+      private static float FlightHours ( GeoSite site, GeoVehicle vehicle ) {
+         var pos = vehicle.CurrentSite?.WorldPosition ?? vehicle.WorldPosition;
+         var path = vehicle.Navigation.FindPath( pos, site.WorldPosition, out bool hasPath );
+         if ( ! hasPath ) return -1;
+         float distance = 0;
+         for ( int i = 0, len = path.Count - 1 ; i < len ; )
+            distance += GeoMap.Distance( path[i].Pos.WorldPosition, path[++i].Pos.WorldPosition ).Value;
+         return distance / vehicle.Stats.Speed.Value;
+      }
+
+      private static string HoursToText ( float hours ) {
+         int intHour = (int) hours;
+         int d = Math.DivRem( intHour, 24, out int h ), m = (int) Math.Ceiling( ( hours - intHour ) * 60 );
+         return string.Format( d > 0 ? Config.Days_Format : Config.Hours_Format, d, h, m, hours, hours * 60 );
+      }
    }
 }
