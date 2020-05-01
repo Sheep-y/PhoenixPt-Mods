@@ -4,6 +4,7 @@ using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.View;
 using PhoenixPoint.Geoscape.View.ViewModules;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -20,6 +21,10 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
             TryPatch( typeof( UIModuleSelectionInfoBox ), "SetHaven", postfix: nameof( AfterSetHaven_ShowRecruitClass ) );
          if ( conf.Popup_Show_Trade )
             TryPatch( typeof( UIModuleSelectionInfoBox ), "SetHaven", postfix: nameof( AfterSetHaven_ShowResourceStock ) );
+         if ( conf.Hide_Recruit_Stickman ) {
+            TryPatch( typeof( GeoSiteVisualsController ), "Awake", postfix: nameof( AfterGeoVisualAwake_MoveRecruitIcon ) );
+            TryPatch( typeof( GeoSiteVisualsController ), "RefreshHavenDetailsInformation", postfix: nameof( AfterHavenInfo_HideStickman ) );
+         }
       }
 
       private static void AfterAwake_DisableFov ( GeoSiteVisualsController __instance ) { try {
@@ -75,15 +80,21 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          return type.ToString();
       }
 
-      /* Not work, do not use
-         TryPatch( typeof( GeoSiteVisualsController ), "RefreshHavenDetailsInformation", postfix: nameof( AfterHavenInfo_SetClassIcon ) );
-      private static void AfterHavenInfo_SetClassIcon ( GeoSiteVisualsController __instance, GeoFaction viewer, GeoSite site ) { try {
-         if ( ! ( viewer is GeoPhoenixFaction pp ) || ! pp.RecruitmentFunctionalityUnlocked ) return;
-         var classIcon = site.GetComponent<GeoHaven>()?.AvailableRecruit?.Progression?.MainSpecDef?.ViewElementDef?.SmallIcon;
-         if ( classIcon == null ) return;
-         var material = __instance.RecruitAvailableIcon.GetComponent<MeshRenderer>().material;
-         material.mainTexture = classIcon.texture;
+      private static void AfterGeoVisualAwake_MoveRecruitIcon ( GeoSiteVisualsController __instance ) { try {
+         var npos = __instance.RecruitAvailableClassIcon?.gameObject?.transform?.position;
+         if ( ! npos.HasValue ) return;
+         var pos = npos.Value;
+         pos.x += 0.06f;
+         __instance.RecruitAvailableClassIcon.gameObject.transform.position = pos;
       } catch ( Exception ex ) { Error( ex ); } }
-      */
+
+      private static HashSet<GameObject> icons = new HashSet<GameObject>();
+
+      private static void AfterHavenInfo_HideStickman ( GeoSiteVisualsController __instance, GeoSite site ) { try {
+         var icon = __instance.RecruitAvailableIcon.gameObject;
+         if ( ! icon.activeSelf ) return;
+         icon.SetActive( false );
+         //Api( "zy.ui.dump", __instance.gameObject );
+      } catch ( Exception ex ) { Error( ex ); } }
    }
 }

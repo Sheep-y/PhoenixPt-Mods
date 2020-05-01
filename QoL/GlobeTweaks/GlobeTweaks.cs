@@ -27,6 +27,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
    internal class HavenIconConfig {
       public bool Always_Show_Action = true;
       public bool Always_Show_Soldier = true;
+      public bool Hide_Recruit_Stickman = true;
       public bool Popup_Show_Recruit_Class = true;
       public bool Popup_Show_Trade = true;
       public string In_Stock_Line = "<size=28>{0} {1} > {2} {3} ({4})</size>\n";
