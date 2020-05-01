@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="MitigateShred.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ZyMod.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
