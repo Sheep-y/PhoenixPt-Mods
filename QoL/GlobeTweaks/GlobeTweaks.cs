@@ -13,8 +13,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
    internal class ModConfig {
       public bool Show_Airplane_Action_Time = true;
-      public string Hours_Format = "{1}:{2:D2}";
-      public string Days_Format = "{3:F0}:{2:D2}";
+      public string Hours_Format = " ({1}:{2:D2})";
+      public string Days_Format = " ({3:F0}:{2:D2})";
       public bool Base_Centre_On_Heal = true;
       public bool Base_Pause_On_Heal = true;
       public bool Center_On_New_Base = true;
@@ -63,7 +63,9 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
             if ( menu.Ability is MoveVehicleAbility move && move.GeoActor is GeoVehicle plane ) {
                var time = FlightHours( site, plane );
                if ( time > 0 )
-                  menu.ItemText.text += " (" + HoursToText( time ) + ")";
+                  menu.ItemText.text += HoursToText( time );
+            } else if ( menu.Ability is ExploreSiteAbility explore ) {
+               menu.ItemText.text += HoursToText( (float) site.ExplorationTime.TimeSpan.TotalMinutes / 60f );
             }
          }
       } catch ( Exception ex ) { Error( ex ); } }
