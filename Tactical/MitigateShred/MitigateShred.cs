@@ -5,6 +5,7 @@ namespace Sheepy.PhoenixPt.MitigateShred {
 
    internal class ModConfig {
       public float Convert_Ratio = 0.1f;
+      public float Min_Shred = 1f;
    }
 
    public class Mod : ZyMod {
@@ -20,7 +21,7 @@ namespace Sheepy.PhoenixPt.MitigateShred {
       public static void AfterStandardDamage_Shred ( DamageAccumulation.TargetData __result ) { try {
          float mitigated = __result.DamageResult.ArmorMitigatedDamage;
          if ( mitigated > 0 )
-            __result.DamageResult.ArmorDamage += (float) Math.Max( 1, Math.Round( mitigated * Config.Convert_Ratio ) );
+            __result.DamageResult.ArmorDamage += (float) Math.Max( Config.Min_Shred, Math.Round( mitigated * Config.Convert_Ratio ) );
       } catch ( Exception ex ) { Error( ex ); } }
    }
 }
