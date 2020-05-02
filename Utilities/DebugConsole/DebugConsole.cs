@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityTools;
 
 namespace Sheepy.PhoenixPt.DebugConsole {
 
@@ -50,10 +51,18 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private void GeneralPatch () {
          GameConsoleWindow.DisableConsoleAccess = false; // Enable console first no matter what happens
          Verbo( "Console Enabled" );
-         if ( Config.Log_Game_Error || Config.Log_Game_Info ) {
-            Application.logMessageReceivedThreaded += UnityToConsole;
-            TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
-         }
+         if ( Config.Log_Game_Error || Config.Log_Game_Info ) try {
+            var a = TryPatch( typeof( LogFormatter ), "LogFormat", prefix: nameof( UnityToConsole ) );
+            var b = TryPatch( typeof( LogFormatter ), "LogException", prefix: nameof( ExFalseToConsole ) ); // Inlined
+            if ( a != null || b != null ) {
+               TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
+               TryPatch( typeof( Logger ).GetMethod( "LogException", new Type[]{ typeof( Exception ) } ), prefix: nameof( Ex1ToConsole ) );
+               TryPatch( typeof( Logger ).GetMethod( "LogException", new Type[]{ typeof( Exception ), typeof( UnityEngine.Object ) } ), prefix: nameof( Ex2ToConsole ) );
+               Type debugLog = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault( e => e.FullName.StartsWith( "UnityEngine.CoreModule" ) )?.GetType( "UnityEngine.DebugLogHandler" );
+               if ( debugLog != null )
+                 TryPatch( debugLog, "LogException", prefix: nameof( Ex2ToConsole ) );
+            }
+         } catch ( Exception ex ) { Error( ex ); }
          if ( Config.Scan_Mods_For_Command && Extensions.InitScanner() ) {
             TryPatch( typeof( UIStateMainMenu ), "EnterState", prefix: nameof( ScanCommands ) );
             TryPatch( typeof( GameConsoleWindow ), "ToggleVisibility", postfix: nameof( ScanCommands ) );
@@ -131,30 +140,42 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                   break;
             }
          }
-         txt = $"{prefix}{Time.frameCount} ({Time.time.ToString("0.000")}) {txt}</color>";
+         txt = $"{prefix} ({Time.time.ToString("0.000")}) {txt}</color>";
          AddToConsoleBuffer( txt );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static void UnityToConsole ( string condition, string stackTrace, LogType type ) { try {
-         switch ( type ) {
+      private static bool UnityToConsole ( LogType logType, UnityEngine.Object context, string format, params object[] args ) { try {
+         bool runOriginal = ! Config.Optimise_Log_File;
+         switch ( logType ) {
             case LogType.Exception: case LogType.Error: case LogType.Warning:
-               if ( ! Config.Log_Game_Error ) return; break;
+               if ( ! Config.Log_Game_Error ) return runOriginal; break;
             default:
-               if ( ! Config.Log_Game_Info ) return; break;
+               if ( ! Config.Log_Game_Info ) return runOriginal; break;
          }
-         var line = $"{condition}   {stackTrace}".Trim();
-         if ( line.Length == 0 ) return;
-         if ( line.StartsWith( "[CONSOLE] " ) ||
+         string line = string.Format( format, args );
+         if ( string.IsNullOrWhiteSpace( line ) ||
+              line.StartsWith( "[CONSOLE] " ) ||
               line.Contains( "Called from a secondary Thread" ) ||
               line.Contains( "UnityTools.LogFormatter" ) ||
               line.Contains( "DebugConsole.Mod.UnityToConsole" ) )
-            return;
-         if ( line.Length > 1000 ) {
+            return runOriginal;
+         if ( format.Length > 1000 ) {
             // Hide long message from console to avoid 65000 vertices error.
             OverrideAppendToLogFile_AddToQueue( line, null );
          } else
             AddToConsoleBuffer( line );
-      } catch ( Exception ex ) { Error( ex ); } }
+         return runOriginal;
+      } catch ( Exception ex ) { return Error( ex ); } }
+
+      private static bool Ex1ToConsole ( Exception exception ) => Ex2ToConsole( exception, null );
+
+      private static bool Ex2ToConsole ( Exception exception, UnityEngine.Object context )
+         => UnityToConsole( LogType.Exception, context, exception.ToString() );
+
+      private static bool ExFalseToConsole ( Exception exception, UnityEngine.Object context ) {
+         Ex2ToConsole( exception, context );
+         return false;
+      }
 
       private static void BufferToConsole () { try {
          string[] lines;
