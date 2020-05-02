@@ -1,83 +1,170 @@
 ﻿using Harmony;
-using I2.Loc;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using static System.Reflection.BindingFlags;
+
+#if ZyConfig
+using Newtonsoft.Json;
+using System.IO;
+#endif
+
+#if ZyBatch
+using System.Collections.Generic;
+#endif
+
+#if ZyLang
+using I2.Loc;
+using System.Globalization;
+#endif
 
 namespace Sheepy.PhoenixPt {
 
    /// <summary>
-   /// Base mod class to supports manual patching and unpatch, config parsing, and logging shortcuts.
-   /// Subclass must provide a logger for non-Modnix logging.
+   /// Very light base mod class that supports manual patching and barebone API.
+   /// Use build symbols to enable advanced features:
+   ///   * ZyUnpatch - Allow patches to be unpatched.
+   ///   * ZyBatch   - Patch transactions. Implies Unpatch.
+   ///   * ZyLog     - Logging shortcuts.
+   ///   * ZyDefLog  - Logging with default logger.  Implies ZyLog.
+   ///   * ZyConfig  - Json configuration.
+   ///   * ZyLang    - Language related functions.
+   ///   * ZyLib     - Assembly related functions.
    /// </summary>
    public abstract class ZyMod {
 
       protected static object _Lock = new object();
 
-      protected static internal HarmonyInstance Patcher;
+      protected internal HarmonyInstance Patcher;
 
-      protected virtual MethodInfo _GetPatchSubject ( Type type, string method ) { try {
-         var result = type.GetMethod( method, Public | NonPublic | Instance | Static );
-         if ( result == null ) throw new ApplicationException( $"Not found: {type}.{method}" );
-         return result;
-      } catch ( AmbiguousMatchException ex ) { throw new ApplicationException( $"Multiple: {type}.{method}", ex ); } }
+      protected MethodInfo _GetPatchSubject ( Type type, string method ) {
+         #if ZyBatch
+         try {
+         #endif
+            try {
+               var result = type.GetMethod( method, Public | NonPublic | Instance | Static );
+               if ( result == null ) throw new ApplicationException( $"Not found: {type}.{method}" );
+               return result;
+            } catch ( AmbiguousMatchException ex ) { throw new ApplicationException( $"Multiple: {type}.{method}", ex ); }
+         #if ZyBatch
+         } catch ( Exception ex ) { RollbackPatch( ex ); throw; }
+         #endif
+      }
 
       protected IPatch Patch ( Type type, string method, string prefix = null, string postfix = null, string transpiler = null ) {
-         return Patch( _GetPatchSubject( type, method ), prefix, postfix, transpiler );
+         #if ZyBatch
+         try {
+         #endif
+            return Patch( _GetPatchSubject( type, method ), prefix, postfix, transpiler );
+         #if ZyBatch
+         } catch ( Exception ex ) { RollbackPatch( ex ); throw; }
+         #endif
       }
 
-      protected virtual IPatch Patch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) {
-         lock ( _Lock ) if ( Patcher == null ) Patcher = HarmonyInstance.Create( GetType().Namespace );
-         return new PatchRecord( Patcher, method, _ToHarmony( prefix ), _ToHarmony( postfix ), _ToHarmony( transpiler ) ).Patch();
+      protected IPatch Patch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) {
+         IPatch patch;
+         #if ZyBatch
+         try {
+         #endif
+            lock ( _Lock ) if ( Patcher == null ) Patcher = HarmonyInstance.Create( GetType().Namespace );
+            patch = new PatchRecord( Patcher, method, _ToHarmony( prefix ), _ToHarmony( postfix ), _ToHarmony( transpiler ) ).Patch();
+         #if ZyBatch
+         } catch ( Exception ex ) { RollbackPatch( ex ); throw; }
+         lock ( Trans ) if ( TransId != null ) Trans.Add( patch );
+         #endif
+         return patch;
       }
 
-      protected virtual IPatch TryPatch ( Type type, string method, string prefix = null, string postfix = null, string transpiler = null ) { try {
+      protected IPatch TryPatch ( Type type, string method, string prefix = null, string postfix = null, string transpiler = null ) { try {
+         #if ZyBatch
+         lock ( Trans ) NoRollback = true;
+         #endif
          return Patch( type, method, prefix, postfix, transpiler );
       } catch ( Exception ex ) {
-         Warn( ex );
+         Api( "log w", ex );
          return null;
+      #if ZyBatch
+      } finally {
+         lock ( Trans ) NoRollback = false;
+      #endif
       } }
 
-      protected virtual IPatch TryPatch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) { try {
+      protected IPatch TryPatch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) { try {
+         #if ZyBatch
+         lock ( Trans ) NoRollback = true;
+         #endif
          return Patch( method, prefix, postfix, transpiler );
       } catch ( Exception ex ) {
-         Warn( ex );
+         Api( "log w",  ex );
          return null;
+      #if ZyBatch
+      } finally {
+         lock ( Trans ) NoRollback = false;
+      #endif
       } }
 
+      protected HarmonyMethod _ToHarmony ( string name ) {
+         if ( name == null ) return null;
+         return new HarmonyMethod( GetType().GetMethod( name, Public | NonPublic | Static ) ?? throw new NullReferenceException( name + " not found" ) );
+      }
+
+      #if (ZyUnpatch || ZyBatch)
       protected static void Unpatch ( ref IPatch patch ) {
          patch?.Unpatch();
          patch = null;
       }
+      #endif
 
-      private static Type PatchClass;
-      public static void SetPatchClass ( Type type ) { lock ( _Lock ) PatchClass = type; }
+      #if ZyBatch
+      private string TransId = null;
+      private List< IPatch > Trans = new List<IPatch>();
+      private bool NoRollback = false;
 
-      protected static HarmonyMethod _ToHarmony ( string name ) {
-         if ( name == null ) return null;
-         MethodInfo method = PatchClass?.GetMethod( name, Public | NonPublic | Static );
-         if ( method == null ) {
-            var stack = new StackTrace( 1 );
-            foreach ( var call in stack.GetFrames() ) {
-               var cls = call.GetMethod()?.DeclaringType;
-               if ( cls == null || ( cls.Name.StartsWith( "Zy" ) && cls.Name.EndsWith( "Mod" ) ) ) continue;
-               method = cls.GetMethod( name, Public | NonPublic | Static );
-               if ( method == null ) continue;
-               Verbo( "Setting {0} as patch source.", cls );
-               lock ( _Lock ) PatchClass = cls;
-               break;
-            }
+      protected bool StartPatch ( string id = "patches" ) { lock( Trans ) {
+         if ( TransId != null ) {
+            Api( "log w", $"Cannot start {id}, already in {TransId}" );
+            return false;
          }
-         return new HarmonyMethod( method ?? throw new NullReferenceException( name + " not found" ) );
+         id = id ?? "null";
+         TransId = id;
+         Api( "log v", "Start " + id );
+         return true;
+      } }
+
+      protected IPatch[] RollbackPatch ( object reason = null ) { lock( Trans ) {
+         if ( NoRollback || TransId == null ) return null;
+         Api( "log w", $"Rollback {TransId} ({Trans.Count} patches) {reason}" );
+         var result = Trans.ToArray();
+         foreach ( var patch in Trans )
+            patch.Unpatch();
+         Trans.Clear();
+         TransId = null;
+         return result;
+      } }
+
+      protected IPatch[] CommitPatch () { lock( Trans ) {
+         if ( TransId == null ) return null;
+         var result = Trans.ToArray();
+         Api( "log", $"Commit {TransId} ({Trans.Count} patches)" );
+         Trans.Clear();
+         TransId = null;
+         return result;
+      } }
+
+      protected IPatch[] BatchPatch ( Action patcher ) => BatchPatch( "patches", patcher );
+
+      protected IPatch[] BatchPatch ( string id, Action patcher ) {
+         StartPatch( id );
+         try {
+            patcher();
+            return CommitPatch();
+         } catch ( Exception ex ) {
+            RollbackPatch( ex );
+            return null;
+         }
       }
+      #endif
 
       private class PatchRecord : IPatch {
          private readonly HarmonyInstance Patcher;
@@ -85,6 +172,7 @@ namespace Sheepy.PhoenixPt {
          private readonly HarmonyMethod Pre;
          private readonly HarmonyMethod Post;
          private readonly HarmonyMethod Tran;
+
          internal PatchRecord ( HarmonyInstance patcher, MethodBase target, HarmonyMethod pre, HarmonyMethod post, HarmonyMethod tran ) {
             Patcher = patcher;
             Target = target;
@@ -92,24 +180,28 @@ namespace Sheepy.PhoenixPt {
             Post = post;
             Tran = tran;
          }
+
          public IPatch Patch () {
-            Verbo( "Patching {0}.{1}, pre:{2} post:{3} trans:{4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
+            Api( "log v", (Func<string>) PatchLog );
             Patcher.Patch( Target, Pre, Post, Tran );
             return this;
          }
+         private string PatchLog () => string.Format( "Patching {0}.{1}, pre:{2} post:{3} trans:{4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
+
+         #if (ZyUnpatch || ZyBatch)
          public void Unpatch () {
-            Verbo( "Unpatching {0}.{1}, pre:{2} post:{3} trans:{4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
+            Api( "log v", (Func<string>) UnpatchLog );
             if ( Pre  != null ) Patcher.Unpatch( Target, Pre.method  );
             if ( Post != null ) Patcher.Unpatch( Target, Post.method );
             if ( Tran != null ) Patcher.Unpatch( Target, Tran.method );
          }
+         private string UnpatchLog () => string.Format( "Unpatching {0}.{1}, pre:{2} post:{3} trans:{4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
+         #endif
       }
 
       private static Func< string, object, object > ModnixApi;
 
-      protected internal static bool HasApi { get {
-         lock ( _Lock ) return ModnixApi != null;
-      } }
+      protected internal static bool HasApi { get { lock ( _Lock ) return ModnixApi != null; } }
 
       protected internal static object Api ( string action, object param = null ) {
          Func< string, object, object > api;
@@ -117,39 +209,59 @@ namespace Sheepy.PhoenixPt {
          return api?.Invoke( action, param );
       }
 
-      protected virtual void SetApi ( Func< string, object, object > api ) {
-         if ( api == null ) return;
-         lock ( _Lock ) {
-            ModnixApi = api;
-            Logger = (Action< TraceEventType, object, object[] >) api( "logger", "TraceEventType" );
+      protected void SetApi ( Func< string, object, object > api ) {
+         if ( api == null ) {
+            #if ZyDefLog
+            var asm = Assembly.GetExecutingAssembly();
+            lock ( _Lock ) {
+               LogFile = asm.Location.Replace( ".dll", ".log" );
+               Logger = DefaultLogger;
+            }
+            Info( "{0} {1} {2}", DateTime.Now.ToString( "D" ), GetType().Namespace, asm.GetName().Version );
+            #endif
+            return;
          }
+         lock ( _Lock ) ModnixApi = api;
+         #if ( ZyLog || ZyDefLog)
+         Logger = (Action< TraceEventType, object, object[] >) api( "logger", "TraceEventType" );
+         #endif
       }
 
-      protected virtual T SetApi < T > ( Func< string, object, object > api, out T config ) where T : new() {
+      #if ZyConfig
+      protected T SetApi < T > ( Func< string, object, object > api, out T config ) where T : new() {
          config = default;
+         SetApi( api );
          if ( api == null ) {
             var file = Assembly.GetExecutingAssembly().Location.Replace( ".dll", ".conf" );
             if ( File.Exists( file ) ) try {
                config = JsonConvert.DeserializeObject<T>( File.ReadAllText( file ) );
-            } catch ( Exception ex ) { Warn( ex ); }
+            } catch ( Exception ex ) { Api( "log w", ex ); }
          } else {
-            SetApi( api );
             config = (T) api( "config", typeof( T ) );
          }
          lock ( _Lock ) if ( config == null ) config = new T();
-         Verbo( "Config = {0}", Jsonify( config ) );
+         Api( "log v", Jsonify( config ) );
          return config;
       }
 
       private static Func<string> Jsonify ( object obj ) => () => JsonConvert.SerializeObject( obj );
-      
+      #endif
+
+      #if ZyLang
       protected internal static TextInfo CurrentLang => new CultureInfo( LocalizationManager.CurrentLanguageCode ).TextInfo;
       protected internal static string TitleCase ( string txt ) {
          if ( string.IsNullOrWhiteSpace( txt ) ) return txt;
          var lang = CurrentLang;
          return lang.ToTitleCase( lang.ToLower( txt ) );
       }
+      #endif
 
+      #if ZyLib
+      protected internal static Assembly GameAssembly => Api( "assembly", "game" ) as Assembly
+         ?? AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault( e => e.FullName.StartsWith( "Assembly-CSharp,", StringComparison.OrdinalIgnoreCase ) );
+      #endif
+      
+      #if ( ZyLog || ZyDefLog)
       protected internal static Action< TraceEventType, object, object[] > Logger;
       protected internal static void ApiLog ( TraceEventType level, object msg, params object[] augs ) { lock ( _Lock ) Logger?.Invoke( level, msg, augs ); }
       protected internal static void Verbo ( object msg, params object[] augs ) => ApiLog( TraceEventType.Verbose, msg, augs );
@@ -159,10 +271,28 @@ namespace Sheepy.PhoenixPt {
          ApiLog( TraceEventType.Error, msg, augs );
          return true;
       }
+      #endif
+
+      #if ZyDefLog
+      protected static string LogFile;
+
+      // A simple file logger when one is not provided by the mod loader.
+      private static void DefaultLogger ( TraceEventType lv, object msg, object[] param ) { try {
+         string line = msg?.ToString();
+         try {
+            if ( param != null ) line = string.Format( line, param );
+         } catch ( FormatException ) { }
+         using ( var stream = File.AppendText( LogFile ) ) {
+            stream.WriteLineAsync( DateTime.Now.ToString( "T" ) + " " + line );
+         }
+      } catch ( Exception ex ) { Console.WriteLine( ex ); } }
+      #endif
    }
 
    public interface IPatch {
       IPatch Patch();
+      #if (ZyUnpatch || ZyBatch)
       void Unpatch();
+      #endif
    }
 }

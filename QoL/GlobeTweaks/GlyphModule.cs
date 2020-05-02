@@ -34,7 +34,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          // Supply FOV is same as recruit
          // if ( conf.Always_Show_Trade   ) DisableFov( __instance.SuppliesResourcesIcon.transform.parent, "SuppliesResourcesIcon" );
          //Api( "zy.ui.dump", __instance.RecruitAvailableIcon.transform.parent.parent ); // Dump gui tree with debug console
-         FovPatch.Unpatch();
+         Unpatch( ref FovPatch );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void DisableFov ( Transform t, string type ) {

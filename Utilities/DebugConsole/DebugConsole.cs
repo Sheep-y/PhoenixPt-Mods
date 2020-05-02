@@ -54,8 +54,12 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( Config.Log_Game_Error || Config.Log_Game_Info ) try {
             var a = TryPatch( typeof( LogFormatter ), "LogFormat", prefix: nameof( UnityToConsole ) );
             var b = TryPatch( typeof( LogFormatter ), "LogException", prefix: nameof( ExToConsole ) );
-            if ( a != null || b != null )
+            if ( a != null || b != null ) {
                TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
+               foreach ( var t in typeof( TimeComponent ).GetNestedTypes( BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static ) )
+                  Info ( t );
+               //TryPatch( typeof( TimeComponent ), "Awake", transpiler: nameof( CaptureCoroutineException ) );
+            }
          } catch ( Exception ex ) { Error( ex ); }
          if ( Config.Scan_Mods_For_Command && Extensions.InitScanner() ) {
             TryPatch( typeof( UIStateMainMenu ), "EnterState", prefix: nameof( ScanCommands ) );
@@ -75,8 +79,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( Config.Mod_Count_In_Version )
             TryPatch( typeof( UIStateMainMenu ), "EnterState", postfix: nameof( AfterMainMenu_AddModCount ) );
          if ( Config.Log_Modnix_Error || Config.Log_Modnix_Info || Config.Log_Modnix_Verbose ) {
-            var loader = Api( "assembly", "modnix" ) as Assembly
-               ?? AppDomain.CurrentDomain.GetAssemblies().First( e => e.FullName.StartsWith( "ModnixLoader", StringComparison.Ordinal ) );
+            var loader = Api( "assembly", "modnix" ) as Assembly;
             var type = loader?.GetType( "Sheepy.Logging.FileLogger" );
             if ( type == null ) {
                Info( "Modnix assembly not found, log not forwarded." );
@@ -163,6 +166,12 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       private static bool ExToConsole ( Exception exception, UnityEngine.Object context )
          => UnityToConsole( LogType.Exception, context, exception.ToString() );
+
+      private static IEnumerable<CodeInstruction> CaptureCoroutineException ( IEnumerable<CodeInstruction> instr ) {
+         foreach ( var code in instr )
+            Info( code );
+         return instr;
+      }
 
       private static void BufferToConsole () { try {
          string[] lines;

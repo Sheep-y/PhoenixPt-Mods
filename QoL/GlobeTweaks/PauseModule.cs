@@ -12,7 +12,7 @@ using System.Reflection;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.GlobeTweaks {
-   internal class PauseModule : ZyAdvMod {
+   internal class PauseModule : ZyMod {
 
       private static PropertyInfo ContextGetter;
 

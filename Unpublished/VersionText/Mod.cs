@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine.UI;
 
-namespace VersionText {
+namespace Sheepy {
 
    /* Mod config class, saved as json through Newtonsoft Json.Net through Modnix api.
     * The config class must be specfied as "ConfigType" in mod_info. 

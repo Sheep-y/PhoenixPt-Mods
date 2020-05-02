@@ -53,7 +53,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
          && Defender_Pandora == 1 && Defender_Anu == 1 && Defender_NewJericho == 1 && Defender_Synedrion == 1;
    }
 
-   public class Mod : ZyAdvMod {
+   public class Mod : ZyMod {
       private static ModConfig Config;
 
       public static void Init () => new Mod().MainMod();

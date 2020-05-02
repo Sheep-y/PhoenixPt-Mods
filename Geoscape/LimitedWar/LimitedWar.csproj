@@ -26,7 +26,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;ZyConfig; ZyLog; ZyBatch; ZyLang</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -41,6 +41,7 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -58,21 +59,15 @@
   <ItemGroup>
     <Compile Include="LimitedWar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ZyAdvMod.cs" />
     <Compile Include="ZyMod.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="mod_info.js" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="changelog.md" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>cd "$(SolutionDir)Utilities\ZyMod"
-copy ZyMod.cs "$(ProjectDir)"
-copy ZyAdvMod.cs "$(ProjectDir)"</PreBuildEvent>
+copy ZyMod.cs "$(ProjectDir)"</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>cd "$(SolutionDir)"

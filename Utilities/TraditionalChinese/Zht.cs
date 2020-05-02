@@ -1,5 +1,4 @@
-﻿using Harmony;
-using I2.Loc;
+﻿using I2.Loc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,9 +35,7 @@ namespace Sheepy.PhoenixPt.Zht {
       } }
 
       private static void UndoLangPatch () { lock ( _Lock ) {
-         if ( LangPatch == null ) return;
-         LangPatch.Unpatch();
-         LangPatch = null;
+         Unpatch( ref LangPatch );
       } }
 
       private static readonly HashSet<string> Translated = new HashSet<string>();

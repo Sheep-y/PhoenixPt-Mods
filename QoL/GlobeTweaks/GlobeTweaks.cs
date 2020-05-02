@@ -45,7 +45,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public string Out_Of_Stock_Line = "<color=red><size=28>{0} {1} > {2} {3} ({4})</size></color>\n";
    }
 
-   public class Mod : ZyAdvMod {
+   public class Mod : ZyMod {
 
       internal static ModConfig Config;
 

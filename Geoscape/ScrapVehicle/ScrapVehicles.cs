@@ -21,7 +21,7 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.ScrapVehicle {
 
-   public class Mod : ZyAdvMod {
+   public class Mod : ZyMod {
       public static void Init () => new Mod().MainMod();
 
       public void MainMod ( Func< string, object, object > api = null ) {
