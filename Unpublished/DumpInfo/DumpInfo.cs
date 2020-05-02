@@ -17,6 +17,7 @@ using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Geoscape.Levels.Factions;
 using PhoenixPoint.Geoscape.View;
 using PhoenixPoint.Tactical.Entities;
+using PhoenixPoint.Tactical.Entities.DamageKeywords;
 using PhoenixPoint.Tactical.Entities.Equipments;
 using System;
 using System.Collections.Generic;
@@ -69,7 +70,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                AddDataToExport( name, typeof( TermData ), term.Value );
          }
          Info( "Scanning data" );
-         Type[] wanted = new Type[] { typeof( ResearchDef ), typeof( GameTagDef ),
+         Type[] wanted = new Type[] { typeof( ResearchDef ),
+            typeof( GameTagDef ), typeof( DamageKeywordDef ),
             typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ), typeof( TacticalItemDef ),
             typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( SpecializationDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
             typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( TacticalActorDef ),
