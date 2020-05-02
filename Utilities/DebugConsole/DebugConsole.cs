@@ -53,15 +53,9 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          Verbo( "Console Enabled" );
          if ( Config.Log_Game_Error || Config.Log_Game_Info ) try {
             var a = TryPatch( typeof( LogFormatter ), "LogFormat", prefix: nameof( UnityToConsole ) );
-            var b = TryPatch( typeof( LogFormatter ), "LogException", prefix: nameof( ExFalseToConsole ) ); // Inlined
-            if ( a != null || b != null ) {
+            var b = TryPatch( typeof( LogFormatter ), "LogException", prefix: nameof( ExToConsole ) );
+            if ( a != null || b != null )
                TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
-               TryPatch( typeof( Logger ).GetMethod( "LogException", new Type[]{ typeof( Exception ) } ), prefix: nameof( Ex1ToConsole ) );
-               TryPatch( typeof( Logger ).GetMethod( "LogException", new Type[]{ typeof( Exception ), typeof( UnityEngine.Object ) } ), prefix: nameof( Ex2ToConsole ) );
-               Type debugLog = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault( e => e.FullName.StartsWith( "UnityEngine.CoreModule" ) )?.GetType( "UnityEngine.DebugLogHandler" );
-               if ( debugLog != null )
-                 TryPatch( debugLog, "LogException", prefix: nameof( Ex2ToConsole ) );
-            }
          } catch ( Exception ex ) { Error( ex ); }
          if ( Config.Scan_Mods_For_Command && Extensions.InitScanner() ) {
             TryPatch( typeof( UIStateMainMenu ), "EnterState", prefix: nameof( ScanCommands ) );
@@ -167,15 +161,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          return runOriginal;
       } catch ( Exception ex ) { return Error( ex ); } }
 
-      private static bool Ex1ToConsole ( Exception exception ) => Ex2ToConsole( exception, null );
-
-      private static bool Ex2ToConsole ( Exception exception, UnityEngine.Object context )
+      private static bool ExToConsole ( Exception exception, UnityEngine.Object context )
          => UnityToConsole( LogType.Exception, context, exception.ToString() );
-
-      private static bool ExFalseToConsole ( Exception exception, UnityEngine.Object context ) {
-         Ex2ToConsole( exception, context );
-         return false;
-      }
 
       private static void BufferToConsole () { try {
          string[] lines;
