@@ -58,9 +58,25 @@ namespace Sheepy.PhoenixPt {
          patch = null;
       }
 
-      protected HarmonyMethod _ToHarmony ( string name ) {
+      private static Type PatchClass;
+      public static void SetPatchClass ( Type type ) { lock ( _Lock ) PatchClass = type; }
+
+      protected static HarmonyMethod _ToHarmony ( string name ) {
          if ( name == null ) return null;
-         return new HarmonyMethod( GetType().GetMethod( name, Public | NonPublic | Static ) ?? throw new NullReferenceException( name + " not found" ) );
+         MethodInfo method = PatchClass?.GetMethod( name, Public | NonPublic | Static );
+         if ( method == null ) {
+            var stack = new StackTrace( 1 );
+            foreach ( var call in stack.GetFrames() ) {
+               var cls = call.GetMethod()?.DeclaringType;
+               if ( cls == null || ( cls.Name.StartsWith( "Zy" ) && cls.Name.EndsWith( "Mod" ) ) ) continue;
+               method = cls.GetMethod( name, Public | NonPublic | Static );
+               if ( method == null ) continue;
+               Verbo( "Setting {0} as patch source.", cls );
+               lock ( _Lock ) PatchClass = cls;
+               break;
+            }
+         }
+         return new HarmonyMethod( method ?? throw new NullReferenceException( name + " not found" ) );
       }
 
       private class PatchRecord : IPatch {
