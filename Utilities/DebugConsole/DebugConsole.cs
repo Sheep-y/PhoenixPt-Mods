@@ -142,15 +142,18 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             default:
                if ( ! Config.Log_Game_Info ) return; break;
          }
-         // Skip long message which can cause the 65000 vertices error.
-         if ( condition.Length > 1000 || stackTrace.Length > 1000 ||
-              condition.StartsWith( "[CONSOLE] " ) ||
-              condition.Contains( "Called from a secondary Thread" ) ||
-              stackTrace?.Contains( "UnityTools.LogFormatter" ) == true )
-            return;
          var line = $"{condition}   {stackTrace}".Trim();
          if ( line.Length == 0 ) return;
-         AddToConsoleBuffer( line );
+         if ( line.StartsWith( "[CONSOLE] " ) ||
+              line.Contains( "Called from a secondary Thread" ) ||
+              line.Contains( "UnityTools.LogFormatter" ) ||
+              line.Contains( "DebugConsole.Mod.UnityToConsole" ) )
+            return;
+         if ( line.Length > 1000 ) {
+            // Hide long message from console to avoid 65000 vertices error.
+            OverrideAppendToLogFile_AddToQueue( line, null );
+         } else
+            AddToConsoleBuffer( line );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void BufferToConsole () { try {
@@ -174,7 +177,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       [ HarmonyPriority( Priority.VeryLow ) ]
       private static bool OverrideAppendToLogFile_AddToQueue ( string line, Queue<string> ____logFileQueue ) {
          var entry = new KeyValuePair<DateTime,string>( DateTime.Now, line );
-         if ( LogFileQueue == null ) LogFileQueue = ____logFileQueue;
+         if ( LogFileQueue == null ) {
+            LogFileQueue = ____logFileQueue;
+            if ( LogFileQueue == null ) return true;
+         }
          lock ( WriteBuffer ) {
             WriteBuffer.Add( entry );
             if ( LogWriteTask == null )
@@ -183,7 +189,9 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          return false;
       }
 
-      private static void BufferToWriteQueue () { try {
+      // Split file lock from queue lock, so that main thread will not be stuck on log IO
+      private static async void BufferToWriteQueue () { try {
+         await Task.Delay( 200 );
          KeyValuePair<DateTime,string>[] entries;
          lock ( WriteBuffer ) {
             entries = WriteBuffer.ToArray();
