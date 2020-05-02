@@ -74,6 +74,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MitigateShred", "Tactical\M
 		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockTelemetry", "BlockTelemetry\BlockTelemetry.csproj", "{25EA181D-EFEF-47B7-BFF2-95B02866BD69}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -140,6 +142,10 @@ Global
 		{F3680CFB-86F1-4911-9D13-1DE8801A012B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3680CFB-86F1-4911-9D13-1DE8801A012B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3680CFB-86F1-4911-9D13-1DE8801A012B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25EA181D-EFEF-47B7-BFF2-95B02866BD69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25EA181D-EFEF-47B7-BFF2-95B02866BD69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25EA181D-EFEF-47B7-BFF2-95B02866BD69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25EA181D-EFEF-47B7-BFF2-95B02866BD69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
