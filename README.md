@@ -17,6 +17,7 @@ usually custom jobs or for self use, can be found here.
 
 Mods published on NexusMods.
 
+* [**Block Telemetry**](https://www.nexusmods.com/phoenixpoint/mods/48/) - Opt-out of and blocks telemetry.
 * [**Deaf the Dead**](https://www.nexusmods.com/phoenixpoint/mods/45/) - Prevent dead units from hearing enemy movements.
 * [**Debug Console**](https://www.nexusmods.com/phoenixpoint/mods/44/) - Enable console and direct unity log and game log to it.
 * [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centering.

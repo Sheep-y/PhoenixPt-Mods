@@ -74,7 +74,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MitigateShred", "Tactical\M
 		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockTelemetry", "BlockTelemetry\BlockTelemetry.csproj", "{25EA181D-EFEF-47B7-BFF2-95B02866BD69}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockTelemetry", "Utilities\BlockTelemetry\BlockTelemetry.csproj", "{25EA181D-EFEF-47B7-BFF2-95B02866BD69}"
 	ProjectSection(ProjectDependencies) = postProject
 		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
 	EndProjectSection
