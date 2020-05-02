@@ -4,28 +4,55 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkipIntro", "QoL\SkipIntro\SkipIntro.csproj", "{C4FD3097-8303-4A61-9469-FE4E61CBB08A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlatDifficulty", "Unpublished\FlatDifficulty\FlatDifficulty.csproj", "{663DC7C4-4351-44FF-9480-25BBB559D29A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumpInfo", "Unpublished\DumpInfo\DumpInfo.csproj", "{9EB89B81-E091-492C-B029-48B04E9148A6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GlobeTweaks", "QoL\GlobeTweaks\GlobeTweaks.csproj", "{B0FC42AF-69AD-492E-80A9-846FFAA84979}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrapVehicles", "Geoscape\ScrapVehicle\ScrapVehicles.csproj", "{CC4DF468-A8D5-4588-BD92-8A06E9F0B3F3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebugConsole", "Utilities\DebugConsole\DebugConsole.csproj", "{2AF49999-95E9-4282-B2B7-D72EC16425FC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LimitedWar", "Geoscape\LimitedWar\LimitedWar.csproj", "{0A99512A-C640-4EE0-BBFF-3A26F84FE553}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZyMod", "Utilities\ZyMod\ZyMod.csproj", "{ADBE1F6F-B231-4891-BBB8-D774CA236329}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeoTweaks", "QoL\MarkUnpowered\GeoTweaks.csproj", "{964ECEDD-F829-431C-97D0-2430AC5D0EED}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionText", "Unpublished\VersionText\VersionText.csproj", "{C8F4BA02-8DF1-41C2-A3BE-7638AB6411E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PpmlTest", "Unpublished\PpmlTest\PpmlTest.csproj", "{C9DBB18F-4C9F-43FF-9023-12F686EB2124}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeafTheDead", "Tactical\DeafTheDead\DeafTheDead.csproj", "{C8BD9E4E-C1E7-4AC6-B3AE-023265FA57C7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{345FC9DB-1B23-4388-A225-8B2DB5812A64}"
 	ProjectSection(SolutionItems) = preProject
@@ -33,10 +60,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecruitInfo", "Geoscape\RecruitInfo\RecruitInfo.csproj", "{4EFFF96E-98D2-438C-8657-9FAF10B606F4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TraditionalChinese", "Utilities\TraditionalChinese\TraditionalChinese.csproj", "{15285271-67F5-400C-818E-981AEFC01DDC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MitigateShred", "Tactical\MitigateShred\MitigateShred.csproj", "{F3680CFB-86F1-4911-9D13-1DE8801A012B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
