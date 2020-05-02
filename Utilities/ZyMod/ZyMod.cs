@@ -22,15 +22,15 @@ using System.Globalization;
 namespace Sheepy.PhoenixPt {
 
    /// <summary>
-   /// Very light base mod class that supports manual patching and barebone API.
-   /// Use build symbols to enable advanced features:
-   ///   * ZyUnpatch - Allow patches to be unpatched.
-   ///   * ZyBatch   - Patch transactions. Implies Unpatch.
-   ///   * ZyLog     - Logging shortcuts.
-   ///   * ZyDefLog  - Logging with default logger.  Implies ZyLog.
+   /// A light base mod class that supports manual patching and barebone API.
+   /// Use build symbols to enable optional features:
+   ///   * ZyBatch   - Patch transactions.  Implies Unpatch.
    ///   * ZyConfig  - Json configuration.
-   ///   * ZyLang    - Language related functions.
-   ///   * ZyLib     - Assembly related functions.
+   ///   * ZyDefLog  - Logging with default logger.  Implies ZyLog.
+   ///   * ZyLang    - Language related helpers, such as TitleCase.
+   ///   * ZyLib     - Assembly related helpers, such as GameAssembly.
+   ///   * ZyLog     - Logging shortcuts.
+   ///   * ZyUnpatch - Allow patches to be unpatched.
    /// </summary>
    public abstract class ZyMod {
 
@@ -118,7 +118,7 @@ namespace Sheepy.PhoenixPt {
 
       #if ZyBatch
       private string TransId = null;
-      private List< IPatch > Trans = new List<IPatch>();
+      private readonly List< IPatch > Trans = new List<IPatch>();
       private bool NoRollback = false;
 
       protected bool StartPatch ( string id = "patches" ) { lock( Trans ) {
@@ -186,7 +186,8 @@ namespace Sheepy.PhoenixPt {
             Patcher.Patch( Target, Pre, Post, Tran );
             return this;
          }
-         private string PatchLog () => string.Format( "Patching {0}.{1}, pre:{2} post:{3} trans:{4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
+         private string PatchLog () => ActionLog( "Patching" );
+         private string ActionLog ( string action ) => string.Format( "{0} {1}.{2}, pre:{3} post:{4} trans:{5}", action, Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
 
          #if (ZyUnpatch || ZyBatch)
          public void Unpatch () {
@@ -195,7 +196,7 @@ namespace Sheepy.PhoenixPt {
             if ( Post != null ) Patcher.Unpatch( Target, Post.method );
             if ( Tran != null ) Patcher.Unpatch( Target, Tran.method );
          }
-         private string UnpatchLog () => string.Format( "Unpatching {0}.{1}, pre:{2} post:{3} trans:{4}", Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
+         private string UnpatchLog () => ActionLog( "Unpatching" );
          #endif
       }
 
