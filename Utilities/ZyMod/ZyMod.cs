@@ -151,12 +151,12 @@ namespace Sheepy.PhoenixPt {
       }
 
       protected internal static Action< TraceEventType, object, object[] > Logger;
-      private static void Log ( TraceEventType level, object msg, object[] augs ) { lock ( _Lock ) Logger?.Invoke( level, msg, augs ); }
-      protected internal static void Verbo ( object msg, params object[] augs ) => Log( TraceEventType.Verbose, msg, augs );
-      protected internal static void Info  ( object msg, params object[] augs ) => Log( TraceEventType.Information, msg, augs );
-      protected internal static void Warn  ( object msg, params object[] augs ) => Log( TraceEventType.Warning, msg, augs );
+      protected internal static void ApiLog ( TraceEventType level, object msg, params object[] augs ) { lock ( _Lock ) Logger?.Invoke( level, msg, augs ); }
+      protected internal static void Verbo ( object msg, params object[] augs ) => ApiLog( TraceEventType.Verbose, msg, augs );
+      protected internal static void Info  ( object msg, params object[] augs ) => ApiLog( TraceEventType.Information, msg, augs );
+      protected internal static void Warn  ( object msg, params object[] augs ) => ApiLog( TraceEventType.Warning, msg, augs );
       protected internal static bool Error ( object msg, params object[] augs ) {
-         Log( TraceEventType.Error, msg, augs );
+         ApiLog( TraceEventType.Error, msg, augs );
          return true;
       }
    }
