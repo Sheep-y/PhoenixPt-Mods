@@ -24,11 +24,11 @@ namespace Sheepy.PhoenixPt {
    /// <summary>
    /// A light base mod class that supports manual patching and barebone API.
    /// Use build symbols to enable optional features:
-   ///   * ZyBatch   - Patch transactions.  Implies Unpatch.
+   ///   * ZyBatch   - Patch transactions.  Implies ZyUnpatch.
    ///   * ZyConfig  - Json configuration.
-   ///   * ZyDefLog  - Logging with default logger.  Implies ZyLog.
-   ///   * ZyLang    - Language related helpers, such as TitleCase.
-   ///   * ZyLib     - Assembly related helpers, such as GameAssembly.
+   ///   * ZyDefLog  - Logging with default logger.  Implies ZyLog. (static)
+   ///   * ZyLang    - Language related helpers, such as TitleCase. (static)
+   ///   * ZyLib     - Assembly related helpers, such as GameAssembly. (static)
    ///   * ZyLog     - Logging shortcuts.
    ///   * ZyUnpatch - Allow patches to be unpatched.
    /// </summary>
@@ -245,7 +245,7 @@ namespace Sheepy.PhoenixPt {
          return config;
       }
 
-      private static Func<string> Jsonify ( object obj ) => () => JsonConvert.SerializeObject( obj );
+      private static Func<string> Jsonify ( object obj ) => () => "Config = " + JsonConvert.SerializeObject( obj );
       #endif
 
       #if ZyLang
