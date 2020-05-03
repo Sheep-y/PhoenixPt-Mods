@@ -64,7 +64,7 @@ namespace Sheepy.PhoenixPt {
          #endif
       }
 
-      protected IPatch Patch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) {
+      protected IPatch Patch ( MethodBase method, string prefix = null, string postfix = null, string transpiler = null ) {
          IPatch patch;
          #if ZyBatch
          try {
@@ -92,7 +92,7 @@ namespace Sheepy.PhoenixPt {
       #endif
       } }
 
-      protected IPatch TryPatch ( MethodInfo method, string prefix = null, string postfix = null, string transpiler = null ) { try {
+      protected IPatch TryPatch ( MethodBase method, string prefix = null, string postfix = null, string transpiler = null ) { try {
          #if ZyBatch
          lock ( Trans ) NoRollback = true;
          #endif
