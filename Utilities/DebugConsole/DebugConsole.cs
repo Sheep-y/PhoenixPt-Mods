@@ -43,6 +43,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       public static void Init () => new Mod().SplashMod();
 
+      private static readonly DateTime StartTime = DateTime.Now;
+
       public void SplashMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config ).Update();
          GeneralPatch();
@@ -107,6 +109,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       internal static void AddToConsoleBuffer ( string line ) {
          if ( string.IsNullOrWhiteSpace( line ) ) return;
+         /*
          var pos = line.IndexOf( ' ' );
          if ( pos > 0 ) { // Skip duplicates
             var timeless = line.Substring( pos );
@@ -116,6 +119,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             }
             LastLine = timeless;
          }
+         */
          lock ( ConsoleBuffer ) ConsoleBuffer.Add( line );
       }
 
@@ -149,9 +153,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                   break;
             }
          }
-         var timeDiff = DateTime.Now - ( entry.GetType().GetField( "Time" ).GetValue( entry ) as DateTime? ).Value;
-         var gameTime = Time.time - (float) timeDiff.TotalSeconds;
-         AddToConsoleBuffer( string.Format( "{0} <color={1}>{2} {3}</color><color=red></color>", FormatTime( gameTime ), colour, level, txt ) );
+         var entryTime = ( entry.GetType().GetField( "Time" ).GetValue( entry ) as DateTime? ).Value;
+         AddToConsoleBuffer( string.Format( "{0} <color={1}>{2} {3}</color><color=red></color>", FormatTime( entryTime - StartTime ), colour, level, txt ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static bool UnityToConsole ( LogType logType, object context, string format, params object[] args ) { try {
@@ -167,7 +170,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                if ( ! Config.Log_Game_Info ) return runOriginal;
                break;
          }
-         var time = Time.time;
+         var time = DateTime.Now;
          Task.Run( () => { try {
             if ( level == "EROR" ) {
                level = "<color=red>EROR";
@@ -180,7 +183,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                  line.Contains( "UnityTools.LogFormatter" ) ||
                  line.Contains( ".UnityToConsole" ) )
                return;
-            line = string.Format( "{0} {1} {2}", FormatTime( time ), level, line );
+            line = string.Format( "{0} {1} {2}", FormatTime( time - StartTime ), level, line );
             if ( line.Length > 500 ) {
                // Hide long message from console to avoid 65000 vertices error,
                // but show the type and message of exception
@@ -193,8 +196,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          return runOriginal;
       } catch ( Exception ex ) { return Error( ex ); } }
 
-      private static string FormatTime ( float logTime ) {
-         return logTime.ToString( "F2" );
+      private static string FormatTime ( TimeSpan logTime ) {
+         return logTime.TotalSeconds.ToString( "F2" );
       }
 
       private static bool UnityExToConsole ( Exception exception, object context ) => UnityToConsole( LogType.Exception, context, "{0}", exception );

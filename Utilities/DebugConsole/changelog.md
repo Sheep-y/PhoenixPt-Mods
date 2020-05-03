@@ -1,12 +1,10 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version 5, in development
+# Version 5, 2020-05-03
 
 * Updated to Modnix 2.3.  Older Modnix would lost ui dump api.  No longer configurable on Modnix 1.
-* Improved performance.
-* Capture more messages and errors.
+* Rewrite log capturer and processor to be faster, capture more messages and errors, and more accurate timestamp.
 * Long console messages are now written to console log.
-* Duplicate console messages are ignored.
 * [zy.ui.dump] Show component text of non-direct children.
 
 # Version 4, 2020-04-24
