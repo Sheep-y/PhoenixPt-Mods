@@ -28,13 +28,13 @@ namespace Sheepy.PhoenixPt.Zht {
          else UndoLangPatch();
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static void DoLangPatch () { lock ( _Lock ) {
+      private static void DoLangPatch () { lock ( _SLock ) {
          if ( LangPatch != null ) return;
          //LangPatch = Instance.Patch( typeof( LanguageSourceData ), "GetTermData", postfix: nameof( Translate ) );
          LangPatch = Instance.Patch( typeof( TermData ), "GetTranslation", postfix: nameof( Translate ) );
       } }
 
-      private static void UndoLangPatch () { lock ( _Lock ) {
+      private static void UndoLangPatch () { lock ( _SLock ) {
          Unpatch( ref LangPatch );
       } }
 

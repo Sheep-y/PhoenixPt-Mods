@@ -34,11 +34,12 @@ namespace Sheepy.PhoenixPt {
    /// </summary>
    public abstract class ZyMod {
 
-      protected static object _Lock = new object();
+      protected static object _SLock = new object();
+      protected object _ILock = new object();
 
       protected internal HarmonyInstance Patcher;
 
-      protected MethodInfo _GetPatchSubject ( Type type, string method ) {
+      private MethodInfo GetPatchSubject ( Type type, string method ) {
          #if ZyBatch
          try {
          #endif
@@ -56,7 +57,7 @@ namespace Sheepy.PhoenixPt {
          #if ZyBatch
          try {
          #endif
-            return Patch( _GetPatchSubject( type, method ), prefix, postfix, transpiler );
+            return Patch( GetPatchSubject( type, method ), prefix, postfix, transpiler );
          #if ZyBatch
          } catch ( Exception ex ) { RollbackPatch( ex ); throw; }
          #endif
@@ -67,8 +68,8 @@ namespace Sheepy.PhoenixPt {
          #if ZyBatch
          try {
          #endif
-            lock ( _Lock ) if ( Patcher == null ) Patcher = HarmonyInstance.Create( GetType().Namespace );
-            patch = new PatchRecord( Patcher, method, _ToHarmony( prefix ), _ToHarmony( postfix ), _ToHarmony( transpiler ) ).Patch();
+            lock ( _ILock ) if ( Patcher == null ) Patcher = HarmonyInstance.Create( GetType().Namespace );
+            patch = new PatchRecord( Patcher, method, ToHarmony( prefix ), ToHarmony( postfix ), ToHarmony( transpiler ) ).Patch();
          #if ZyBatch
          } catch ( Exception ex ) { RollbackPatch( ex ); throw; }
          lock ( Trans ) if ( TransId != null ) Trans.Add( patch );
@@ -104,7 +105,7 @@ namespace Sheepy.PhoenixPt {
       #endif
       } }
 
-      protected HarmonyMethod _ToHarmony ( string name ) {
+      private HarmonyMethod ToHarmony ( string name ) {
          if ( name == null ) return null;
          return new HarmonyMethod( GetType().GetMethod( name, Public | NonPublic | Static ) ?? throw new NullReferenceException( name + " not found" ) );
       }
@@ -202,34 +203,34 @@ namespace Sheepy.PhoenixPt {
 
       private static Func< string, object, object > ModnixApi;
 
-      protected internal static bool HasApi { get { lock ( _Lock ) return ModnixApi != null; } }
+      public static bool HasApi { get { lock ( _SLock ) return ModnixApi != null; } }
 
-      protected internal static object Api ( string action, object param = null ) {
+      public static object Api ( string action, object param = null ) {
          Func< string, object, object > api;
-         lock ( _Lock ) api = ModnixApi;
+         lock ( _SLock ) api = ModnixApi;
          return api?.Invoke( action, param );
       }
 
-      protected void SetApi ( Func< string, object, object > api ) {
+      public static void SetApi ( Func< string, object, object > api ) {
          if ( api == null ) {
             #if ZyDefLog
             var asm = Assembly.GetExecutingAssembly();
-            lock ( _Lock ) {
+            lock ( _SLock ) {
                LogFile = asm.Location.Replace( ".dll", ".log" );
                Logger = DefaultLogger;
             }
-            Info( "{0} {1} {2}", DateTime.Now.ToString( "D" ), GetType().Namespace, asm.GetName().Version );
+            Info( "{0} {1} {2}", DateTime.Now.ToString( "D" ), LogFile, asm.GetName().Version );
             #endif
             return;
          }
-         lock ( _Lock ) ModnixApi = api;
+         lock ( _SLock ) ModnixApi = api;
          #if ( ZyLog || ZyDefLog)
          Logger = (Action< TraceEventType, object, object[] >) api( "logger", "TraceEventType" );
          #endif
       }
 
       #if ZyConfig
-      protected T SetApi < T > ( Func< string, object, object > api, out T config ) where T : new() {
+      public static T SetApi < T > ( Func< string, object, object > api, out T config ) where T : new() {
          config = default;
          SetApi( api );
          if ( api == null ) {
@@ -240,7 +241,7 @@ namespace Sheepy.PhoenixPt {
          } else {
             config = (T) api( "config", typeof( T ) );
          }
-         lock ( _Lock ) if ( config == null ) config = new T();
+         lock ( _SLock ) if ( config == null ) config = new T();
          Api( "log v", Jsonify( config ) );
          return config;
       }
@@ -249,8 +250,8 @@ namespace Sheepy.PhoenixPt {
       #endif
 
       #if ZyLang
-      protected internal static TextInfo CurrentLang => new CultureInfo( LocalizationManager.CurrentLanguageCode ).TextInfo;
-      protected internal static string TitleCase ( string txt ) {
+      public static TextInfo CurrentLang => new CultureInfo( LocalizationManager.CurrentLanguageCode ).TextInfo;
+      public static string TitleCase ( string txt ) {
          if ( string.IsNullOrWhiteSpace( txt ) ) return txt;
          var lang = CurrentLang;
          return lang.ToTitleCase( lang.ToLower( txt ) );
@@ -258,17 +259,17 @@ namespace Sheepy.PhoenixPt {
       #endif
 
       #if ZyLib
-      protected internal static Assembly GameAssembly => Api( "assembly", "game" ) as Assembly
+      public static Assembly GameAssembly => Api( "assembly", "game" ) as Assembly
          ?? AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault( e => e.FullName.StartsWith( "Assembly-CSharp,", StringComparison.OrdinalIgnoreCase ) );
       #endif
       
-      #if ( ZyLog || ZyDefLog)
-      protected internal static Action< TraceEventType, object, object[] > Logger;
-      protected internal static void ApiLog ( TraceEventType level, object msg, params object[] augs ) { lock ( _Lock ) Logger?.Invoke( level, msg, augs ); }
-      protected internal static void Verbo ( object msg, params object[] augs ) => ApiLog( TraceEventType.Verbose, msg, augs );
-      protected internal static void Info  ( object msg, params object[] augs ) => ApiLog( TraceEventType.Information, msg, augs );
-      protected internal static void Warn  ( object msg, params object[] augs ) => ApiLog( TraceEventType.Warning, msg, augs );
-      protected internal static bool Error ( object msg, params object[] augs ) {
+      #if ( ZyLog || ZyDefLog )
+      public static Action< TraceEventType, object, object[] > Logger;
+      public static void ApiLog ( TraceEventType level, object msg, params object[] augs ) { lock ( _SLock ) Logger?.Invoke( level, msg, augs ); }
+      public static void Verbo ( object msg, params object[] augs ) => ApiLog( TraceEventType.Verbose, msg, augs );
+      public static void Info  ( object msg, params object[] augs ) => ApiLog( TraceEventType.Information, msg, augs );
+      public static void Warn  ( object msg, params object[] augs ) => ApiLog( TraceEventType.Warning, msg, augs );
+      public static bool Error ( object msg, params object[] augs ) {
          ApiLog( TraceEventType.Error, msg, augs );
          return true;
       }

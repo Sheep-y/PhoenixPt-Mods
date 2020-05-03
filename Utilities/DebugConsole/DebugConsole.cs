@@ -118,7 +118,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          var prefix = "<color=lime>[MODX] ";
          if ( ModnixLogEntryLevel != null ) {
             var level = (TraceEventType) ModnixLogEntryLevel.GetValue( entry );
-            lock ( _Lock ) switch ( level ) {
+            lock ( _SLock ) ; // Sync config
+            switch ( level ) {
                case TraceEventType.Critical: case TraceEventType.Error:
                   if ( ! Config.Log_Modnix_Error ) return;
                   prefix = "<color=fuchsia>[ERROR] ";
