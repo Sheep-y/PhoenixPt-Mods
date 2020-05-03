@@ -1,7 +1,13 @@
-﻿using Harmony;
+﻿#if ZyBatch
+#define ZyUnpatch
+#endif
+
+#if ZyDefLog
+#define ZyLog
+#endif
+
+using Harmony;
 using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using static System.Reflection.BindingFlags;
 
@@ -17,6 +23,14 @@ using System.Collections.Generic;
 #if ZyLang
 using I2.Loc;
 using System.Globalization;
+#endif
+
+#if ZyLog
+using System.Diagnostics;
+#endif
+
+#if ZyLib
+using System.Linq;
 #endif
 
 namespace Sheepy.PhoenixPt {
@@ -111,7 +125,7 @@ namespace Sheepy.PhoenixPt {
          return new HarmonyMethod( GetType().GetMethod( name, Public | NonPublic | Static ) ?? throw new NullReferenceException( name + " not found" ) );
       }
 
-      #if (ZyUnpatch || ZyBatch)
+      #if ZyUnpatch
       protected static void Unpatch ( ref IPatch patch ) {
          patch?.Unpatch();
          patch = null;
@@ -184,7 +198,7 @@ namespace Sheepy.PhoenixPt {
          }
 
          public IPatch Patch () {
-            #if ( ZyLog || ZyDefLog )
+            #if ZyLog
             Verbo( (Func<string>) PatchLog );
             #else
             Api( "log v", (Func<string>) PatchLog );
@@ -195,7 +209,7 @@ namespace Sheepy.PhoenixPt {
          private string PatchLog () => ActionLog( "Patching" );
          private string ActionLog ( string action ) => string.Format( "{0} {1}.{2}, pre:{3} post:{4} trans:{5}", action, Target.DeclaringType.Name, Target.Name, Pre?.method.Name, Post?.method.Name, Tran?.method.Name );
 
-         #if (ZyUnpatch || ZyBatch)
+         #if ZyUnpatch
          public void Unpatch () {
             Api( "log v", (Func<string>) UnpatchLog );
             if ( Pre  != null ) Patcher.Unpatch( Target, Pre.method  );
@@ -229,7 +243,7 @@ namespace Sheepy.PhoenixPt {
             return;
          }
          lock ( _SLock ) ModnixApi = api;
-         #if ( ZyLog || ZyDefLog)
+         #if ZyLog
          Logger = (Action< TraceEventType, object, object[] >) api( "logger", "TraceEventType" );
          #endif
       }
@@ -242,11 +256,15 @@ namespace Sheepy.PhoenixPt {
             var file = Assembly.GetExecutingAssembly().Location.Replace( ".dll", ".conf" );
             if ( File.Exists( file ) ) try {
                config = JsonConvert.DeserializeObject<T>( File.ReadAllText( file ) );
-            } catch ( Exception ex ) { Api( "log w", ex ); }
+            } catch ( Exception ex ) {
+               #if ZyDefLog
+               Warn( ex );
+               #endif
+            }
          } else {
             config = (T) api( "config", typeof( T ) );
          }
-         lock ( _SLock ) if ( config == null ) config = new T();
+         if ( config == null ) config = new T();
          Api( "log v", Jsonify( config ) );
          return config;
       }
@@ -297,7 +315,7 @@ namespace Sheepy.PhoenixPt {
       }
       #endif
       
-      #if ( ZyLog || ZyDefLog )
+      #if ZyLog
       public static Action< TraceEventType, object, object[] > Logger;
       public static void ApiLog ( TraceEventType level, object msg, params object[] augs ) { lock ( _SLock ) Logger?.Invoke( level, msg, augs ); }
       public static void Verbo ( object msg, params object[] augs ) => ApiLog( TraceEventType.Verbose, msg, augs );
@@ -327,7 +345,7 @@ namespace Sheepy.PhoenixPt {
 
    public interface IPatch {
       IPatch Patch();
-      #if (ZyUnpatch || ZyBatch)
+      #if ZyUnpatch
       void Unpatch();
       #endif
    }
