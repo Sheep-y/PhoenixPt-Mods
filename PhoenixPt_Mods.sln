@@ -50,9 +50,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PpmlTest", "Unpublished\PpmlTest\PpmlTest.csproj", "{C9DBB18F-4C9F-43FF-9023-12F686EB2124}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeafTheDead", "Tactical\DeafTheDead\DeafTheDead.csproj", "{C8BD9E4E-C1E7-4AC6-B3AE-023265FA57C7}"
-	ProjectSection(ProjectDependencies) = postProject
-		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{345FC9DB-1B23-4388-A225-8B2DB5812A64}"
 	ProjectSection(SolutionItems) = preProject
