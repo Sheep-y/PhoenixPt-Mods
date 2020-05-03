@@ -95,9 +95,11 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                var config = Mod.Config;
                if ( config.Log_Game_Error ) levels.Add( "Game Error" );
                if ( config.Log_Game_Info ) levels.Add( "Game Info" );
-               if ( config.Log_Modnix_Error ) levels.Add( "Modnix Error" );
-               if ( config.Log_Modnix_Info ) levels.Add( "Modnix Info" );
-               if ( config.Log_Modnix_Verbose ) levels.Add( "Modnix Verbose" );
+               if ( HasApi ) {
+                  if ( config.Log_Modnix_Error ) levels.Add( "Modnix Error" );
+                  if ( config.Log_Modnix_Info ) levels.Add( "Modnix Info" );
+                  if ( config.Log_Modnix_Verbose ) levels.Add( "Modnix Verbose" );
+               }
                if ( level.Length == 0 ) levels.Add( "(None)" );
                console.WriteLine( "Console log level: " + String.Join( ", ", levels ) );
                return;
