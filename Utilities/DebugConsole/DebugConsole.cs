@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityTools;
+using static Harmony.AccessTools;
 
 namespace Sheepy.PhoenixPt.DebugConsole {
 
@@ -55,8 +56,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             var a = TryPatch( typeof( LogFormatter ), "LogFormat", prefix: nameof( UnityToConsole ) );
             var b = TryPatch( typeof( LogFormatter ), "LogException", prefix: nameof( UnityExToConsole ) );
             if ( a != null || b != null ) {
-               TryPatch( typeof( TimeComponent ), "Awake", postfix: nameof( CatchSchedulerException ) );
                TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
+               if ( Config.Log_Game_Error ) {
+                  TryPatch( Inner( typeof( TimingScheduler ), "Updateable" ), "RaiseException", prefix: nameof( CatchSchedulerException ) );
+               }
             }
          } catch ( Exception ex ) { Error( ex ); }
          if ( Config.Scan_Mods_For_Command && Extensions.InitScanner() ) {
@@ -139,13 +142,13 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             }
          }
          var time = entry.GetType().GetField( "Time" ).GetValue( entry ) as DateTime?;
-         AddToConsoleBuffer( string.Format( "{0} <color={1}>{2} {3}</color>", time?.ToString( "HH:mm:ss.ffff" ), colour, level, txt ) );
+         AddToConsoleBuffer( string.Format( "{0} <color={1}>{2} {3}</color >", FormatTime( time.Value ), colour, level, txt ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static bool UnityToConsole ( LogType logType, object context, string format, params object[] args ) { try {
-         bool runOriginal = ! Config.Optimise_Log_File;
-         lock ( _SLock ) ; // Sync config
          string level = "INFO";
+         lock ( _SLock ) ; // Sync config
+         bool runOriginal = ! Config.Optimise_Log_File;
          switch ( logType ) {
             case LogType.Exception: case LogType.Error: case LogType.Warning:
                if ( ! Config.Log_Game_Error ) return runOriginal;
@@ -164,9 +167,12 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                  line.Contains( "UnityTools.LogFormatter" ) ||
                  line.Contains( ".UnityToConsole" ) )
                return;
-            line = string.Format( "{0} {1} {2}", time.ToString( "HH:mm:ss.ffff" ), level, line );
+            line = string.Format( "{0} {1} {2}", FormatTime( time ), level, line );
             if ( line.Length > 500 ) {
-               // Hide long message from console to avoid 65000 vertices error.
+               // Hide long message from console to avoid 65000 vertices error,
+               // but show the type and message of exception
+               if ( args?.Length == 1 && args[0] is Exception e )
+                  UnityToConsole( LogType.Exception, context, "{0} {1}", e.GetType().FullName, e.Message );
                OverrideAppendToLogFile_AddToQueue( line, null );
             } else
                AddToConsoleBuffer( line );
@@ -174,21 +180,15 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          return runOriginal;
       } catch ( Exception ex ) { return Error( ex ); } }
 
-      private static bool UnityExToConsole ( Exception exception, object context )
-         => UnityToConsole( LogType.Exception, context, "{0}", exception );
+      private static string FormatTime ( DateTime logTime ) {
+         return Time.time.ToString( "F2" );
+      }
 
-      private static volatile TimingScheduler RootScheduler;
+      private static bool UnityExToConsole ( Exception exception, object context ) => UnityToConsole( LogType.Exception, context, "{0}", exception );
 
-      private static void CatchSchedulerException ( TimeComponent __instance ) { try {
-         if ( ! __instance.RootTime ) return;
-         RootScheduler = __instance.Timing.Scheduler;
-         if ( ! Config.Log_Game_Error ) return;
-         RootScheduler.OnUpdateableException += ( u, e ) => UnityToConsole( LogType.Exception, u, e.ToString() );
-         Verbo( "Added exception logger to root scheduler" );
-      } catch ( Exception ex ) { Error( ex ); } }
+      private static void CatchSchedulerException ( object __instance, Exception ex ) => UnityExToConsole( ex, __instance );
 
-      private static void BufferToConsole ( TimingScheduler __instance ) { try {
-         if ( __instance == RootScheduler ) return; // Only run on level schedulers.
+      private static void BufferToConsole () { try {
          string[] lines;
          lock ( ConsoleBuffer ) {
             if ( ConsoleBuffer.Count == 0 ) return;
