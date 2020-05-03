@@ -1,6 +1,6 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version 5, 2020-05-03
+# Version 5, 2020-05-04
 
 * Updated to Modnix 2.3.  Older Modnix would lost ui dump api.  No longer configurable on Modnix 1.
 * Rewrite log capturer and processor to be faster, capture more messages and errors, and more accurate timestamp.

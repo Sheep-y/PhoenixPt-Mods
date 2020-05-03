@@ -277,8 +277,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       private static Func<string> ToString ( Transform t ) { return () => {
          if ( t == null ) return "";
-         var result = string.Format( " Pos {0} Scale {1} Rotate {2}", t.localPosition, t.localScale, t.localRotation );
-         return result.Replace( ".0,", "," ).Replace( ".0)", ")" )
+         var result = string.Format( "Pos {0} Scale {1} Rotate {2}", t.localPosition, t.localScale, t.localRotation );
+         return " " + result.Replace( ".0,", "," ).Replace( ".0)", ")" )
             .Replace( "Pos (0, 0, 0)", "" )
             .Replace( "Scale (1, 1, 1)", "" )
             .Replace( "Rotate (0, 0, 0, 1)", "" )
@@ -289,7 +289,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( output == null ) { Info( param, args ); return; }
          for ( int i = 0, len = args.Length ; i < len ; i++ )
             if ( args[i] is Func<string> eval ) args[i] = eval();
-         output.WriteLine( param?.ToString(), args );
+         Mod.WriteConsole( string.Format( param?.ToString(), args ) );
       }
 
       private static string TypeName ( object e ) => e?.GetType().FullName.Replace( "UnityEngine.", "UE." );

@@ -97,34 +97,12 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          revision.BuildRevisionNumber.text += $", Modnix {loader_ver}, {list.Count()} mods.";
       } catch ( Exception ex ) { Error( ex ); } }
 
-      #region Forward logs to Console
-      private readonly static List<string> ConsoleBuffer = new List<string>();
-      //private static string LastLine;
-
-      internal static void WriteConsole ( string line ) {
-         if ( string.IsNullOrWhiteSpace( line ) ) return;
-         /*
-         var pos = line.IndexOf( ' ' );
-         if ( pos > 0 ) { // Skip duplicates
-            var timeless = line.Substring( pos );
-            if ( timeless.Equals( LastLine ) ) {
-               OverrideAppendToLogFile_AddToQueue( line, null );
-               return;
-            }
-            LastLine = timeless;
-         }
-         */
-         if ( Config.Log_Game || Config.Log_Modnix )
-            lock ( ConsoleBuffer ) ConsoleBuffer.Add( line );
-         else // No log = no buffer patch
-            GameConsoleWindow.Create().WriteLine( line );
-      }
-
+      #region Log capturing
       private static FieldInfo ModnixLogEntryLevel;
 
       private static void ModnixToConsole ( object entry, string txt ) { try {
          txt = txt.Trim();
-         if ( txt.Length == 0 || txt.Length > 500 || txt.Contains( ".ModnixToConsole" ) ) return;
+         if ( txt.Length == 0 || txt.Contains( ".ModnixToConsole" ) ) return;
          string colour = "lime", level = "MODX";
          if ( ModnixLogEntryLevel != null ) {
             switch ( (TraceEventType) ModnixLogEntryLevel.GetValue( entry ) ) {
@@ -150,8 +128,12 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             }
          }
          var entryTime = ( entry.GetType().GetField( "Time" ).GetValue( entry ) as DateTime? ).Value;
-         WriteConsole( string.Format( "{0} <color={1}>{2} {3}</color><b></b>", FormatTime( entryTime - StartTime ), colour, level, txt ) );
+         WriteConsole( entryTime, $"<color={colour}>{level}", txt + "</color><b></b>" );
       } catch ( Exception ex ) { Error( ex ); } }
+
+      private static bool UnityExToConsole ( Exception exception, object context ) => UnityToConsole( LogType.Exception, context, "{0}", exception );
+
+      private static void CatchSchedulerException ( object __instance, Exception ex ) => UnityExToConsole( ex, __instance );
 
       private static bool UnityToConsole ( LogType logType, object context, string format, params object[] args ) { try {
          string level = "INFO";
@@ -180,26 +162,50 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                  line.Contains( "UnityTools.LogFormatter" ) ||
                  line.Contains( ".UnityToConsole" ) )
                return;
-            var fullline = string.Format( "{0} {1} {2}", FormatTime( time - StartTime ), level, line );
-            if ( fullline.Length > 500 ) {
-               // Trim long message from console to avoid 65000 vertices error, but write the full log.
-               OverrideAppendToLogFile_AddToQueue( fullline, null );
-               line = line.Split( new char[]{ '\r', '\n' }, 2 )[0].Trim();
-               if ( line.Length > 400 ) line = line.Substring( 0, 400 );
-               UnityToConsole( logType, context, EscLine( line ) + "...({0} chars)<b></b>", fullline.Length );
-            } else
-               WriteConsole( fullline );
+            WriteConsole( time, level, line );
          } catch ( Exception ex ) { Error( ex ); } } );
          return false;
       } catch ( Exception ex ) { return Error( ex ); } }
+      #endregion
+
+      #region Forward logs to Console
+      private readonly static List<string> ConsoleBuffer = new List<string>();
+      //private static string LastLine;
+
+      internal static void WriteConsole ( string line ) => WriteConsole( DateTime.Now, "", line );
+
+      internal static void WriteConsole ( DateTime time, string level, string line ) {
+         if ( string.IsNullOrWhiteSpace( line ) ) return;
+         var fullline = string.Format( "{0} {1} {2}", FormatTime( time - StartTime ), level, line );
+         if ( fullline.Length > 300 ) {
+            // Trim long message from console to avoid 65000 vertices error, but write the full log.
+            OverrideAppendToLogFile_AddToQueue( fullline, null );
+            line = line.Split( new char[]{ '\r', '\n' }, 2 )[0].Trim();
+            if ( line.Length > 250 ) line = line.Substring( 0, 250 );
+            if ( level.StartsWith( "<color=" ) ) line += "</color>";
+            WriteConsole( time, level, EscLine( line ) + $"... ({fullline.Length} chars)<b></b>" );
+            return;
+         }
+         /*
+         var pos = line.IndexOf( ' ' );
+         if ( pos > 0 ) { // Skip duplicates
+            var timeless = line.Substring( pos );
+            if ( timeless.Equals( LastLine ) ) {
+               OverrideAppendToLogFile_AddToQueue( line, null );
+               return;
+            }
+            LastLine = timeless;
+         }
+         */
+         if ( Config.Log_Game || Config.Log_Modnix )
+            lock ( ConsoleBuffer ) ConsoleBuffer.Add( fullline );
+         else // No log = no buffer patch
+            GameConsoleWindow.Create().WriteLine( fullline );
+      }
 
       private static string FormatTime ( TimeSpan logTime ) {
          return logTime.TotalSeconds.ToString( "F2" );
       }
-
-      private static bool UnityExToConsole ( Exception exception, object context ) => UnityToConsole( LogType.Exception, context, "{0}", exception );
-
-      private static void CatchSchedulerException ( object __instance, Exception ex ) => UnityExToConsole( ex, __instance );
 
       private static void BufferToConsole () { try {
          string[] lines;
@@ -257,7 +263,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private static string FormatConsoleLog ( KeyValuePair<DateTime,string> entry ) {
          var line = entry.Value;
          if ( string.IsNullOrWhiteSpace( line ) ) return null;
-         if ( line.EndsWith( "...<b></b>" ) ) return null; // Trimmed log
+         if ( line.EndsWith( " chars)<b></b>" ) ) return null; // Trimmed log
          if ( HasApi && RegexModnixLine.IsMatch( line ) && ! Config.Write_Modnix_To_Console_Logfile ) return null;
          line = EscLine( RegexStyle.Replace( line, "" ) ); // Prevent log writer thread from throwing error on string.Format.
          return entry.Key.ToString( "u" ).Substring( 11, 8 ) + " | " + line;
