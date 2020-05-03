@@ -156,7 +156,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
               line.Contains( "UnityTools.LogFormatter" ) ||
               line.Contains( "DebugConsole.Mod.UnityToConsole" ) )
             return runOriginal;
-         if ( format.Length > 1000 ) {
+         if ( format.Length > 500 ) {
             // Hide long message from console to avoid 65000 vertices error.
             OverrideAppendToLogFile_AddToQueue( line, null );
          } else
@@ -167,14 +167,18 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private static bool UnityExToConsole ( Exception exception, object context )
          => UnityToConsole( LogType.Exception, context, exception.ToString() );
 
+      private static volatile TimingScheduler RootScheduler;
+
       private static void CatchSchedulerException ( TimeComponent __instance ) { try {
          if ( ! __instance.RootTime ) return;
+         RootScheduler = __instance.Timing.Scheduler;
          if ( ! Config.Log_Game_Error ) return;
-         __instance.Timing.Scheduler.OnUpdateableException += ( u, e ) => UnityToConsole( LogType.Exception, u, e.ToString() );
+         RootScheduler.OnUpdateableException += ( u, e ) => UnityToConsole( LogType.Exception, u, e.ToString() );
          Verbo( "Added exception logger to root scheduler" );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static void BufferToConsole () { try {
+      private static void BufferToConsole ( TimingScheduler __instance ) { try {
+         if ( __instance == RootScheduler ) return; // Only run on level schedulers.
          string[] lines;
          lock ( ConsoleBuffer ) {
             if ( ConsoleBuffer.Count == 0 ) return;
