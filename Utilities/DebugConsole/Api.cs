@@ -158,13 +158,15 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             return;
          }
          if ( param == null || param.Length == 0 ) throw new ApplicationException( "Api action required." );
-         object arg = null;
-         if ( param.Length > 2 ) {
-            arg = new string[ param.Length - 1 ];
-            Array.Copy( param, 1, arg as string[], 0, param.Length - 1 );
-         } else if ( param.Length == 2 )
-            arg = param[1];
-         WriteResult( Api( param[0], arg ) );
+         Task.Run( () => {
+            object arg = null;
+            if ( param.Length > 2 ) {
+               arg = new string[ param.Length - 1 ];
+               Array.Copy( param, 1, arg as string[], 0, param.Length - 1 );
+            } else if ( param.Length == 2 )
+               arg = param[1];
+            WriteResult( Api( param[0], arg ) );
+         } );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void WriteError ( string line ) => GameConsoleWindow.Create().WriteLine( $"<color=red>{line}</color>" );

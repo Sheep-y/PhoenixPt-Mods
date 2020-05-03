@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -113,59 +112,70 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       private static void ModnixToConsole ( object entry, string txt ) { try {
          txt = txt.Trim();
-         if ( txt.Length == 0 || txt.Length > 1000 || txt.Contains( ".ModnixToConsole" ) || txt.Contains( "BeforeAppendToLogFile_ProcessModnixLine" ) ) return;
-         var prefix = "<color=lime>[MODX] ";
+         if ( txt.Length == 0 || txt.Length > 500 || txt.Contains( ".ModnixToConsole" ) ) return;
+         string colour = "lime", level = "MODX";
          if ( ModnixLogEntryLevel != null ) {
-            var level = (TraceEventType) ModnixLogEntryLevel.GetValue( entry );
             lock ( _SLock ) ; // Sync config
-            switch ( level ) {
+            switch ( (TraceEventType) ModnixLogEntryLevel.GetValue( entry ) ) {
                case TraceEventType.Critical: case TraceEventType.Error:
                   if ( ! Config.Log_Modnix_Error ) return;
-                  prefix = "<color=fuchsia>[ERROR] ";
+                  colour = "fuchsia";
+                  level = "EROR";
                   break;
                 case TraceEventType.Warning:
                   if ( ! Config.Log_Modnix_Error ) return;
-                  prefix = "<color=orange>[WARN] ";
+                  colour = "orange";
+                  level = "WARN";
                   break;
                case TraceEventType.Information :
                   if ( ! Config.Log_Modnix_Info ) return;
-                  prefix = "<color=lime>[INFO] ";
+                  level = "INFO";
                   break;
                default :
                   if ( ! Config.Log_Modnix_Verbose ) return;
-                  prefix = "<color=aqua>[VEBO] ";
+                  colour = "aqua";
+                  level = "VEBO";
                   break;
             }
          }
-         txt = $"{prefix} ({Time.time.ToString("0.000")}) {txt}</color>";
-         AddToConsoleBuffer( txt );
+         var time = entry.GetType().GetField( "Time" ).GetValue( entry ) as DateTime?;
+         AddToConsoleBuffer( string.Format( "{0} <color={1}>{2} {3}</color>", time?.ToString( "HH:mm:ss.ffff" ), colour, level, txt ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static bool UnityToConsole ( LogType logType, object context, string format, params object[] args ) { try {
          bool runOriginal = ! Config.Optimise_Log_File;
+         lock ( _SLock ) ; // Sync config
+         string level = "INFO";
          switch ( logType ) {
             case LogType.Exception: case LogType.Error: case LogType.Warning:
-               if ( ! Config.Log_Game_Error ) return runOriginal; break;
+               if ( ! Config.Log_Game_Error ) return runOriginal;
+               level = "EROR";
+               break;
             default:
-               if ( ! Config.Log_Game_Info ) return runOriginal; break;
+               if ( ! Config.Log_Game_Info ) return runOriginal;
+               break;
          }
-         string line = string.Format( format, args );
-         if ( string.IsNullOrWhiteSpace( line ) ||
-              line.StartsWith( "[CONSOLE] " ) ||
-              line.Contains( "Called from a secondary Thread" ) ||
-              line.Contains( "UnityTools.LogFormatter" ) ||
-              line.Contains( "DebugConsole.Mod.UnityToConsole" ) )
-            return runOriginal;
-         if ( format.Length > 500 ) {
-            // Hide long message from console to avoid 65000 vertices error.
-            OverrideAppendToLogFile_AddToQueue( line, null );
-         } else
-            AddToConsoleBuffer( line );
+         var time = DateTime.Now;
+         Task.Run( () => { try {
+            string line = string.Format( format, args );
+            if ( string.IsNullOrWhiteSpace( line ) ||
+                 line.StartsWith( "[CONSOLE] " ) ||
+                 line.Contains( "Called from a secondary Thread" ) ||
+                 line.Contains( "UnityTools.LogFormatter" ) ||
+                 line.Contains( ".UnityToConsole" ) )
+               return;
+            line = string.Format( "{0} {1} {2}", time.ToString( "HH:mm:ss.ffff" ), level, line );
+            if ( line.Length > 500 ) {
+               // Hide long message from console to avoid 65000 vertices error.
+               OverrideAppendToLogFile_AddToQueue( line, null );
+            } else
+               AddToConsoleBuffer( line );
+         } catch ( Exception ex ) { Error( ex ); } } );
          return runOriginal;
       } catch ( Exception ex ) { return Error( ex ); } }
 
       private static bool UnityExToConsole ( Exception exception, object context )
-         => UnityToConsole( LogType.Exception, context, exception.ToString() );
+         => UnityToConsole( LogType.Exception, context, "{0}", exception );
 
       private static volatile TimingScheduler RootScheduler;
 
