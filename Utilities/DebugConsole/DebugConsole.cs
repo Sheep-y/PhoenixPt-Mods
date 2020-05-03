@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityTools;
-using static Harmony.AccessTools;
 
 namespace Sheepy.PhoenixPt.DebugConsole {
 
@@ -58,7 +57,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             TryPatch( typeof( LogFormatter ), "LogFormat", prefix: nameof( UnityToConsole ) );
             if ( Config.Log_Game_Error ) {
                TryPatch( typeof( LogFormatter ), "LogException", prefix: nameof( UnityExToConsole ) );
-               TryPatch( Inner( typeof( TimingScheduler ), "Updateable" ), "RaiseException", prefix: nameof( CatchSchedulerException ) );
+               TryPatch( AccessTools.Inner( typeof( TimingScheduler ), "Updateable" ), "RaiseException", prefix: nameof( CatchSchedulerException ) );
             }
             TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
          } catch ( Exception ex ) { Error( ex ); }
@@ -130,7 +129,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( txt.Length == 0 || txt.Length > 500 || txt.Contains( ".ModnixToConsole" ) ) return;
          string colour = "lime", level = "MODX";
          if ( ModnixLogEntryLevel != null ) {
-            lock ( _SLock ) ; // Sync config
             switch ( (TraceEventType) ModnixLogEntryLevel.GetValue( entry ) ) {
                case TraceEventType.Critical: case TraceEventType.Error:
                   if ( ! Config.Log_Modnix_Error ) return;
@@ -159,7 +157,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       private static bool UnityToConsole ( LogType logType, object context, string format, params object[] args ) { try {
          string level = "INFO";
-         lock ( _SLock ) ; // Sync config
          bool runOriginal = ! Config.Optimise_Log_File;
          switch ( logType ) {
             case LogType.Exception: case LogType.Error: case LogType.Warning:

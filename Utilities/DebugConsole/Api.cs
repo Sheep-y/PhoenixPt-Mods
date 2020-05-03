@@ -76,7 +76,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          if ( level != null && level.Length >= 1 ) switch ( Char.ToLower( level[0] ) ) {
             case 'g' :
                List<string> levels = new List<string>();
-               lock ( _SLock ) ; // Sync config
                var config = Mod.Config;
                if ( config.Log_Game_Error ) levels.Add( "Game Error" );
                if ( config.Log_Game_Info ) levels.Add( "Game Info" );
@@ -89,12 +88,12 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
             case 'e' :
                var conf = SetAllLogging( false );
-               lock ( _SLock ) conf.Log_Game_Error = conf.Log_Modnix_Error = true;
+               conf.Log_Game_Error = conf.Log_Modnix_Error = true;
                console.WriteLine( "Console log level set to Error." );
                return;
 
             case 'i' :
-               lock ( _SLock ) SetAllLogging( true ).Log_Modnix_Verbose = false;
+               SetAllLogging( true ).Log_Modnix_Verbose = false;
                console.WriteLine( "Console log level set to Information." );
                return;
 
@@ -110,13 +109,17 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                return;
          }
          WriteError( $"Unknown level '{level}'. Level must be g, e, i, or n." );
-      } catch ( Exception ex ) { Error( ex ); } }
+      } catch ( Exception ex ) {
+         Error( ex );
+      } finally {
+         _ = Mod.Config; // Sync config
+      } }
 
-      private static ModConfig SetAllLogging ( bool enable ) { lock ( _SLock ) {
+      private static ModConfig SetAllLogging ( bool enable ) {
          var config = Mod.Config;
          config.Log_Game_Error = config.Log_Modnix_Error = config.Log_Game_Info = config.Log_Modnix_Info = config.Log_Modnix_Verbose = enable;
          return config;
-      } }
+      }
 
       [ ConsoleCommand( Command = "log_level_modnix", Description = "[level] - Get or set modnix log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
       public static void ConsoleCommandModnixDebugLevel ( IConsole console, string level ) { try {
