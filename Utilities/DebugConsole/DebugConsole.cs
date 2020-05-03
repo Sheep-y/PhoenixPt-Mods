@@ -149,8 +149,9 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                   break;
             }
          }
-         var time = entry.GetType().GetField( "Time" ).GetValue( entry ) as DateTime?;
-         AddToConsoleBuffer( string.Format( "{0} <color={1}>{2} {3}</color><color=red></color>", FormatTime( time.Value ), colour, level, txt ) );
+         var timeDiff = DateTime.Now - ( entry.GetType().GetField( "Time" ).GetValue( entry ) as DateTime? ).Value;
+         var gameTime = Time.time - (float) timeDiff.TotalSeconds;
+         AddToConsoleBuffer( string.Format( "{0} <color={1}>{2} {3}</color><color=red></color>", FormatTime( gameTime ), colour, level, txt ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static bool UnityToConsole ( LogType logType, object context, string format, params object[] args ) { try {
@@ -166,7 +167,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                if ( ! Config.Log_Game_Info ) return runOriginal;
                break;
          }
-         var time = DateTime.Now;
+         var time = Time.time;
          Task.Run( () => { try {
             if ( level == "EROR" ) {
                level = "<color=red>EROR";
@@ -192,8 +193,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          return runOriginal;
       } catch ( Exception ex ) { return Error( ex ); } }
 
-      private static string FormatTime ( DateTime logTime ) {
-         return Time.time.ToString( "F2" );
+      private static string FormatTime ( float logTime ) {
+         return logTime.ToString( "F2" );
       }
 
       private static bool UnityExToConsole ( Exception exception, object context ) => UnityToConsole( LogType.Exception, context, "{0}", exception );
