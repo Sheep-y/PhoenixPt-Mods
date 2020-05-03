@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 using System.IO;
 #endif
 
-#if ZyBatch
+#if ( ZyBatch || ZyYield )
 using System.Collections.Generic;
 #endif
 
@@ -31,6 +31,7 @@ namespace Sheepy.PhoenixPt {
    ///   * ZyLib     - Assembly related helpers, such as GameAssembly. (static)
    ///   * ZyLog     - Logging shortcuts.
    ///   * ZyUnpatch - Allow patches to be unpatched.
+   ///   * ZyYield   - Yield patch related helpers.
    /// </summary>
    public abstract class ZyMod {
 
@@ -183,7 +184,11 @@ namespace Sheepy.PhoenixPt {
          }
 
          public IPatch Patch () {
+            #if ( ZyLog || ZyDefLog )
+            Verbo( (Func<string>) PatchLog );
+            #else
             Api( "log v", (Func<string>) PatchLog );
+            #endif
             Patcher.Patch( Target, Pre, Post, Tran );
             return this;
          }
@@ -261,6 +266,35 @@ namespace Sheepy.PhoenixPt {
       #if ZyLib
       public static Assembly GameAssembly => Api( "assembly", "game" ) as Assembly
          ?? AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault( e => e.FullName.StartsWith( "Assembly-CSharp,", StringComparison.OrdinalIgnoreCase ) );
+      #endif
+
+      #if ZyYield
+      public static MethodInfo FindYieldMethod ( Type type, string methodName ) {
+         if ( type == null ) throw new ArgumentNullException( nameof( type ) );
+         var findName = "<" + methodName + ">";
+         // Find compiler generated classes
+         foreach ( var t in type.GetNestedTypes( NonPublic | Static ) ) {
+            if ( ! t.Name.StartsWith( "<>c", StringComparison.OrdinalIgnoreCase ) ) continue;
+            // And among them find the first generated method
+            foreach ( var m in t.GetMethods( NonPublic | Instance | Static ) ) {
+               if ( m.Name.StartsWith( findName, StringComparison.Ordinal ) ) return m;
+            }
+         }
+         throw new MissingMemberException( type.FullName + "." + methodName );
+      }
+
+      public static MethodInfo TryFindYield ( Type type, string methodName, string errorLevel = null ) { try {
+         return FindYieldMethod( type, methodName );
+      } catch {
+         if ( errorLevel != null )
+            Api( "log " + errorLevel, "Yield not found: " + ( type?.FullName ?? "null" ) + "." + methodName );
+         return null;
+      } }
+
+      protected static IEnumerable<CodeInstruction> DumpILCode ( IEnumerable<CodeInstruction> instr ) {
+         foreach ( var code in instr ) Info( code );
+         return instr;
+      }
       #endif
       
       #if ( ZyLog || ZyDefLog )

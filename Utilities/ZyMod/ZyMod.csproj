@@ -26,7 +26,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;ZyBatch; ZyDefLog; ZyConfig; ZyLang; ZyLib</DefineConstants>
+    <DefineConstants>TRACE;ZyBatch; ZyConfig; ZyDefLog; ZyLang; ZyLib; ZyYield</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
