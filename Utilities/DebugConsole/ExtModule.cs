@@ -299,7 +299,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          else if ( result == null ) line = "null";
          else if ( result is Exception || result is StackTrace || result is MethodInfo || result is Task ) line = result.ToString();
          else line = JsonConvert.SerializeObject( result, Formatting.None );
-         Mod.AddToConsoleBuffer( line );
+         Mod.WriteConsole( line );
          if ( result is Task<object> task )
             task.ContinueWith( e => {
                if ( e.IsCanceled ) WriteResult( "Cancelled" );
