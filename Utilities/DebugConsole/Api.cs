@@ -73,10 +73,11 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       #region Console commands
       [ConsoleCommand( Command = "log_level", Description = "[level] - Get or set console log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
       public static void ConsoleCommandDebugLevel ( IConsole console, string level ) { try {
-         var config = Mod.Config;
          if ( level != null && level.Length >= 1 ) switch ( Char.ToLower( level[0] ) ) {
             case 'g' :
                List<string> levels = new List<string>();
+               lock ( _SLock ) ; // Sync config
+               var config = Mod.Config;
                if ( config.Log_Game_Error ) levels.Add( "Game Error" );
                if ( config.Log_Game_Info ) levels.Add( "Game Info" );
                if ( config.Log_Modnix_Error ) levels.Add( "Modnix Error" );
@@ -87,30 +88,35 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                return;
 
             case 'e' :
-               config.Log_Game_Error = config.Log_Modnix_Error = true;
-               config.Log_Game_Info = config.Log_Modnix_Info = config.Log_Modnix_Verbose = false;
+               var conf = SetAllLogging( false );
+               lock ( _SLock ) conf.Log_Game_Error = conf.Log_Modnix_Error = true;
                console.WriteLine( "Console log level set to Error." );
                return;
 
             case 'i' :
-               config.Log_Game_Error = config.Log_Modnix_Error = config.Log_Game_Info = config.Log_Modnix_Info = true;
-               config.Log_Modnix_Verbose = false;
+               lock ( _SLock ) SetAllLogging( true ).Log_Modnix_Verbose = false;
                console.WriteLine( "Console log level set to Information." );
                return;
 
             case 'v' :
-               config.Log_Game_Error = config.Log_Modnix_Error = config.Log_Game_Info = config.Log_Modnix_Info = config.Log_Modnix_Verbose = true;
+               SetAllLogging( true );
                console.WriteLine( "Console log level set to Verbose." );
                //ConsoleCommandModnixDebugLevel( console, "v" );
                return;
 
             case 'n' :
-               config.Log_Game_Error = config.Log_Modnix_Error = config.Log_Game_Info = config.Log_Modnix_Info = config.Log_Modnix_Verbose = false;
+               SetAllLogging( false );
                console.WriteLine( "Console log level set to None." );
                return;
          }
          WriteError( $"Unknown level '{level}'. Level must be g, e, i, or n." );
       } catch ( Exception ex ) { Error( ex ); } }
+
+      private static ModConfig SetAllLogging ( bool enable ) { lock ( _SLock ) {
+         var config = Mod.Config;
+         config.Log_Game_Error = config.Log_Modnix_Error = config.Log_Game_Info = config.Log_Modnix_Info = config.Log_Modnix_Verbose = enable;
+         return config;
+      } }
 
       [ ConsoleCommand( Command = "log_level_modnix", Description = "[level] - Get or set modnix log level: g(et), e(rror), i(nfo), v(erbose), or n(one)" ) ]
       public static void ConsoleCommandModnixDebugLevel ( IConsole console, string level ) { try {

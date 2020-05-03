@@ -53,14 +53,12 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          GameConsoleWindow.DisableConsoleAccess = false; // Enable console first no matter what happens
          Verbo( "Console Enabled" );
          if ( Config.Log_Game_Error || Config.Log_Game_Info ) try {
-            var a = TryPatch( typeof( LogFormatter ), "LogFormat", prefix: nameof( UnityToConsole ) );
-            var b = TryPatch( typeof( LogFormatter ), "LogException", prefix: nameof( UnityExToConsole ) );
-            if ( a != null || b != null ) {
-               TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
-               if ( Config.Log_Game_Error ) {
-                  TryPatch( Inner( typeof( TimingScheduler ), "Updateable" ), "RaiseException", prefix: nameof( CatchSchedulerException ) );
-               }
+            TryPatch( typeof( LogFormatter ), "LogFormat", prefix: nameof( UnityToConsole ) );
+            if ( Config.Log_Game_Error ) {
+               TryPatch( typeof( LogFormatter ), "LogException", prefix: nameof( UnityExToConsole ) );
+               TryPatch( Inner( typeof( TimingScheduler ), "Updateable" ), "RaiseException", prefix: nameof( CatchSchedulerException ) );
             }
+            TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
          } catch ( Exception ex ) { Error( ex ); }
          if ( Config.Scan_Mods_For_Command && Extensions.InitScanner() ) {
             TryPatch( typeof( UIStateMainMenu ), "EnterState", prefix: nameof( ScanCommands ) );
@@ -105,9 +103,19 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       #region Forward logs to Console
       private readonly static List<string> ConsoleBuffer = new List<string>();
+      private static string LastLine;
 
       internal static void AddToConsoleBuffer ( string line ) {
          if ( string.IsNullOrWhiteSpace( line ) ) return;
+         var pos = line.IndexOf( ' ' );
+         if ( pos > 0 ) { // Skip duplicates
+            var timeless = line.Substring( pos );
+            if ( timeless.Equals( LastLine ) ) {
+               OverrideAppendToLogFile_AddToQueue( line, null );
+               return;
+            }
+            LastLine = timeless;
+         }
          lock ( ConsoleBuffer ) ConsoleBuffer.Add( line );
       }
 
@@ -142,7 +150,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             }
          }
          var time = entry.GetType().GetField( "Time" ).GetValue( entry ) as DateTime?;
-         AddToConsoleBuffer( string.Format( "{0} <color={1}>{2} {3}</color >", FormatTime( time.Value ), colour, level, txt ) );
+         AddToConsoleBuffer( string.Format( "{0} <color={1}>{2} {3}</color><color=red></color>", FormatTime( time.Value ), colour, level, txt ) );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static bool UnityToConsole ( LogType logType, object context, string format, params object[] args ) { try {
@@ -160,6 +168,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          }
          var time = DateTime.Now;
          Task.Run( () => { try {
+            if ( level == "EROR" ) {
+               level = "<color=red>EROR";
+               format += "</color>";
+            }
             string line = string.Format( format, args );
             if ( string.IsNullOrWhiteSpace( line ) ||
                  line.StartsWith( "[CONSOLE] " ) ||
@@ -201,7 +213,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       } catch ( Exception ex ) { Error( ex ); } }
       #endregion
 
-      #region Write console to console log
+      #region From console window to console log
       private readonly static List<KeyValuePair<DateTime,string>> WriteBuffer = new List<KeyValuePair<DateTime,string>>();
       private static Queue<string> LogFileQueue;
       private static Task LogWriteTask;
@@ -238,19 +250,14 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          }
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static Regex RegexModnixColour = new Regex( "^<color=#?\\w+>", RegexOptions.Compiled );
-      private static Regex RegexModnixLine = new Regex( "^(\\[\\w+\\] )?\\d+ \\(\\d+\\.\\d{3}\\) ", RegexOptions.Compiled );
+      private static Regex RegexColour = new Regex( "</?color(=#?\\w+| )?>", RegexOptions.Compiled );
+      private static Regex RegexModnixLine = new Regex( "</color><color=red></color>$", RegexOptions.Compiled );
 
       private static string FormatConsoleLog ( KeyValuePair<DateTime,string> entry ) {
          var line = entry.Value;
          if ( string.IsNullOrWhiteSpace( line ) ) return null;
-         line = EscLine( line ); // Prevent log writer thread from throwing error on string.Format.
-         if ( line.StartsWith( "<color=", StringComparison.Ordinal ) ) {
-            line = RegexModnixColour.Replace( line, "", 1 );
-            if ( line.EndsWith( "</color>", StringComparison.Ordinal ) )
-               line = line.Substring( 0, line.Length - 8 );
-         }
          if ( HasApi && RegexModnixLine.IsMatch( line ) && ! Config.Write_Modnix_To_Console_Logfile ) return null;
+         line = EscLine( RegexColour.Replace( line, "" ) ); // Prevent log writer thread from throwing error on string.Format.
          return entry.Key.ToString( "u" ).Substring( 11, 8 ) + " | " + line;
       }
       #endregion
