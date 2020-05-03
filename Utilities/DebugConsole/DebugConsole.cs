@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -53,12 +54,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          Verbo( "Console Enabled" );
          if ( Config.Log_Game_Error || Config.Log_Game_Info ) try {
             var a = TryPatch( typeof( LogFormatter ), "LogFormat", prefix: nameof( UnityToConsole ) );
-            var b = TryPatch( typeof( LogFormatter ), "LogException", prefix: nameof( ExToConsole ) );
+            var b = TryPatch( typeof( LogFormatter ), "LogException", prefix: nameof( UnityExToConsole ) );
             if ( a != null || b != null ) {
+               TryPatch( typeof( TimeComponent ), "Awake", postfix: nameof( CatchSchedulerException ) );
                TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
-               foreach ( var t in typeof( TimeComponent ).GetNestedTypes( BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static ) )
-                  Info ( t );
-               //TryPatch( typeof( TimeComponent ), "Awake", transpiler: nameof( CaptureCoroutineException ) );
             }
          } catch ( Exception ex ) { Error( ex ); }
          if ( Config.Scan_Mods_For_Command && Extensions.InitScanner() ) {
@@ -142,7 +141,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          AddToConsoleBuffer( txt );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static bool UnityToConsole ( LogType logType, UnityEngine.Object context, string format, params object[] args ) { try {
+      private static bool UnityToConsole ( LogType logType, object context, string format, params object[] args ) { try {
          bool runOriginal = ! Config.Optimise_Log_File;
          switch ( logType ) {
             case LogType.Exception: case LogType.Error: case LogType.Warning:
@@ -165,14 +164,15 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          return runOriginal;
       } catch ( Exception ex ) { return Error( ex ); } }
 
-      private static bool ExToConsole ( Exception exception, UnityEngine.Object context )
+      private static bool UnityExToConsole ( Exception exception, object context )
          => UnityToConsole( LogType.Exception, context, exception.ToString() );
 
-      private static IEnumerable<CodeInstruction> CaptureCoroutineException ( IEnumerable<CodeInstruction> instr ) {
-         foreach ( var code in instr )
-            Info( code );
-         return instr;
-      }
+      private static void CatchSchedulerException ( TimeComponent __instance ) { try {
+         if ( ! __instance.RootTime ) return;
+         if ( ! Config.Log_Game_Error ) return;
+         __instance.Timing.Scheduler.OnUpdateableException += ( u, e ) => UnityToConsole( LogType.Exception, u, e.ToString() );
+         Verbo( "Added exception logger to root scheduler" );
+      } catch ( Exception ex ) { Error( ex ); } }
 
       private static void BufferToConsole () { try {
          string[] lines;
