@@ -61,21 +61,15 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             }
             TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
          } catch ( Exception ex ) { Error( ex ); }
-         if ( Config.Scan_Mods_For_Command && Extensions.InitScanner() ) {
-            TryPatch( typeof( UIStateMainMenu ), "EnterState", prefix: nameof( ScanCommands ) );
-            TryPatch( typeof( GameConsoleWindow ), "ToggleVisibility", postfix: nameof( ScanCommands ) );
-            // Scan before lists are accessed. Messages are buffered and will appear after the commands.
-            TryPatch( typeof( ConsoleCommandAttribute ), "GetCommands", prefix: nameof( ScanCommands ) );
-            TryPatch( typeof( ConsoleCommandAttribute ), "GetInfo", prefix: nameof( ScanCommands ) );
-            TryPatch( typeof( ConsoleCommandAttribute ), "HasCommand", prefix: nameof( ScanCommands ) );
-         }
+         if ( Config.Scan_Mods_For_Command )
+            new ExtModule().InitMod();
          if ( Config.Optimise_Log_File )
             TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( OverrideAppendToLogFile_AddToQueue ) );
       }
 
       private void ModnixPatch () {
          if ( ! HasApi ) return;
-         Api( "api_add zy.ui.dump", (Func<object,bool>) Extensions.GuiTreeApi );
+         ExtModule.RegisterApi();
          if ( Config.Mod_Count_In_Version )
             TryPatch( typeof( UIStateMainMenu ), "EnterState", postfix: nameof( AfterMainMenu_AddModCount ) );
          if ( Config.Log_Modnix_Error || Config.Log_Modnix_Info || Config.Log_Modnix_Verbose ) {
@@ -91,8 +85,6 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          }
       }
 
-      private static void ScanCommands () => Extensions.ScanCommands();
-
       private static void AfterMainMenu_AddModCount ( UIStateMainMenu __instance ) { try {
          var revision = typeof( UIStateMainMenu ).GetProperty( "_buildRevisionModule", BindingFlags.NonPublic | BindingFlags.Instance )?.GetValue( __instance ) as UIModuleBuildRevision;
          var list = Api( "mod_list", null ) as IEnumerable<string>;
@@ -104,7 +96,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       #region Forward logs to Console
       private readonly static List<string> ConsoleBuffer = new List<string>();
-      private static string LastLine;
+      //private static string LastLine;
 
       internal static void AddToConsoleBuffer ( string line ) {
          if ( string.IsNullOrWhiteSpace( line ) ) return;
