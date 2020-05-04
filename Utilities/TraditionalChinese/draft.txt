@@ -1,0 +1,10 @@
+Creating new language for Phoenix Point
+
+1. Setup Modnix and install this mod and Debug Console.
+2. Find the language code you need to support.  English is en, German is de, Chinese is zh etc.  Replace {code} with your language code.
+3. In game console, type "modnix zy.lang.save {code}" to create a blank translation template.
+4. Exit game.  Find template in this mod's folder and fill it in.
+5. In game console, type "modnix zy.lang.compile {code}" to convert the template.
+6. In game console, type "modnix zy.lang.load {code}" to load compiled template.
+
+Repeat 4-6 until you perfected your data.
