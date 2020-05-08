@@ -1,5 +1,10 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
+# Version 5.0.1, 2020-05-09
+
+* Excludes more system and utility libraries from command scanning.
+* Handles ReflectionTypeLoadException when scanning commands.
+
 # Version 5, 2020-05-04
 
 * Updated to Modnix 2.3.  Older Modnix would lost ui dump api.  No longer configurable on Modnix 1.

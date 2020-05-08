@@ -79,7 +79,13 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                continue;
             }
             Verbo( "Scanning {0} for console commands.", asm.FullName );
-            foreach ( var type in asm.GetTypes() ) {
+            Type[] types;
+            try {
+               types = asm.GetTypes();
+            } catch ( ReflectionTypeLoadException rtlex ) {
+               types = rtlex.Types;
+            }
+            foreach ( var type in types ) {
                foreach ( var func in type.GetMethods( BindingFlags.Static | BindingFlags.Public ) ) {
                   var tag = func.GetCustomAttribute( typeof(ConsoleCommandAttribute) ) as ConsoleCommandAttribute;
                   if ( tag == null ) continue;
