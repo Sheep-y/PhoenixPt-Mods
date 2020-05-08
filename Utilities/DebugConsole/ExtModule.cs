@@ -51,15 +51,30 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          return true;
       }
 
+      private static readonly string[] SkipAssembly = new string[]{
+          "0Harmony,",
+          "Assembly-CSharp,",
+          "Cinemachine,",
+          "HarmonySharedState,",
+          "Microsoft.",
+          "ModnixLoader,",
+          "Mono.",
+          "Newtonsoft.Json,",
+          "QHierarchy",
+          "System,",
+          "System.",
+          "Unity,",
+          "Unity.",
+          "UnityEngine.",
+          "mscorlib,"
+      };
+
       internal static void ScanCommands () { try {
          Assembly[] asmAry = AppDomain.CurrentDomain.GetAssemblies();
          if ( asmAry.Length == ScannedMods.Count ) return;
          foreach ( var asm in asmAry ) {
             if ( ScannedMods.Contains( asm ) ) continue;
-            if ( asm.FullName.StartsWith( "UnityEngine.", StringComparison.Ordinal ) ||
-                 asm.FullName.StartsWith( "Unity.", StringComparison.Ordinal ) ||
-                 asm.FullName.StartsWith( "Assembly-CSharp,", StringComparison.Ordinal ) ||
-                 asm.FullName.StartsWith( "System.", StringComparison.Ordinal ) ) {
+            if ( SkipAssembly.Any( e => asm.FullName.StartsWith( e, StringComparison.Ordinal ) ) ) {
                ScannedMods.Add( asm );
                continue;
             }
