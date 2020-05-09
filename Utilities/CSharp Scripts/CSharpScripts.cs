@@ -1,15 +1,12 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.CSharp;
 using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.CSharpScripts {
    internal class EvalAction : ZyMod {
@@ -19,6 +16,7 @@ namespace Sheepy.PhoenixPt.CSharpScripts {
       internal static object RunModAction ( string modId, Dictionary<string,object> action ) {
          object value = null;
          if ( action?.TryGetValue( "Eval", out value ) != true || ! ( value is string code ) ) return false;
+         LoadLibraries();
          PrepareScript();
          Verbo( "Eval> {0}", code );
          var task = CSharpScript.EvaluateAsync( code, Options );
@@ -32,10 +30,36 @@ namespace Sheepy.PhoenixPt.CSharpScripts {
       private static readonly string[] ScriptAssemblies = new string[]{ "mscorlib", "Assembly-CSharp,", "Cinemachine,", "0Harmony,", "Newtonsoft.Json," };
       private static ScriptOptions Options;
 
+      private static void LoadLibraries () { lock ( ScriptAssemblies ) {
+         if ( Options != null ) return;
+         Info( "Loading C# scripting" );
+
+         var dir = Path.Combine( Api( "dir" )?.ToString(), "lib" );
+         foreach ( var f in new string[]{
+               "netstandard.dll",
+               "Microsoft.Win32.Primitives.dll",
+               "System.Buffers.dll",
+               "System.Collections.Immutable.dll",
+               "System.Memory.dll",
+               "System.Numerics.Vectors.dll",
+               "System.Reflection.Metadata.dll",
+               "System.Runtime.CompilerServices.VisualC.dll",
+               "System.Security.Principal.dll",
+               "System.Threading.Tasks.Extensions.dll",
+               "System.ValueTuple.dll",
+               "Microsoft.CodeAnalysis.CSharp.dll",
+               "Microsoft.CodeAnalysis.CSharp.Scripting.dll",
+               "Microsoft.CodeAnalysis.dll",
+               "Microsoft.CodeAnalysis.Scripting.dll" } ) {
+            var path = Path.Combine( dir, f );
+            Verbo( "Loading {0}", path );
+            Assembly.LoadFrom( path );
+         }
+      } }
 
       private static void PrepareScript () { lock ( ScriptAssemblies ) {
          if ( Options != null ) return;
-         Info( "Initiating C# script evaluator" );
+         Info( "Initiating C# scripting" );
 
          Options = ScriptOptions.Default
             .WithLanguageVersion( Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_3 )

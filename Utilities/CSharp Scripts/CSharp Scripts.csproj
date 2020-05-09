@@ -121,6 +121,10 @@ copy ZyMod.cs "$(ProjectDir)"</PreBuildEvent>
     <PostBuildEvent>cd $(SolutionDir)
 mkdir distro
 cd distro
-copy /y $(ProjectDir)$(OutDir)$(TargetFileName) .</PostBuildEvent>
+copy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" .
+mkdir lib
+cd lib
+copy /y "$(ProjectDir)lib\*.dll" .
+</PostBuildEvent>
   </PropertyGroup>
 </Project>
