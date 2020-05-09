@@ -106,7 +106,11 @@ namespace Sheepy.PhoenixPt {
          #endif
          return Patch( type, method, prefix, postfix, transpiler );
       } catch ( Exception ex ) {
+         #if ZyLog
+         Warn( ex );
+         #else
          Api( "log w", ex );
+         #endif
          return null;
       #if ZyBatch
       } finally {
@@ -120,7 +124,11 @@ namespace Sheepy.PhoenixPt {
          #endif
          return Patch( method, prefix, postfix, transpiler );
       } catch ( Exception ex ) {
-         Api( "log w",  ex );
+         #if ZyLog
+         Warn( ex );
+         #else
+         Api( "log w", ex );
+         #endif
          return null;
       #if ZyBatch
       } finally {
@@ -147,18 +155,31 @@ namespace Sheepy.PhoenixPt {
 
       protected bool StartPatch ( string id = "patches" ) { lock( Trans ) {
          if ( TransId != null ) {
+            #if ZyLog
+            Warn( "Cannot start {0}, already in {1}", id, TransId );
+            #else
             Api( "log w", $"Cannot start {id}, already in {TransId}" );
+            #endif
             return false;
          }
          id = id ?? "null";
          TransId = id;
+         #if ZyLog
+         Verbo( "Start {0}", id );
+         #else
          Api( "log v", "Start " + id );
+         #endif
          return true;
       } }
 
       protected IPatch[] RollbackPatch ( object reason = null ) { lock( Trans ) {
          if ( NoRollback || TransId == null ) return null;
+         #if ZyLog
+         Warn( "Rollback {0} ({1} patches) {2}", TransId, Trans.Count, reason );
+         #else
          Api( "log w", $"Rollback {TransId} ({Trans.Count} patches) {reason}" );
+         #endif
+
          var result = Trans.ToArray();
          foreach ( var patch in Trans )
             patch.Unpatch();
@@ -169,8 +190,13 @@ namespace Sheepy.PhoenixPt {
 
       protected IPatch[] CommitPatch () { lock( Trans ) {
          if ( TransId == null ) return null;
-         var result = Trans.ToArray();
+         #if ZyLog
+         Info( "Commit {0} ({1} patches)", TransId, Trans.Count );
+         #else
          Api( "log", $"Commit {TransId} ({Trans.Count} patches)" );
+         #endif
+
+         var result = Trans.ToArray();
          Trans.Clear();
          TransId = null;
          return result;
@@ -219,7 +245,11 @@ namespace Sheepy.PhoenixPt {
 
          #if ZyUnpatch
          public void Unpatch () {
+            #if ZyLog
+            Verbo( (Func<string>) UnpatchLog );
+            #else
             Api( "log v", (Func<string>) UnpatchLog );
+            #endif
             if ( Pre  != null ) Patcher.Unpatch( Target, Pre.method  );
             if ( Post != null ) Patcher.Unpatch( Target, Post.method );
             if ( Tran != null ) Patcher.Unpatch( Target, Tran.method );
