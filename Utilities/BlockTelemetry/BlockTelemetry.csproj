@@ -67,7 +67,7 @@
     <PostBuildEvent>cd $(SolutionDir)
 mkdir distro
 cd distro
-copy /y $(ProjectDir)$(OutDir)$(TargetFileName) .</PostBuildEvent>
+copy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" .</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>cd "$(SolutionDir)Utilities\ZyMod"
