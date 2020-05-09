@@ -8,9 +8,11 @@
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods/",
    },
    Requires : { Id: "Modnix", Min: "3.0" },
-   Actions : [{ "eval" : "
-      FirstDef<WeaponDef>( \"NJ_PRCR_AssaultRifle_WeaponDef\" ).AddDamage( ShreddingDamageKeywordDataDef, 5 );
-   " }],
+   Actions : [{
+      "name" : "Add shred to PRCR AR",
+      "eval" : "FirstDef<WeaponDef>( \"NJ_PRCR_AssaultRifle_WeaponDef\" ).AddDamage( ShreddingDamageKeywordDataDef, 5 )",
+      "onerror" : "stop"
+   }],
 
 /* Envision migrated from Weapon Overhaul
    {
