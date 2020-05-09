@@ -6,10 +6,13 @@
 #define ZyLog
 #endif
 
-using Harmony;
 using System;
 using System.Reflection;
+
+#if ! ZyNoPatch || ZyYield
+using Harmony;
 using static System.Reflection.BindingFlags;
+#endif
 
 #if ZyConfig
 using Newtonsoft.Json;
@@ -46,12 +49,17 @@ namespace Sheepy.PhoenixPt {
    ///   * ZyLog     - Logging shortcuts.
    ///   * ZyUnpatch - Allow patches to be unpatched.
    ///   * ZyYield   - Yield patch related helpers.
+   ///
+   /// Alternatively, use this flag to remove even barebone features:
+   ///   * ZyNoPatch - Remove patch code, leaving only API.
+   ///                 ZyBatch and ZyUnpatch will not take effect.
    /// </summary>
    public abstract class ZyMod {
 
       protected static object _SLock = new object();
       protected object _ILock = new object();
 
+#if ! ZyNoPatch
       protected internal HarmonyInstance Patcher;
 
       private MethodInfo GetPatchSubject ( Type type, string method ) {
@@ -219,6 +227,7 @@ namespace Sheepy.PhoenixPt {
          private string UnpatchLog () => ActionLog( "Unpatching" );
          #endif
       }
+#endif
 
       private static Func< string, object, object > ModnixApi;
 
@@ -343,10 +352,12 @@ namespace Sheepy.PhoenixPt {
       #endif
    }
 
+   #if ! ZyNoPatch
    public interface IPatch {
       IPatch Patch();
       #if ZyUnpatch
       void Unpatch();
       #endif
    }
+   #endif
 }
