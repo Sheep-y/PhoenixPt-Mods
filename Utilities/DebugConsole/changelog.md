@@ -1,9 +1,10 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version 5.0.1, 2020-05-09
+# Version 5.0.1, 2020-05-10
 
 * Excludes more system and utility libraries from command scanning.
 * Handles ReflectionTypeLoadException when scanning commands.
+* Log negative time (before mod initialisation) as zero for consistency of display.
 
 # Version 5, 2020-05-04
 

@@ -176,6 +176,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       internal static void WriteConsole ( DateTime time, string level, string line ) {
          if ( string.IsNullOrWhiteSpace( line ) ) return;
+         if ( time < StartTime ) time = StartTime;
          var fullline = string.Format( "{0} {1} {2}", FormatTime( time - StartTime ), level, line );
          if ( fullline.Length > 300 ) {
             // Trim long message from console to avoid 65000 vertices error, but write the full log.
