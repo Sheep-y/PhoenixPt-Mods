@@ -61,7 +61,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ZyMod.cs" />
+    <Compile Include="..\..\Utilities\ZyMod\ZyMod.cs">
+      <Link>ZyMod.cs</Link>
+    </Compile>
     <Compile Include="SkipIntro.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="mod_info.js" />
@@ -74,9 +76,5 @@
 mkdir distro
 cd distro
 copy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" .</PostBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PreBuildEvent>cd "$(SolutionDir)Utilities\ZyMod"
-copy ZyMod.cs "$(ProjectDir)"</PreBuildEvent>
   </PropertyGroup>
 </Project>

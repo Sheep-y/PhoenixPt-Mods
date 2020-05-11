@@ -264,5 +264,4 @@ __pycache__/
 *.xcf
 /packages
 /distro
-**/ZyMod.cs
 **/img/
