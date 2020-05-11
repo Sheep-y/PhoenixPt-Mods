@@ -1,6 +1,6 @@
 ({
    Id : "Sheepy.DebugConsole",
-   LoadIndex : -500, // Using the earliest recommended index to try to capture all logs.
+   LoadIndex : -500, // Using unusally early index to try to capture all logs. Do not copy at home.
 
    Lang : "en",
    Duration : "temp",
