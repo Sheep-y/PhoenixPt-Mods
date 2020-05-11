@@ -2,8 +2,10 @@ Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
 # Version 5.0.2, in development
 
-* Catch stringify error when renderig API return value, and fallback to type name.
+* Fix: Catch stringify error when renderig API return value, and fallback to type name.
 * Return value is stringified to a max depth of 3.
+* Faster command scanning of new assemblies.
+* Skip console scanning of dynamic assemblies, Roslyn assemblies, and a few libraries.
 
 # Version 5.0.1, 2020-05-10
 
