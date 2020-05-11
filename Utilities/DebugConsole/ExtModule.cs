@@ -206,7 +206,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             return;
          }
          if ( param == null || param.Length == 0 ) throw new ApplicationException( "Api action required." );
-         Task.Run( () => {
+         Task.Run( () => { try {
             object arg = null;
             if ( param.Length > 2 ) {
                arg = new string[ param.Length - 1 ];
@@ -214,7 +214,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             } else if ( param.Length == 2 )
                arg = param[1];
             WriteResult( Api( param[0], arg ) );
-         } );
+         } catch ( Exception ex ) { Error( ex ); } } );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void WriteError ( string line ) => GameConsoleWindow.Create().WriteLine( $"<color=red>{line}</color>" );
@@ -317,11 +317,21 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       private static string TypeName ( object e ) => e?.GetType().FullName.Replace( "UnityEngine.", "UE." );
 
+      private static readonly JsonSerializerSettings ExportSettings = new JsonSerializerSettings(){
+         DefaultValueHandling = DefaultValueHandling.Ignore,
+         DateFormatHandling = DateFormatHandling.IsoDateFormat,
+         Formatting = Formatting.None,
+         MaxDepth = 3,
+         // ReferenceLoopHandling = ReferenceLoopHandling.Ignore, // Somehow this will crash the game. Not sure why.
+      };
+
       private static void WriteResult ( object result ) { try {
          if ( result is string line ) ;
          else if ( result == null ) line = "null";
          else if ( result is Exception || result is StackTrace || result is MethodInfo || result is Task ) line = result.ToString();
-         else line = JsonConvert.SerializeObject( result, Formatting.None );
+         else try {
+            line = JsonConvert.SerializeObject( result, ExportSettings );
+         } catch ( Exception ) { line = result.GetType().FullName; }
          Mod.WriteConsole( line );
          if ( result is Task<object> task )
             task.ContinueWith( e => {

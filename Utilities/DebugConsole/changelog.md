@@ -1,5 +1,10 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
+# Version 5.0.2, in development
+
+* Catch stringify error when renderig API return value, and fallback to type name.
+* Return value is stringified to a max depth of 3.
+
 # Version 5.0.1, 2020-05-10
 
 * Excludes more system and utility libraries from command scanning.
