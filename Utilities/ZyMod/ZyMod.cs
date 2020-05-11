@@ -357,6 +357,7 @@ namespace Sheepy.PhoenixPt {
       #if ZyLog
       public static Action< TraceEventType, object, object[] > Logger;
       public static void ApiLog ( TraceEventType level, object msg, params object[] augs ) { lock ( _SLock ) Logger?.Invoke( level, msg, augs ); }
+      public static void Trace ( object msg, params object[] augs ) => ApiLog( TraceEventType.Transfer, msg, augs );
       public static void Verbo ( object msg, params object[] augs ) => ApiLog( TraceEventType.Verbose, msg, augs );
       public static void Info  ( object msg, params object[] augs ) => ApiLog( TraceEventType.Information, msg, augs );
       public static void Warn  ( object msg, params object[] augs ) => ApiLog( TraceEventType.Warning, msg, augs );
