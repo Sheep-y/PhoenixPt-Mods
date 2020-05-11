@@ -8,8 +8,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace Sheepy.PhoenixPt.CSharpScripts {
-   internal class EvalAction : ZyMod {
+namespace Sheepy.PhoenixPt.ScriptingLibrary {
+   internal class ScriptingLibrary : ZyMod {
 
       internal static void SplashMod ( Func<string,object,object> api ) => SetApi( api );
 
