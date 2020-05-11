@@ -4,17 +4,30 @@ using System.IO;
 using System.Reflection;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
+   using ModnixAPI = Func<string,object,object>;
 
    public class ScriptingLibrary : ZyMod {
 
-      public static void SplashMod ( Func<string,object,object> api ) => SetApi( api );
+      public static void SplashMod ( ModnixAPI api ) {
+         SetApi( api );
+         Api( "api_add eval.cs", (ModnixAPI) API_Eval_CS );
+      }
 
       public static object ActionMod ( Dictionary<string,object> action ) { try {
          object value = null;
          if ( action?.TryGetValue( "eval", out value ) != true || ! ( value is string code ) ) return false;
-         if ( LoadLibraries() is Exception err ) return err;
-         return Eval.EvalCode( code );
+         if ( LoadLibraries() is Exception lib_err ) return lib_err;
+         var result = Eval.EvalCode( code );
+         if ( result is Exception ev_err ) return ev_err;
+         if ( result != null ) Info( "Eval< {0}", result );
+         return true;
       } catch ( Exception ex ) { return ex; } }
+
+      public static object API_Eval_CS ( string spec, object param ) {
+         if ( param == null ) return new ArgumentNullException( nameof( param ) );
+         if ( LoadLibraries() is Exception err ) return err;
+         return Eval.EvalCode( param.ToString() );
+      }
       
       private static readonly string[] Eval_Libraries = new string[]{
          "netstandard.dll",

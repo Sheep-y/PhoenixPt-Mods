@@ -69,8 +69,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          var task = CSharpScript.EvaluateAsync( code, Options );
          task.Wait();
          if ( task.IsFaulted ) return new EvaluateException( "Eval error", task.Exception );
-         if ( task.Result != null ) Info( "Eval< {0}", task.Result );
-         return true;
+         return task.Result;
       }
    }
 }
