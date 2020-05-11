@@ -48,15 +48,18 @@ namespace Sheepy {
       }
 
       /* Modnix API extension, registered in MainMod.
-       * Default: set version text.  With "build" specifier: set build text. */
+       * Default: set version text.  With "build" specifier: set build text.
+       * Returns old text. Send null to get and refresh text, no set. */
       private static string ApiVerText ( string type, object arg ) {
          string old;
          if ( "build".Equals( type?.ToLowerInvariant() ) ) {
             old = Config.BuildText;
-            Config.BuildText = arg?.ToString();
+            if ( arg != null )
+               Config.BuildText = arg?.ToString();
          } else {
             old = Config.VersionText;
-            Config.VersionText = arg?.ToString();
+            if ( arg != null )
+               Config.VersionText = arg?.ToString();
          }
          UIModuleBuildRevision_SetRevisionNumber.RefreshText();
          return old;
@@ -87,7 +90,7 @@ namespace Sheepy {
 
       // Actually change the text.  Also used by API extension and console command.
       internal static void RefreshText () {
-         // Abort if a change was requested before Postfix, e.g. use types a console command before main screen.
+         // Abort if a change was requested before Postfix, e.g. user types a console command before main screen.
          // Unity References are required to compare any unity component with null.
          if ( VersionText == null ) return;
          VersionText.text = Mod.Config.VersionText + " " + Mod.Config.BuildText;
