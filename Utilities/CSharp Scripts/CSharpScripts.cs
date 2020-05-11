@@ -13,12 +13,12 @@ namespace Sheepy.PhoenixPt.CSharpScripts {
 
       internal static void SplashMod ( Func<string,object,object> api ) => SetApi( api );
 
-      internal static object RunModAction ( string modId, Dictionary<string,object> action ) {
+      internal static object RunModActions ( string modId, Dictionary<string,object> action ) {
          object value = null;
          if ( action?.TryGetValue( "Eval", out value ) != true || ! ( value is string code ) ) return false;
          LoadLibraries();
          PrepareScript();
-         Verbo( "Eval> {0}", code );
+         Verbo( "{0}|Eval> {1}", modId, code );
          var task = CSharpScript.EvaluateAsync( code, Options );
          task.Wait();
          if ( task.IsFaulted ) return new EvaluateException( "Eval error", task.Exception );
