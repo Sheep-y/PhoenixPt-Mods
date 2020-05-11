@@ -96,6 +96,7 @@
     <Compile Include="..\ZyMod\ZyMod.cs">
       <Link>ZyMod.cs</Link>
     </Compile>
+    <Compile Include="Eval.cs" />
     <Compile Include="ScriptingLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
