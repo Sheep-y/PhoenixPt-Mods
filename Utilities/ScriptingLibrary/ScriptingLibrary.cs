@@ -9,11 +9,12 @@ using System.Reflection;
 using System.Text;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
-   internal class ScriptingLibrary : ZyMod {
+
+   public class ScriptingLibrary : ZyMod {
 
       internal static void SplashMod ( Func<string,object,object> api ) => SetApi( api );
 
-      internal static object RunModActions ( string modId, Dictionary<string,object> action ) {
+      public static object ActionMod ( string modId, Dictionary<string,object> action ) {
          object value = null;
          if ( action?.TryGetValue( "Eval", out value ) != true || ! ( value is string code ) ) return false;
          LoadLibraries();
