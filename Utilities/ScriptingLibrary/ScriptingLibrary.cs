@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
    using ModnixAPI = Func<string,object,object>;
@@ -11,22 +12,26 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static void SplashMod ( ModnixAPI api ) {
          SetApi( api );
          Api( "api_add eval.cs", (ModnixAPI) API_Eval_CS );
+         Task.Run( () => API_Eval_CS( null, "\"Scripting Warmup\"" ) );
       }
 
       public static object ActionMod ( Dictionary<string,object> action ) { try {
          object value = null;
          if ( action?.TryGetValue( "eval", out value ) != true || ! ( value is string code ) ) return false;
          if ( LoadLibraries() is Exception lib_err ) return lib_err;
+         Info( "Action> {0}", code );
          var result = Eval.EvalCode( code );
          if ( result is Exception ev_err ) return ev_err;
-         if ( result != null ) Info( "Eval< {0}", result );
+         if ( result != null ) Info( "Action< {0}", result );
          return true;
       } catch ( Exception ex ) { return ex; } }
 
       public static object API_Eval_CS ( string spec, object param ) {
          if ( param == null ) return new ArgumentNullException( nameof( param ) );
          if ( LoadLibraries() is Exception err ) return err;
-         return Eval.EvalCode( param.ToString() );
+         var code = param.ToString();
+         Info( "API> {0}", code );
+         return Eval.EvalCode( code );
       }
       
       private static readonly string[] Eval_Libraries = new string[]{

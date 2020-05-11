@@ -65,7 +65,6 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       public static object EvalCode ( string code ) {
          PrepareScript();
-         Verbo( "Eval> {0}", code );
          var task = CSharpScript.EvaluateAsync( code, Options );
          task.Wait();
          if ( task.IsFaulted ) return new EvaluateException( "Eval error", task.Exception );
