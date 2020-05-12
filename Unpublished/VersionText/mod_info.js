@@ -19,7 +19,7 @@
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/"
    },
 
-   /* Default zero.  Lower index = loaded earlier.  Higher index = loaded later. */
+   /* Default zero.  Lower index = load earlier.  Higher index = load later. */
    LoadIndex : -10,
 
    /* If any mod listed here is not found, this mod will be disabled. 
@@ -33,5 +33,5 @@
    /* The dlls will be scanned for this type. If found, it will be used to manage config. */
    ConfigType : "VersionText.ModConfig",
 
-   // Can also use single-line comment if you prefer
+   // Can also use single-line comment
 }
