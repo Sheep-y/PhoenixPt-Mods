@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
-   internal class Eval : ZyMod {
+   internal class Shell : ZyMod {
 
       // Assemblies usable by the script, beyond System.* and Unity.*
       private static readonly string[] ScriptAssemblies = new string[]{ "mscorlib", "Assembly-CSharp,", "Cinemachine,", "0Harmony,", "Newtonsoft.Json," };
@@ -66,7 +66,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       private static readonly Dictionary< string, ScriptState > Sessions = new Dictionary<string, ScriptState>();
 
-      public static object EvalCode ( string id, string code ) { try {
+      public static object Eval ( string id, string code ) { try {
          Task<ScriptState<object>> task;
          ScriptState state;
          lock ( Sessions ) Sessions.TryGetValue( id, out state );

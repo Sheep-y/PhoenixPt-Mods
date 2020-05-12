@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
    using ModnixAPI = Func<string,object,object>;
@@ -23,7 +24,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          if ( action?.TryGetValue( "eval", out value ) != true || ! ( value is string code ) ) return false;
          if ( LoadLibraries() is Exception lib_err ) return lib_err;
          Info( "Action> {0}", code );
-         var result = Eval.EvalCode( modId, code );
+         var result = Shell.Eval( modId, code );
          if ( result is Exception ev_err ) return ev_err;
          if ( result != null ) Info( "Action< {0}", result );
          return true;
@@ -34,7 +35,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          if ( string.IsNullOrWhiteSpace( code ) ) return new ArgumentNullException( nameof( param ) );
          if ( LoadLibraries() is Exception err ) return err;
          Info( "API> {0}", code );
-         return Eval.EvalCode( "API", code ); // TODO: Change to use caller mod's session
+         return Shell.Eval( "API", code ); // TODO: Change to use caller mod's session
       }
 
       [ ConsoleCommand( Command = "Eval", Description = "(code) - Evaluate C# code, or enter C# shell if no code" ) ]
@@ -51,7 +52,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             console.Write( "<color=red>" + err.GetType() + " " + err.Message + "</color>" );
             return;
          }
-         var result = Eval.EvalCode( "Console", code );
+         var result = Shell.Eval( "Console", code );
          if ( Api( "console.write", result ) is bool write && write ) return;
          if ( result == null ) console.Write( "null" );
          else try { // Catch ToString() error
