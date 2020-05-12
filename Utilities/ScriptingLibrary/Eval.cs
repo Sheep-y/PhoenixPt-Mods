@@ -63,12 +63,12 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Verbo( "{0} namespaces found and added to scripts: {1}", usings.Length, (Func<string>) usingLog );
       } }
 
-      public static object EvalCode ( string code ) {
+      public static object EvalCode ( string code ) { try {
          PrepareScript();
          var task = CSharpScript.EvaluateAsync( code, Options );
          task.Wait();
          if ( task.IsFaulted ) return new EvaluateException( "Eval error", task.Exception );
          return task.Result;
-      }
+      } catch ( Exception ex ) { return ex; } }
    }
 }

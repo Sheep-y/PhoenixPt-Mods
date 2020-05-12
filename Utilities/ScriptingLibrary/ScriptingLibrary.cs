@@ -47,7 +47,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          var result = Eval.EvalCode( code );
          if ( Api( "console.write", result ) is bool write && write ) return;
          if ( result == null ) console.Write( "null" );
-         else try {
+         else try { // Catch ToString() error
             console.Write( code + " (" + code.GetType().FullName + ")" );
          } catch ( Exception ) { console.Write( code.GetType().FullName ); }
       }
