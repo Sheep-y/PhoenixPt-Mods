@@ -58,6 +58,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          }
          var result = Shell.Eval( "Console", code );
          if ( result == null ) return;
+         if ( result is Exception ex ) result = "<color=red>" + ex.GetType() + " " + ex.Message + "</color>" + ex.StackTrace;
          if ( Api( "console.write", result ) is bool write && write ) return;
          else try { // Catch ToString() error
             console.Write( code + " (" + code.GetType().FullName + ")" );
