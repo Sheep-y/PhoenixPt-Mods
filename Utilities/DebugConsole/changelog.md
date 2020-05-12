@@ -1,6 +1,6 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version 5.0.2, in development
+# Version 5.1, in development
 
 * New: API command "console.write" to "stringify" an object and write to console.
 * New: API command alias "ui.dump" and "zy.console.write" to align the extensions.
