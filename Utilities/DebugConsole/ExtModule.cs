@@ -38,8 +38,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       }
 
       internal static void RegisterApi () {
-         Api( "api_add zy.ui.dump", (Predicate<object>) GuiTreeApi );
          Api( "api_add console.write", (Predicate<object>) API_WriteResult );
+         Api( "api_add ui.dump", (Predicate<object>) GuiTreeApi );
+         Api( "api_add zy.console.write", (Predicate<object>) API_WriteResult );
+         Api( "api_add zy.ui.dump", (Predicate<object>) GuiTreeApi );
       }
 
       internal static bool InitScanner () {
