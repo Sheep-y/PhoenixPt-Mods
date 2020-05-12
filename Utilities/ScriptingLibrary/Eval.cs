@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
@@ -63,12 +64,25 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Verbo( "{0} namespaces found and added to scripts: {1}", usings.Length, (Func<string>) usingLog );
       } }
 
-      public static object EvalCode ( string code ) { try {
-         PrepareScript();
-         var task = CSharpScript.EvaluateAsync( code, Options );
+      private static readonly Dictionary< string, ScriptState > Sessions = new Dictionary<string, ScriptState>();
+
+      public static object EvalCode ( string id, string code ) { try {
+         Task<ScriptState<object>> task;
+         ScriptState state;
+         lock ( Sessions ) Sessions.TryGetValue( id, out state );
+         if ( state == null ) {
+            PrepareScript();
+            Verbo( "New eval shell for {0}", id );
+            task = CSharpScript.RunAsync( code, Options );
+         } else
+            task = state.ContinueWithAsync( code, Options );
          task.Wait();
          if ( task.IsFaulted ) return new EvaluateException( "Eval error", task.Exception );
-         return task.Result;
+         lock ( Sessions ) {
+            Sessions.Remove( id );
+            Sessions.Add( id, task.Result );
+         }
+         return task.Result.ReturnValue;
       } catch ( Exception ex ) { return ex; } }
    }
 }

@@ -16,12 +16,12 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Task.Run( () => API_Eval_CS( null, "\"Scripting Warmup\"" ) );
       }
 
-      public static object ActionMod ( Dictionary<string,object> action ) { try {
+      public static object ActionMod ( string modId, Dictionary<string,object> action ) { try {
          object value = null;
          if ( action?.TryGetValue( "eval", out value ) != true || ! ( value is string code ) ) return false;
          if ( LoadLibraries() is Exception lib_err ) return lib_err;
          Info( "Action> {0}", code );
-         var result = Eval.EvalCode( code );
+         var result = Eval.EvalCode( modId, code );
          if ( result is Exception ev_err ) return ev_err;
          if ( result != null ) Info( "Action< {0}", result );
          return true;
@@ -32,8 +32,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          if ( string.IsNullOrWhiteSpace( code ) ) return new ArgumentNullException( nameof( param ) );
          if ( LoadLibraries() is Exception err ) return err;
          Info( "API> {0}", code );
-         return Eval.EvalCode( code );
-      } 
+         return Eval.EvalCode( "API", code ); // TODO: Change to use caller mod's session
+      }
 
       [ ConsoleCommand( Command = "Eval", Description = "(code) - Evaluate C# code" ) ]
       public static void Console_Eval_CS ( IConsole console, string[] param ) {
@@ -44,7 +44,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             console.Write( "<color=red>" + err.GetType() + " " + err.Message + "</color>" );
             return;
          }
-         var result = Eval.EvalCode( code );
+         var result = Eval.EvalCode( "Console", code );
          if ( Api( "console.write", result ) is bool write && write ) return;
          if ( result == null ) console.Write( "null" );
          else try { // Catch ToString() error
