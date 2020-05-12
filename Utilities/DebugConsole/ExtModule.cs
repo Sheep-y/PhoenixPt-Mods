@@ -38,7 +38,8 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       }
 
       internal static void RegisterApi () {
-         Api( "api_add zy.ui.dump", (Func<object,bool>) GuiTreeApi );
+         Api( "api_add zy.ui.dump", (Predicate<object>) GuiTreeApi );
+         Api( "api_add console.write", (Predicate<object>) API_WriteResult );
       }
 
       internal static bool InitScanner () {
@@ -332,6 +333,11 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          MaxDepth = 3,
          // ReferenceLoopHandling = ReferenceLoopHandling.Ignore, // Somehow this will crash the game. Not sure why.
       };
+
+      private static bool API_WriteResult ( object result ) {
+         WriteResult( result );
+         return true;
+      }
 
       private static void WriteResult ( object result ) { try {
          if ( result is string line ) ;

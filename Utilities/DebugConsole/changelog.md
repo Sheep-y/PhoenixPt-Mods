@@ -2,6 +2,7 @@ Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
 # Version 5.0.2, in development
 
+* New: API command "console.write" to "stringify" an object and write to console.
 * Fix: Catch stringify error when renderig API return value, and fallback to type name.
 * Return value is stringified to a max depth of 3.
 * Faster command scanning of new assemblies.
@@ -26,7 +27,7 @@ Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 # Version 4, 2020-04-24
 
 * New: Replace game's Console.log writer to improve performance and make time sortable.
-* New: Api command "zy.gui.dump" to dump gui tree to Modnix log.
+* New: API command "zy.gui.dump" to dump gui tree to Modnix log.
 * New: Console command "dump_gui" to do the same to console.
 * New: Console command "log_level" and "log_level_modnix" to get and set console and modnix log level.
 * Fix: Log lines now have their line colours removed from console log.
