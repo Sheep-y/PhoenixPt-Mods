@@ -9,8 +9,10 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
    using ModnixAPI = Func<string,object,object>;
 
    public class ScriptingLibrary : ZyMod {
+      internal static ScriptingLibrary Mod;
 
-      public static void SplashMod ( ModnixAPI api ) {
+      public void SplashMod ( ModnixAPI api ) {
+         Mod = this;
          SetApi( api );
          Api( "api_add eval.cs", (ModnixAPI) API_Eval_CS );
          Task.Run( () => API_Eval_CS( null, "\"Scripting Warmup\"" ) );
@@ -35,11 +37,16 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          return Eval.EvalCode( "API", code ); // TODO: Change to use caller mod's session
       }
 
-      [ ConsoleCommand( Command = "Eval", Description = "(code) - Evaluate C# code" ) ]
+      [ ConsoleCommand( Command = "Eval", Description = "(code) - Evaluate C# code, or enter C# shell if no code" ) ]
       public static void Console_Eval_CS ( IConsole console, string[] param ) {
-         if ( param == null || param.Length == 0 ) return;
-         var code = string.Join( " ", param );
-         if ( string.IsNullOrWhiteSpace( code ) ) return;
+         var code = string.Join( " ", param ?? new string[0] ).Trim();
+         if ( string.IsNullOrEmpty( code ) )
+            EnterEvalMode();
+         else
+            EvalToConsole( console, code );
+      }
+
+      private static void EvalToConsole ( IConsole console, string code ) {
          if ( LoadLibraries() is Exception err ) {
             console.Write( "<color=red>" + err.GetType() + " " + err.Message + "</color>" );
             return;
@@ -50,6 +57,36 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          else try { // Catch ToString() error
             console.Write( code + " (" + code.GetType().FullName + ")" );
          } catch ( Exception ) { console.Write( code.GetType().FullName ); }
+      }
+
+      private static IPatch ReadPatch, EvalPatch;
+
+      private static void EnterEvalMode () {
+         if ( EvalPatch != null || Mod == null ) return;
+         ReadPatch = Mod.Patch( GameAssembly.GetType( "Base.Utils.GameConsole.CommandLineParser" ), "ReadCommandLine", nameof( BeforeReadCommandLine_Eval ) );
+         EvalPatch = Mod.Patch( GameAssembly.GetType( "Base.Utils.GameConsole.EmptyCommand" ), "Execute", postfix: nameof( AfterExecute_Eval ) );
+      }
+
+      private static string CommandLine;
+
+      private static void BeforeReadCommandLine_Eval ( ref string commandLine ) {
+         commandLine = commandLine?.Trim();
+         if ( string.IsNullOrEmpty( commandLine ) ) return;
+         CommandLine = commandLine;
+         commandLine = "";
+         if ( "exit".Equals( CommandLine.ToLowerInvariant() ) )
+            ExitEvalMode();
+      }
+
+      private static void AfterExecute_Eval ( IConsole context ) {
+         var code = CommandLine;
+         CommandLine = null;
+         EvalToConsole( context, code );
+      }
+
+      private static void ExitEvalMode () {
+         Unpatch( ref ReadPatch );
+         Unpatch( ref EvalPatch );
       }
 
       private static readonly string[] Eval_Libraries = new string[]{
