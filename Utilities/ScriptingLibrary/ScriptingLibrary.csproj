@@ -118,7 +118,7 @@
     </Compile>
     <Compile Include="ConsoleShell.cs" />
     <Compile Include="ScriptingExt.cs" />
-    <Compile Include="Shell.cs" />
+    <Compile Include="ScriptingEngine.cs" />
     <Compile Include="ScriptingLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

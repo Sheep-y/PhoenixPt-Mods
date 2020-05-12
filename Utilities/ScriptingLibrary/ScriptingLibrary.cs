@@ -19,7 +19,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          if ( action?.TryGetValue( "eval", out value ) != true || ! ( value is string code ) ) return false;
          if ( LoadLibraries() is Exception lib_err ) return lib_err;
          Info( "Action> {0}", code );
-         var result = Shell.Eval( modId, code );
+         var result = ScriptingEngine.Eval( modId, code );
          if ( result is Exception ev_err ) return ev_err;
          if ( result != null ) Info( "Action< {0}", result );
          return true;

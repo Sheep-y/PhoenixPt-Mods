@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
-   internal class Shell : ZyMod {
+   internal class ScriptingEngine : ZyMod {
 
       // Assemblies usable by the script, beyond System.* and Unity.*
       private static readonly string[] ScriptAssemblies = new string[]{ "mscorlib", "Assembly-CSharp,", "Cinemachine,", "0Harmony,", "Newtonsoft.Json," };
@@ -83,6 +83,6 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             Sessions.Add( id, task.Result );
          }
          return task.Result.ReturnValue;
-      } catch ( Exception ex ) { return ex; } }
+      } catch ( CompilationErrorException ex ) { return ex; } }
    }
 }
