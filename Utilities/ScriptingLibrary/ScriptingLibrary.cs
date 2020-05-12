@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Base.Utils.GameConsole;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -27,13 +28,30 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       } catch ( Exception ex ) { return ex; } }
 
       public static object API_Eval_CS ( string spec, object param ) {
-         if ( param == null ) return new ArgumentNullException( nameof( param ) );
+         var code = param?.ToString();
+         if ( string.IsNullOrWhiteSpace( code ) ) return new ArgumentNullException( nameof( param ) );
          if ( LoadLibraries() is Exception err ) return err;
-         var code = param.ToString();
          Info( "API> {0}", code );
          return Eval.EvalCode( code );
+      } 
+
+      [ ConsoleCommand( Command = "Eval", Description = "(code) - Evaluate C# code" ) ]
+      public static void Console_Eval_CS ( IConsole console, string[] param ) {
+         if ( param == null || param.Length == 0 ) return;
+         var code = string.Join( " ", param );
+         if ( string.IsNullOrWhiteSpace( code ) ) return;
+         if ( LoadLibraries() is Exception err ) {
+            console.Write( "<color=red>" + err.GetType() + " " + err.Message + "</color>" );
+            return;
+         }
+         var result = Eval.EvalCode( code );
+         if ( Api( "console.write", result ) is bool write && write ) return;
+         if ( result == null ) console.Write( "null" );
+         else try {
+            console.Write( code + " (" + code.GetType().FullName + ")" );
+         } catch ( Exception ) { console.Write( code.GetType().FullName ); }
       }
-      
+
       private static readonly string[] Eval_Libraries = new string[]{
          "netstandard.dll",
          "Microsoft.Win32.Primitives.dll",
