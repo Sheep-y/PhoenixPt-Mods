@@ -116,6 +116,8 @@
     <Compile Include="..\ZyMod\ZyMod.cs">
       <Link>ZyMod.cs</Link>
     </Compile>
+    <Compile Include="ConsoleShell.cs" />
+    <Compile Include="ScriptingExt.cs" />
     <Compile Include="Shell.cs" />
     <Compile Include="ScriptingLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
