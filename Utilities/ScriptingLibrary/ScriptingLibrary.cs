@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
    using ModnixAPI = Func<string,object,object>;
@@ -11,7 +12,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public void SplashMod ( ModnixAPI api ) {
          SetApi( api );
          ScriptingExt.RegisterAPI();
-         Api( "zy.eval.cs", "\"Scripting Warmup\"" );
+         Task.Run( () => Api( "zy.eval.cs", "\"Scripting Warmup\"" ) );
       }
 
       public static object ActionMod ( string modId, Dictionary<string,object> action ) { try {
