@@ -3,8 +3,9 @@ Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 # Version 5.1, in development
 
 * New: API command "console.write" to "stringify" an object and write to console.
-* New: API command alias "ui.dump" and "zy.console.write" to align the extensions.
 * Fix: Catch stringify error when renderig API return value, and fallback to type name.
+* Fix: Non-unity richtext tags are now preserved, e.g. C# code.
+* Renamed API command "zy.ui.dump" to "ui.dump" to make it easier to remember.
 * Return value is stringified to a max depth of 3.
 * Faster command scanning of new assemblies.
 * Skip console scanning of dynamic assemblies, scripting assemblies, and a few libraries.

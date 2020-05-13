@@ -257,7 +257,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          }
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static Regex RegexStyle = new Regex( "</?\\w+(=#?\\w+| )?>", RegexOptions.Compiled );
+      private static Regex RegexStyle = new Regex( "</?(b|color|i|size)(=#?\\w+| )?>", RegexOptions.Compiled );
       private static Regex RegexModnixLine = new Regex( "</color><b></b>$", RegexOptions.Compiled );
 
       private static string FormatConsoleLog ( KeyValuePair<DateTime,string> entry ) {
