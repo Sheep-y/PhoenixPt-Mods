@@ -8,7 +8,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       internal static void RegisterAPI () {
          Api( "api_add eval.cs", (ModnixAPI) API_Eval_CS );
-         Api( "api_add zy.eval.cs", (ModnixAPI) API_Eval_CS );
+         //Api( "api_add zy.eval.cs", (ModnixAPI) API_Eval_CS );
       }
 
       private static object API_Eval_CS ( string spec, object param ) {

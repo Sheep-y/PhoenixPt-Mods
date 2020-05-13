@@ -12,7 +12,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public void SplashMod ( ModnixAPI api ) {
          SetApi( api );
          ScriptingExt.RegisterAPI();
-         Task.Run( () => Api( "zy.eval.cs", "\"Scripting Warmup\"" ) );
+         DataCache.RegisterAPI();
+         Task.Run( () => Api( "eval.cs", "\"Scripting Warmup\"" ) );
       }
 
       public static object ActionMod ( string modId, Dictionary<string,object> action ) { try {
