@@ -6,6 +6,8 @@ using System.Linq;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
    using ModnixAPI = Func<string,object,object>;
+   using SimpleCache = Dictionary< string, object >;
+   using BaseDefs = IEnumerable< BaseDef >;
 
    internal class DataCache : ZyMod {
 
@@ -14,9 +16,9 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Api( "api_add pp.defs", (ModnixAPI) API_PP_Defs );
       }
 
-      private static BaseDef API_PP_Def ( string spec, object param ) => API_PP_Defs( spec, param )?.FirstOrDefault();
+      private static BaseDef API_PP_Def ( string spec, object param ) => API_PP_Defs( spec, param ).FirstOrDefault();
 
-      private static IEnumerable< BaseDef > API_PP_Defs ( string spec, object param ) {
+      private static BaseDefs API_PP_Defs ( string spec, object param ) {
          CreateCache();
          if ( param == null ) return GetAllDefs();
          if ( param is string txt ) {
@@ -27,25 +29,30 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          throw new ArgumentException( "Unknown param type " + param.GetType() );
       }
 
-      private static Dictionary<Type,List<BaseDef>> ByType = new Dictionary<Type, List<BaseDef>>();
-      private static Dictionary<string,BaseDef[]> ByName;
-      private static Dictionary<string,BaseDef[]> ByGuid;
-      private static Dictionary<string,BaseDef[]> ByPath;
+      private static DefRepository Repo;
+      private static Dictionary< Type, List< BaseDef > > ByType = new Dictionary< Type, List< BaseDef > >();
+      private static SimpleCache ByName;
+      private static SimpleCache ByGuid;
+      private static SimpleCache ByPath;
 
-      private static IEnumerable<T> GetAllDefs<T> () where T : BaseDef => GameUtl.GameComponent<DefRepository>().GetAllDefs<T>();
-      private static IEnumerable<BaseDef> GetAllDefs () => GameUtl.GameComponent<DefRepository>().GetAllDefs( typeof( BaseDef ), true );
-      private static IEnumerable<BaseDef> NoDefs => Enumerable.Empty<BaseDef>();
+      private static IEnumerable< T > GetAllDefs< T > () where T : BaseDef => Repo.GetAllDefs< T >();
+      private static BaseDefs GetAllDefs () => Repo.GetAllDefs( typeof( BaseDef ), true );
+      private static BaseDefs NoDefs => Enumerable.Empty< BaseDef >();
 
-      private static IEnumerable<BaseDef> GetDefs ( Dictionary<string,BaseDef[]> cache, string key ) =>
-         cache.TryGetValue( key, out BaseDef[] list ) ? list : NoDefs;
+      private static BaseDefs GetDefs ( SimpleCache cache, string key ) {
+         if ( ! cache.TryGetValue( key, out object data ) ) return NoDefs;
+         if ( data is BaseDef def ) return new BaseDef[]{ def };
+         return data as BaseDefs ?? NoDefs;
+      }
 
       private static void CreateCache () { lock ( ByType ) {
-         if ( ByName != null ) return;
+         if ( Repo != null ) return;
+         Repo = GameUtl.GameComponent< DefRepository >();
          Info( "Building data cache" );
-         ByName = new Dictionary<string, BaseDef[]>();
-         ByGuid = new Dictionary<string, BaseDef[]>();
-         ByPath = new Dictionary<string, BaseDef[]>();
-         foreach ( var def in GetAllDefs<BaseDef>() )
+         ByName = new SimpleCache();
+         ByGuid = new SimpleCache();
+         ByPath = new SimpleCache();
+         foreach ( var def in GetAllDefs< BaseDef >() )
             AddToCache( def );
          Verbo( "Built cache from {0} BaseDef", ByGuid.Count );
       } }
@@ -57,19 +64,22 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          AddToCache( ByPath, def.ResourcePath, def, false ); // path has too many dups
       }
 
-      private static void AddToCache ( Dictionary<string,BaseDef[]> cache, string key, BaseDef def, bool warnOnDup ) {
+      private static void AddToCache ( SimpleCache cache, string key, BaseDef def, bool warnOnDup ) {
          if ( key == null ) key = "";
-         if ( ! cache.TryGetValue( key, out BaseDef[] list ) ) {
-            cache.Add( key, new BaseDef[]{ def } );
+         if ( ! cache.TryGetValue( key, out object data ) ) {
+            cache.Add( key, def );
             return;
          }
+         if ( data is BaseDef[] list ) {
+            var len = list.Length;
+            var newList = new BaseDef[ len + 1 ];
+            Array.Copy( list, newList, len );
+            newList[ len ] = def;
+            cache[ key ] = newList;
+         } else
+            cache[ key ] = list = new BaseDef[]{ data as BaseDef, def };
          if ( warnOnDup && key.Length > 0 )
             Warn( "Duplicate {0}: \"{1}\" ~ \"{2}\"", key, list[0].name, def.name );
-         var len = list.Length;
-         var newList = new BaseDef[ len + 1 ];
-         Array.Copy( list, newList, len );
-         newList[ len ] = def;
-         cache[ key ] = newList;
       }
 
       private static bool IsGuid ( string txt ) => txt.Length == 36 && txt[8] == '-' /* && txt[13] == '-' && txt[18] == '-' */ && txt[23] == '-';
