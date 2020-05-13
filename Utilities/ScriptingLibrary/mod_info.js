@@ -1,8 +1,8 @@
 ({
-   Id : "Sheepy.Scripting",
+   Id : "Zy.Scripting",
    Flags : "Library",
    Name : "Scripting Library",
-   Description : 'Support "Eval" mod actions, "eval.cs" api.',
+   Description : 'Support "Eval" mod actions, "Eval" console command, "eval.cs" api.',
    LoadIndex : -200, // Load early to pre-load scripting engine
    Url : {
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/",
