@@ -23,12 +23,19 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          if ( param == null ) return ByType[ typeof( BaseDef ) ];
          if ( param is string txt ) {
             if ( IsGuid( txt ) ) return GetDefs( ByGuid, txt, mayRescan ) ?? NoDefs;
+            BaseDefs result = null;
             if ( ! txt.Contains( '/' ) ) 
-               return GetDefs( ByName, txt, mayRescan ) ?? GetDefs( ByPath, txt, false ) ?? NoDefs;
+               result = GetDefs( ByName, txt, mayRescan ) ?? GetDefs( ByPath, txt, false );
             else
-               return GetDefs( ByPath, txt, mayRescan ) ?? GetDefs( ByName, txt, false ) ?? NoDefs;
-         }
-         if ( param is Type type ) return ListDefs( type, mayRescan ) ?? NoDefs;
+               result = GetDefs( ByPath, txt, mayRescan ) ?? GetDefs( ByName, txt, false );
+            if ( result == null ) {
+               Type t = ByType.Keys.FirstOrDefault( e => e.Name == txt || e.FullName == txt );
+               if ( t != null ) result = ListDefs( t, mayRescan );
+            }
+            return result ?? NoDefs;
+
+         } else if ( param is Type type )
+            return ListDefs( type, mayRescan ) ?? NoDefs;
          throw new ArgumentException( "Unknown param type " + param.GetType() );
       }
 
