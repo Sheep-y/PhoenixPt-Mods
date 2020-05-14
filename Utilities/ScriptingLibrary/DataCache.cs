@@ -22,9 +22,9 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          var mayRescan = ! CreateCache();
          if ( param == null ) return ByType[ typeof( BaseDef ) ];
          if ( param is string txt ) {
-            if ( IsGuid( txt ) ) return GetDefs( ByGuid, txt, mayRescan ) ?? NoDefs;
+            if ( IsGuid( txt ) ) return GetByGuid( txt );
             BaseDefs result = null;
-            if ( ! txt.Contains( '/' ) ) 
+            if ( ! txt.Contains( '/' ) )
                result = GetDefs( ByName, txt, mayRescan ) ?? GetDefs( ByPath, txt, false );
             else
                result = GetDefs( ByPath, txt, mayRescan ) ?? GetDefs( ByName, txt, false );
@@ -37,6 +37,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          } else if ( param is Type type )
             return ListDefs( type, mayRescan ) ?? NoDefs;
          throw new ArgumentException( "Unknown param type " + param.GetType() );
+
       }
 
       private static BaseDefs ListDefs ( Type t, bool rescanOnMiss ) {
@@ -49,11 +50,15 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static DefRepository Repo;
       private static Dictionary< Type, List< BaseDef > > ByType = new Dictionary< Type, List< BaseDef > >();
       private static SimpleCache ByName;
-      private static SimpleCache ByGuid;
       private static SimpleCache ByPath;
 
-      private static IEnumerable< T > GetAllDefs< T > () where T : BaseDef => Repo.GetAllDefs< T >();
-      private static BaseDefs GetAllDefs () => Repo.GetAllDefs( typeof( BaseDef ), true );
+      private static BaseDefs GetAllDefs () => Repo.DefRepositoryDef.AllDefs;
+
+      private static BaseDefs GetByGuid ( string txt ) {
+         var def = Repo.GetDef( txt );
+         return def == null ? new BaseDef[] { def } : NoDefs;
+      }
+
       private static BaseDefs NoDefs => Enumerable.Empty< BaseDef >();
 
       private static BaseDefs GetDefs ( SimpleCache cache, string key, bool rescanOnMiss ) {
@@ -61,44 +66,41 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             if ( data is BaseDef def ) return new BaseDef[]{ def };
             return data as BaseDefs;
          }
-         if ( ! rescanOnMiss ) return null;
-         RebuildCache();
+         if ( ! rescanOnMiss || ! RebuildCache() ) return null;
          return GetDefs( cache, key, false );
       }
 
       private static bool CreateCache () { lock ( ByType ) {
          if ( Repo != null ) return false;
+         Verbo( "Building BaseDef cache" );
          Repo = GameUtl.GameComponent< DefRepository >();
-         Verbo( "Building data cache" );
          ByName = new SimpleCache();
-         ByGuid = new SimpleCache();
          ByPath = new SimpleCache();
-         foreach ( var def in GetAllDefs< BaseDef >() )
+         foreach ( var def in GetAllDefs() )
             AddToCache( def );
-         Info( "Built cache from {0} BaseDef", ByGuid.Count );
+         Info( "Built cache from {0} BaseDef", ByType[ typeof( BaseDef ) ].Count );
          return true;
       } }
 
       private static bool RebuildCache () { lock ( ByType ) {
-         if ( Repo == null ) { CreateCache(); return; }
-         var count = GetAllDefs< BaseDef >().Count();
-         if ( count == ByType[ typeof( BaseDef ) ].Count ) return;
-         Verbo( "Cache miss; rebuilding def cache." );
+         if ( Repo == null ) { CreateCache(); return false; }
+         var count = GetAllDefs().Count();
+         if ( count == ByType[ typeof( BaseDef ) ].Count ) return false;
+         Verbo( "Cache miss; rebuilding BaseDef cache." );
          foreach ( var list in ByType.Values ) list.Clear();
          ByName.Clear();
-         ByGuid.Clear();
          ByPath.Clear();
          CreateCache();
+         return true;
       } }
 
       private static void AddToCache ( BaseDef def ) {
          if ( def == null ) return;
-         AddToCache( ByGuid, def.Guid, def, true );
-         AddToCache( ByName, def.name, def, false );
-         AddToCache( ByPath, def.ResourcePath, def, false ); // path has too many dups
+         AddToCache( ByName, def.name, def );
+         AddToCache( ByPath, def.ResourcePath, def ); // path has too many dups
       }
 
-      private static void AddToCache ( SimpleCache cache, string key, BaseDef def, bool warnOnDup ) {
+      private static void AddToCache ( SimpleCache cache, string key, BaseDef def ) {
          AddToTypeCache( def );
          if ( key == null ) key = "";
          if ( ! cache.TryGetValue( key, out object data ) ) {
@@ -113,8 +115,6 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             cache[ key ] = newList;
          } else
             cache[ key ] = list = new BaseDef[]{ data as BaseDef, def };
-         if ( warnOnDup && key.Length > 0 )
-            Warn( "Duplicate {0}: \"{1}\" ~ \"{2}\"", key, list[0].name, def.name );
       }
 
       private static void AddToTypeCache ( BaseDef def ) {
