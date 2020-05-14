@@ -25,7 +25,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             if ( IsGuid( txt ) ) return GetDefs( ByGuid, txt );
             else if ( ! txt.Contains( '/' ) ) return GetDefs( ByName, txt );
             else return GetDefs( ByPath, txt );
-         }
+         } else if ( param is Type type )
+            return ByType.TryGetValue( type, out List< BaseDef > list ) ? list : NoDefs;
          throw new ArgumentException( "Unknown param type " + param.GetType() );
       }
 
@@ -65,6 +66,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       }
 
       private static void AddToCache ( SimpleCache cache, string key, BaseDef def, bool warnOnDup ) {
+         AddToTypeCache( def );
          if ( key == null ) key = "";
          if ( ! cache.TryGetValue( key, out object data ) ) {
             cache.Add( key, def );
@@ -80,6 +82,17 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             cache[ key ] = list = new BaseDef[]{ data as BaseDef, def };
          if ( warnOnDup && key.Length > 0 )
             Warn( "Duplicate {0}: \"{1}\" ~ \"{2}\"", key, list[0].name, def.name );
+      }
+
+      private static void AddToTypeCache ( BaseDef def ) {
+         Type t = def.GetType();
+         do {
+            if ( ! ByType.TryGetValue( t, out List< BaseDef > list ) )
+               ByType[ t ] = list = new List< BaseDef >();
+            list.Add( def );
+            if ( t == typeof( BaseDefs ) ) return;
+            t = t.BaseType;
+         } while ( t != null );
       }
 
       private static bool IsGuid ( string txt ) => txt.Length == 36 && txt[8] == '-' /* && txt[13] == '-' && txt[18] == '-' */ && txt[23] == '-';
