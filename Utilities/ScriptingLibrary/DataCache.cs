@@ -19,15 +19,24 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static BaseDef API_PP_Def ( string spec, object param ) => API_PP_Defs( spec, param ).FirstOrDefault();
 
       private static BaseDefs API_PP_Defs ( string spec, object param ) {
-         CreateCache();
-         if ( param == null ) return GetAllDefs();
+         var mayRescan = ! CreateCache();
+         if ( param == null ) return ByType[ typeof( BaseDef ) ];
          if ( param is string txt ) {
-            if ( IsGuid( txt ) ) return GetDefs( ByGuid, txt );
-            else if ( ! txt.Contains( '/' ) ) return GetDefs( ByName, txt );
-            else return GetDefs( ByPath, txt );
-         } else if ( param is Type type )
-            return ByType.TryGetValue( type, out List< BaseDef > list ) ? list : NoDefs;
+            if ( IsGuid( txt ) ) return GetDefs( ByGuid, txt, mayRescan ) ?? NoDefs;
+            if ( ! txt.Contains( '/' ) ) 
+               return GetDefs( ByName, txt, mayRescan ) ?? GetDefs( ByPath, txt, false ) ?? NoDefs;
+            else
+               return GetDefs( ByPath, txt, mayRescan ) ?? GetDefs( ByName, txt, false ) ?? NoDefs;
+         }
+         if ( param is Type type ) return ListDefs( type, mayRescan ) ?? NoDefs;
          throw new ArgumentException( "Unknown param type " + param.GetType() );
+      }
+
+      private static BaseDefs ListDefs ( Type t, bool rescanOnMiss ) {
+         if ( ByType.TryGetValue( t, out List< BaseDef > list ) ) return list;
+         if ( ! rescanOnMiss ) return null;
+         RebuildCache();
+         return ListDefs( t, false );
       }
 
       private static DefRepository Repo;
@@ -40,22 +49,39 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static BaseDefs GetAllDefs () => Repo.GetAllDefs( typeof( BaseDef ), true );
       private static BaseDefs NoDefs => Enumerable.Empty< BaseDef >();
 
-      private static BaseDefs GetDefs ( SimpleCache cache, string key ) {
-         if ( ! cache.TryGetValue( key, out object data ) ) return NoDefs;
-         if ( data is BaseDef def ) return new BaseDef[]{ def };
-         return data as BaseDefs ?? NoDefs;
+      private static BaseDefs GetDefs ( SimpleCache cache, string key, bool rescanOnMiss ) {
+         if ( cache.TryGetValue( key, out object data ) ) {
+            if ( data is BaseDef def ) return new BaseDef[]{ def };
+            return data as BaseDefs;
+         }
+         if ( ! rescanOnMiss ) return null;
+         RebuildCache();
+         return GetDefs( cache, key, false );
       }
 
-      private static void CreateCache () { lock ( ByType ) {
-         if ( Repo != null ) return;
+      private static bool CreateCache () { lock ( ByType ) {
+         if ( Repo != null ) return false;
          Repo = GameUtl.GameComponent< DefRepository >();
-         Info( "Building data cache" );
+         Verbo( "Building data cache" );
          ByName = new SimpleCache();
          ByGuid = new SimpleCache();
          ByPath = new SimpleCache();
          foreach ( var def in GetAllDefs< BaseDef >() )
             AddToCache( def );
-         Verbo( "Built cache from {0} BaseDef", ByGuid.Count );
+         Info( "Built cache from {0} BaseDef", ByGuid.Count );
+         return true;
+      } }
+
+      private static bool RebuildCache () { lock ( ByType ) {
+         if ( Repo == null ) { CreateCache(); return; }
+         var count = GetAllDefs< BaseDef >().Count();
+         if ( count == ByType[ typeof( BaseDef ) ].Count ) return;
+         Verbo( "Cache miss; rebuilding def cache." );
+         foreach ( var list in ByType.Values ) list.Clear();
+         ByName.Clear();
+         ByGuid.Clear();
+         ByPath.Clear();
+         CreateCache();
       } }
 
       private static void AddToCache ( BaseDef def ) {
