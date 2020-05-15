@@ -20,7 +20,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       private static BaseDefs API_PP_Defs ( string spec, object param ) {
          CreateCache();
-         if ( param == null ) return ByType[ typeof( BaseDef ) ];
+         if ( param == null ) return AllDefs;
          if ( param is string txt ) {
             if ( IsGuid( txt ) ) return GetByGuid( txt );
             BaseDefs result = null;
@@ -37,13 +37,6 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          } else if ( param is Type type )
             return ListDefs( type ) ?? NoDefs;
          throw new ArgumentException( "Unknown param type " + param.GetType() );
-
-      }
-
-      private static BaseDefs ListDefs ( Type t ) {
-         if ( ByType.TryGetValue( t, out List< BaseDef > list ) ) return list;
-         if ( ! RebuildCache() ) return null;
-         return ListDefs( t );
       }
 
       private static DefRepository Repo;
@@ -51,7 +44,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static SimpleCache ByName;
       private static SimpleCache ByPath;
 
-      private static List< BaseDef > GetAllDefs () => Repo.DefRepositoryDef.AllDefs;
+      // Master game def
+      private static List< BaseDef > AllDefs => Repo.DefRepositoryDef.AllDefs;
 
       private static BaseDefs GetByGuid ( string txt ) {
          var def = Repo.GetDef( txt );
@@ -69,14 +63,20 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          return GetDefs( cache, key );
       }
 
+      private static BaseDefs ListDefs ( Type t ) {
+         if ( ByType.TryGetValue( t, out List< BaseDef > list ) ) return list;
+         if ( ! RebuildCache() ) return null;
+         return ListDefs( t );
+      }
+
       private static bool CreateCache () { lock ( ByType ) {
          if ( Repo != null ) return false;
          Verbo( "Building BaseDef cache" );
          Repo = GameUtl.GameComponent< DefRepository >();
-         ByType[ typeof( BaseDef ) ] = new List<BaseDef>( GetAllDefs() );
+         ByType[ typeof( BaseDef ) ] = new List<BaseDef>( AllDefs );
          ByName = new SimpleCache();
          ByPath = new SimpleCache();
-         foreach ( var def in GetAllDefs() )
+         foreach ( var def in AllDefs )
             AddToCache( def );
          Info( "Built cache from {0} BaseDef", ByType[ typeof( BaseDef ) ].Count );
          return true;
@@ -84,7 +84,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       private static bool RebuildCache () { lock ( ByType ) {
          //if ( Repo == null ) { CreateCache(); return false; }
-         var count = GetAllDefs().Count;
+         var count = AllDefs.Count;
          if ( count == ByType[ typeof( BaseDef ) ].Count ) return false;
          Verbo( "Cache miss; rebuilding BaseDef cache." );
          foreach ( var list in ByType.Values ) list.Clear();
