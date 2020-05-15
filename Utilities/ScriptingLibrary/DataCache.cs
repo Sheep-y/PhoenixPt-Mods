@@ -16,11 +16,21 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Api( "api_add pp.defs", (ModnixAPI) API_PP_Defs );
       }
 
-      public static BaseDef API_PP_Def ( string spec, object param ) => API_PP_Defs( spec, param ).FirstOrDefault();
+      public static BaseDef API_PP_Def ( string spec, object param ) {
+         CreateCache();
+         if ( param == null ) return null;
+         if ( param is string txt && ( "guid".Equals( spec ) || IsGuid( param ) ) )
+            return Repo.GetDef( txt );
+         return GetDefs( spec, param ).FirstOrDefault();
+      }
 
       public static BaseDefs API_PP_Defs ( string spec, object param ) {
          CreateCache();
          if ( param == null ) return AllDefs;
+         return GetDefs( spec, param );
+      }
+
+      private static BaseDefs GetDefs ( string spec, object param ) {
          if ( param is string txt ) {
             if ( IsGuid( txt ) ) return DefsByGuid( txt );
             BaseDefs result = null;

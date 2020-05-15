@@ -21,16 +21,9 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static DefRepository _Repo;
       public static DefRepository Repo => _Repo ?? ( _Repo = GameUtl.GameComponent< DefRepository >() );
 
-      public static BaseDef GetDef ( string guid ) => GetDef< BaseDef >( guid );
+      public static BaseDef GetDef ( string key ) => GetDef< BaseDef >( key );
 
-      public static T GetDef< T > ( string guid ) where T : BaseDef {
-         if ( string.IsNullOrEmpty( guid ) ) return null;
-         BaseDef result = null;
-         if ( DataCache.IsGuid( guid ) ) result = Repo.GetDef( guid );
-         if ( result is T r ) return r;
-         var list = DataCache.DefsByName( guid ) ?? DataCache.DefsByPath( guid );
-         if ( list != null && list.Length > 0 ) return list.OfType<T>().FirstOrDefault();
-         return null;
-      }
+      public static T GetDef< T > ( string key ) where T : BaseDef =>
+         DataCache.API_PP_Def( null, key ) as T;
    }
 }
