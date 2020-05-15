@@ -33,6 +33,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          var assemblies = new HashSet<Assembly>();
          var names = new HashSet<string>();
          var CodePath = Api( "dir", "loader" );
+         assemblies.Add( Assembly.GetExecutingAssembly() );
          foreach ( var asm in AppDomain.CurrentDomain.GetAssemblies() ) try {
             Type[] types;
             if ( asm.IsDynamic || ! CodePath.Equals( Path.GetDirectoryName( asm.Location ) ) ) continue;
@@ -54,6 +55,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             }
          } catch ( Exception ex ) { Warn( ex ); }
          names.Remove( "System.Xml.Xsl.Runtime" );
+         names.Add( "Sheepy.PhoenixPt.ScriptingLibrary.ScriptHelpers" );
 
          var usings = names.ToArray();
          Options = Options.WithReferences( assemblies.ToArray() ).WithImports( usings );

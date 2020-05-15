@@ -16,13 +16,13 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Api( "api_add pp.defs", (ModnixAPI) API_PP_Defs );
       }
 
-      private static BaseDef API_PP_Def ( string spec, object param ) => API_PP_Defs( spec, param ).FirstOrDefault();
+      public static BaseDef API_PP_Def ( string spec, object param ) => API_PP_Defs( spec, param ).FirstOrDefault();
 
-      private static BaseDefs API_PP_Defs ( string spec, object param ) {
+      public static BaseDefs API_PP_Defs ( string spec, object param ) {
          CreateCache();
          if ( param == null ) return AllDefs;
          if ( param is string txt ) {
-            if ( IsGuid( txt ) ) return GetByGuid( txt );
+            if ( IsGuid( txt ) ) return DefsByGuid( txt );
             BaseDefs result = null;
             if ( ! txt.Contains( '/' ) )
                result = GetDefs( ByName, txt ) ?? GetDefs( ByPath, txt );
@@ -39,25 +39,29 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          throw new ArgumentException( "Unknown param type " + param.GetType() );
       }
 
-      private static DefRepository Repo;
+      public static DefRepository Repo;
       private static Dictionary< Type, List< BaseDef > > ByType = new Dictionary< Type, List< BaseDef > >();
       private static SimpleCache ByName;
       private static SimpleCache ByPath;
 
       // Master game def
-      private static List< BaseDef > AllDefs => Repo.DefRepositoryDef.AllDefs;
+      public static List< BaseDef > AllDefs => Repo.DefRepositoryDef.AllDefs;
 
-      private static BaseDefs GetByGuid ( string txt ) {
+      public static BaseDef[] NoDefs => Array.Empty< BaseDef >();
+
+      private static BaseDef[] DefsByGuid ( string txt ) {
          var def = Repo.GetDef( txt );
          return def == null ? new BaseDef[] { def } : NoDefs;
       }
 
-      private static BaseDefs NoDefs => Enumerable.Empty< BaseDef >();
+      public static BaseDef[] DefsByName ( string key ) { CreateCache(); return GetDefs( ByName, key ); }
 
-      private static BaseDefs GetDefs ( SimpleCache cache, string key ) {
+      public static BaseDef[] DefsByPath ( string key ) { CreateCache(); return GetDefs( ByPath, key ); }
+
+      private static BaseDef[] GetDefs ( SimpleCache cache, string key ) {
          if ( cache.TryGetValue( key, out object data ) ) {
             if ( data is BaseDef def ) return new BaseDef[]{ def };
-            return data as BaseDefs;
+            return data as BaseDef[];
          }
          if ( ! RebuildCache() ) return null;
          return GetDefs( cache, key );
@@ -85,7 +89,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static bool RebuildCache () { lock ( ByType ) {
          //if ( Repo == null ) { CreateCache(); return false; }
          var count = AllDefs.Count;
-         if ( count == ByType[ typeof( BaseDef ) ].Count ) return false;
+         if ( count <= ByType[ typeof( BaseDef ) ].Count ) return false;
          Verbo( "Cache miss; rebuilding BaseDef cache." );
          foreach ( var list in ByType.Values ) list.Clear();
          ByName.Clear();
@@ -123,11 +127,11 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             if ( ! ByType.TryGetValue( t, out List< BaseDef > list ) )
                ByType[ t ] = list = new List< BaseDef >();
             list.Add( def );
-            if ( t == typeof( BaseDefs ) ) return;
             t = t.BaseType;
-         } while ( t != null );
+         } while ( t != typeof( BaseDef ) );
       }
 
-      private static bool IsGuid ( string txt ) => txt.Length == 36 && txt[8] == '-' /* && txt[13] == '-' && txt[18] == '-' */ && txt[23] == '-';
+      public static bool IsGuid ( string txt ) => txt.Length == 36 &&
+         txt[8] == '-' /* && txt[13] == '-' && txt[18] == '-' */ && txt[23] == '-' && txt[35] <= 'f';
    }
 }

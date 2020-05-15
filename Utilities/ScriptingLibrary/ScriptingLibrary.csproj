@@ -118,6 +118,7 @@
     </Compile>
     <Compile Include="ConsoleShell.cs" />
     <Compile Include="DataCache.cs" />
+    <Compile Include="ScriptHelpers.cs" />
     <Compile Include="ScriptingExt.cs" />
     <Compile Include="ScriptingEngine.cs" />
     <Compile Include="ScriptingLibrary.cs" />
