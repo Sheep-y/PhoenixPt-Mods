@@ -1,5 +1,6 @@
 ﻿using Base.Core;
 using Base.Defs;
+using PhoenixPoint.Common.Core;
 using PhoenixPoint.Tactical.Entities.DamageKeywords;
 using PhoenixPoint.Tactical.Entities.Weapons;
 using System;
@@ -27,6 +28,36 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       public static T GetDef< T > ( string key ) where T : BaseDef =>
          DataCache.API_PP_Def( null, key ) as T;
+
+      private static SharedDamageKeywordsDataDef DmgType;
+
+      public static DamageKeywordDef GetDamageType ( string type ) {
+         if ( DmgType == null ) DmgType = SharedData.GetSharedDataFromGame().SharedDamageKeywords;
+         switch ( type ) {
+            case "acid" : return DmgType.AcidKeyword;
+            case "blast" : return DmgType.BlastKeyword;
+            case "bleed" : return DmgType.BleedingKeyword;
+            case "fire" : return DmgType.BurningKeyword;
+            case "goo" : return DmgType.GooKeyword;
+            case "mist" : return DmgType.MistKeyword;
+            case "paralyse" : case "paralyze" :
+               return DmgType.ParalysingKeyword;
+            case "pierce" : return DmgType.PiercingKeyword;
+            case "poison" : return DmgType.PoisonousKeyword;
+            case "psychic" : return DmgType.PsychicKeyword;
+            case "shock" : return DmgType.ShockKeyword;
+            case "shred" : return DmgType.ShreddingKeyword;
+            case "sonic" : return DmgType.SonicKeyword;
+            case "syphon" : return DmgType.SyphonKeyword;
+            case "viral" : return DmgType.ViralKeyword;
+            case "virophage" : return Repo.GetDef( "c5a8301b-5f09-18f2-5c0f-2ddd62339e2c" ) as DamageKeywordDef;
+            case "normal" : case "" :
+               return DmgType.DamageKeyword;
+         }
+         throw new ArgumentException( "Unknown damage type: " + type );
+      }
+
+      public static float GetDamage ( this WeaponDef weapon, string type ) => GetDamage( weapon, GetDamageType( type ) );
 
       public static float GetDamage ( this WeaponDef weapon, DamageKeywordDef type ) { lock ( weapon ) {
          var dType = type.GetType();
