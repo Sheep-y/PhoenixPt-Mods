@@ -35,7 +35,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             return;
          }
          var result = ScriptingEngine.Eval( "Console", code );
-         if ( result == null ) return;
+         if ( result == null && code.IndexOf( '-' ) > 0 ) return; // Ignore "null" result from assignment statement.
          if ( result is Exception ex ) result = FormatException( ex ) + ex.StackTrace;
          if ( Api( "console.write", result ) is bool write && write ) return;
          else try { // Catch ToString() error

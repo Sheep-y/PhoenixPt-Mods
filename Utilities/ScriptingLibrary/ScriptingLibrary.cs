@@ -23,7 +23,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Info( "Action> {0}", code );
          var result = ScriptingEngine.Eval( modId, code );
          if ( result is Exception ev_err ) return ev_err;
-         if ( result != null ) Info( "Action< {0}", result );
+         Verbo( "Action< {0}", result ); 
          return true;
       } catch ( Exception ex ) { return ex; } }
 
