@@ -1,9 +1,12 @@
 ﻿using Base.Core;
 using Base.Defs;
+using com.ootii.Utilities.Debug;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Tactical.Entities.DamageKeywords;
 using PhoenixPoint.Tactical.Entities.Weapons;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
@@ -26,8 +29,11 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       public static BaseDef GetDef ( string key ) => GetDef< BaseDef >( key );
 
-      public static T GetDef< T > ( string key ) where T : BaseDef =>
-         DataCache.API_PP_Def( null, key ) as T;
+      public static T GetDef< T > ( string key ) where T : BaseDef => (T) DataCache.API_PP_Def( null, key );
+
+      public static IEnumerable< BaseDef > GetDefs ( object nameOrType ) => DataCache.API_PP_Defs( null, nameOrType );
+
+      public static IEnumerable< T > GetDefs< T > ( object nameOrType ) where T : BaseDef => DataCache.API_PP_Defs( null, nameOrType ).OfType<T>();
 
       private static SharedDamageKeywordsDataDef DmgType;
 
@@ -57,25 +63,39 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          throw new ArgumentException( "Unknown damage type: " + type );
       }
 
+      private static float SyncDamage ( this WeaponDef weapon, DamageKeywordDef type, Func<float,float> handler ) { lock ( weapon ) {
+         var dType = type.GetType();
+         var list = weapon.DamagePayload.DamageKeywords;
+         var pair = list.FirstOrDefault( e => dType.IsAssignableFrom( e.DamageKeywordDef.GetType() ) );
+         var orig = pair?.Value ?? 0;
+         if ( handler == null ) return orig;
+         var value = handler( orig );
+         if ( value == orig ) return orig;
+         object[] logArg = new object[]{ weapon.name, type.name, orig, value };
+         if ( value > 0 ) {
+            if ( pair == null ) {
+               ZyMod.ApiLog( TraceEventType.Start, "Adding {1} {3} to {0}", logArg );
+               list.Add( pair = new DamageKeywordPair { DamageKeywordDef = type, Value = value } );
+            } else {
+               ZyMod.ApiLog( TraceEventType.Start, "Update {0} {1} {2} to {3}", logArg );
+               pair.Value = value;
+            }
+         } else if ( pair != null ) {
+            ZyMod.ApiLog( TraceEventType.Start, "Removing {1} {2} from {0}", logArg );
+            list.Remove( pair );
+         }
+         return orig;
+      } }
+
       public static float GetDamage ( this WeaponDef weapon, string type ) => GetDamage( weapon, GetDamageType( type ) );
 
-      public static float GetDamage ( this WeaponDef weapon, DamageKeywordDef type ) { lock ( weapon ) {
-         var dType = type.GetType();
-         var list = weapon.DamagePayload.DamageKeywords;
-         var pair = list.FirstOrDefault( e => dType.IsAssignableFrom( e.DamageKeywordDef.GetType() ) );
-         return pair?.Value ?? 0;
-      } }
+      public static float GetDamage ( this WeaponDef weapon, DamageKeywordDef type ) => SyncDamage( weapon, type, null );
 
-      public static WeaponDef SetDamage ( this WeaponDef weapon, DamageKeywordDef type, float value ) { lock ( weapon ) {
-         var dType = type.GetType();
-         var list = weapon.DamagePayload.DamageKeywords;
-         var pair = list.FirstOrDefault( e => dType.IsAssignableFrom( e.DamageKeywordDef.GetType() ) );
-         if ( value > 0 ) {
-            if ( pair == null ) list.Add( pair = new DamageKeywordPair { DamageKeywordDef = type, Value = value } );
-            else pair.Value = value;
-         } else if ( pair != null )
-            list.Remove( pair );
+      public static WeaponDef SetDamage ( this WeaponDef weapon, string type, float value ) => SetDamage( weapon, GetDamageType( type ), value );
+
+      public static WeaponDef SetDamage ( this WeaponDef weapon, DamageKeywordDef type, float value ) {
+         SyncDamage( weapon, type, ( _ ) => value );
          return weapon;
-      } }
+      }
    }
 }
