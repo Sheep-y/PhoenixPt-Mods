@@ -64,14 +64,14 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             TryPatch( typeof( TimingScheduler ), "Update", postfix: nameof( BufferToConsole ) );
          } catch ( Exception ex ) { Error( ex ); }
          if ( Config.Scan_Mods_For_Command )
-            new ExtModule().InitMod();
+            new ConsoleExt().InitMod();
          if ( Config.Log_Game || Config.Log_Modnix )
             TryPatch( typeof( GameConsoleWindow ), "AppendToLogFile", nameof( OverrideAppendToLogFile_AddToQueue ) );
       }
 
       private void ModnixPatch () {
          if ( ! HasApi ) return;
-         ExtModule.RegisterApi();
+         ConsoleExt.RegisterApi();
          if ( Config.Mod_Count_In_Version )
             TryPatch( typeof( UIStateMainMenu ), "EnterState", postfix: nameof( AfterMainMenu_AddModCount ) );
          if ( Config.Log_Modnix ) {
