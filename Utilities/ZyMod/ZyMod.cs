@@ -1,4 +1,13 @@
-﻿#if ZyBatch
+﻿#if DEBUG
+#define ZyBatch
+#define ZyConfig
+#define ZyDefLog
+#define ZyLang   
+#define ZyLib   
+#define ZyYield  
+#endif
+
+#if ZyBatch
 #define ZyUnpatch
 #endif
 
