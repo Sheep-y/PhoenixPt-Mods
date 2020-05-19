@@ -79,6 +79,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockTelemetry", "Utilities
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptingLibrary", "Utilities\ScriptingLibrary\ScriptingLibrary.csproj", "{67113E35-0434-4BBE-AA1C-DDBF950DD233}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechProgression", "Geoscape\TechProgression\TechProgression.csproj", "{F88F5CD2-1F26-4B7C-BE5C-A934DBB4E38F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,6 +155,10 @@ Global
 		{67113E35-0434-4BBE-AA1C-DDBF950DD233}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67113E35-0434-4BBE-AA1C-DDBF950DD233}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67113E35-0434-4BBE-AA1C-DDBF950DD233}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F88F5CD2-1F26-4B7C-BE5C-A934DBB4E38F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F88F5CD2-1F26-4B7C-BE5C-A934DBB4E38F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F88F5CD2-1F26-4B7C-BE5C-A934DBB4E38F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F88F5CD2-1F26-4B7C-BE5C-A934DBB4E38F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
