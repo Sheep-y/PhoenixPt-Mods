@@ -1,5 +1,9 @@
 Changelog of Limited War, a Phoenix Point Mod by Sheepy
 
+# Version ?,  in development
+
+* Support Modnix 3 lazy loading
+
 # Version 2.1, 2020-04-20
 
 * Update to Modnix 2. This removes the deprecated warning on Modnix 2.

@@ -1,5 +1,9 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
+# Version ?,  in development
+
+* Support Modnix 3 lazy loading
+
 # Version 5, 2020-05-02
 
 * Updated to game version 1.0.57335.  Haven popup will not show trade offers in earlier game versions.

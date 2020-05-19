@@ -1,5 +1,9 @@
 Changelog of Scrap Vehicle, a Phoenix Point Mod by Sheepy
 
+# Version ?,  in development
+
+* Support Modnix 3 lazy loading
+
 # Version 2.1, 2020-03-22
 
 * Update to Modnix 1.0

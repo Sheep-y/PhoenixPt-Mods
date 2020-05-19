@@ -49,9 +49,11 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
       internal static ModConfig Config;
 
-      public static void Init () => new Mod().MainMod();
+      public static void Init () => new Mod().GeoscapeMod();
 
-      public void MainMod ( Func< string, object, object > api = null ) {
+      public void MainMod ( Func< string, object, object > api ) => GeoscapeMod( api );
+
+      public void GeoscapeMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
          if ( Config.Show_Airplane_Action_Time )
             TryPatch( typeof( UIModuleSiteContextualMenu ), "SetMenuItems", postfix: nameof( AfterSetMenuItems_CalcTime ) );

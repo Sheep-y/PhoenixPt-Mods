@@ -36,10 +36,15 @@ namespace Sheepy {
       internal static volatile Func<string,object,object> Api; // Modnix api function, used by 3 out of 4 mod classes.
       internal static volatile ModConfig Config;               // Mod config, the patches need this to work.
 
-      public static void Init () => MainMod(); // PPML 0.1 and 0.3+ entry point. (Doing 0.2 would crash the other two.)
+      // PPML 0.1 and 0.3+ entry point. (Doing 0.2 would crash the other two.)
+      public static void Init () => HomeMod(); 
 
-      /* Primary Modnix entry point, before main menu */
-      public static void MainMod ( Func<string, object, object> api = null ) {
+      // Modnix 1 & 2 entry point, before Main Menu is loaded.
+      public static void MainMod ( Func<string, object, object> api ) => HomeMod( api );
+
+      // Modnix 3 entry point, before Home Screen is loaded.
+      // Mods that do now modify home screen should use TacticalMod or GeoscapeMod, or GameMod for either (run once)
+      public static void HomeMod ( Func<string, object, object> api = null ) {
          Api = api;
              // Use API to read   config   ( Modnix 1 syntax )               and update it, or use default config.
          Config = ( api?.Invoke( "config", typeof( ModConfig ) ) as ModConfig )?.Update() ?? new ModConfig();

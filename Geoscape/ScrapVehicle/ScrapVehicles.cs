@@ -22,9 +22,11 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt.ScrapVehicle {
 
    public class Mod : ZyMod {
-      public static void Init () => new Mod().MainMod();
+      public static void Init () => new Mod().GeoscapeMod();
 
-      public void MainMod ( Func< string, object, object > api = null ) {
+      public void MainMod ( Func< string, object, object > api ) => GeoscapeMod( api );
+
+      public void GeoscapeMod ( Func< string, object, object > api = null ) {
          SetApi( api );
          StartPatch( "scrap vehicle" );
          var UiType = typeof( UIModuleManufacturing );

@@ -2,16 +2,15 @@
 using PhoenixPoint.Tactical.Entities;
 using PhoenixPoint.Tactical.Levels;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.DeafTheDead {
 
    public static class Mod {
-      public static void Init () => MainMod();
-      public static void MainMod ( Func<string,object,object> api = null ) {
+      public static void Init () => TacticalMod();
+
+      public static void MainMod ( Func<string,object,object> api ) => TacticalMod( api );
+
+      public static void TacticalMod ( Func<string,object,object> api = null ) {
          HarmonyInstance.Create( typeof( Mod ).Namespace ).PatchAll();
          api?.Invoke( "log", "Mod initiated" );
       }

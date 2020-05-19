@@ -17,9 +17,11 @@ namespace Sheepy.PhoenixPt.MitigateShred {
    public class Mod : ZyMod {
       internal static ModConfig Config;
 
-      public static void Init () => new Mod().MainMod();
+      public static void Init () => new Mod().TacticalMod();
 
-      public void MainMod ( Func< string, object, object > api = null ) {
+      public void MainMod ( Func< string, object, object > api ) => TacticalMod( api );
+
+      public void TacticalMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
          Patch( typeof( DamageAccumulation ), "GenerateStandardDamageTargetData", null, "AfterStandardDamage_Shred" );
          //Patch( typeof( DamageAccumulation ), "GenerateStandardDamageTargetData", null, "AfterStandardDamage_Shred" );

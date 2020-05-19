@@ -1,9 +1,7 @@
 ﻿using Base.Core;
 using PhoenixPoint.Common.View.ViewModules;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Sheepy.PhoenixPt.BlockTelemetry {
 

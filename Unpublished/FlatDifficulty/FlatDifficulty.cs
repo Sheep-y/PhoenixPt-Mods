@@ -3,15 +3,16 @@ using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.Entities.DifficultySystem;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.FlatDifficulty {
    public class Mod : ZyMod {
-      public static void Init () => new Mod().MainMod();
+      public static void Init () => new Mod().GameMod();
 
-      public void MainMod ( Func< string, object, object > api = null ) {
+      public void MainMod ( Func< string, object, object > api ) => GameMod( api );
+
+      public void GameMod ( Func< string, object, object > api = null ) {
          SetApi( api );
          Patch( typeof( DynamicDifficultySystem ), "ReadjustThreatLevelMods", nameof( BeforeReadjust_ClearHistory ) );
          //Patch( harmony, typeof( DynamicDifficultySystem ), "GetCalculatedDeployment", nameof( BeforeCalculate_Readjust ) );

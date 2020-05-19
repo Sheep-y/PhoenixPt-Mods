@@ -56,9 +56,11 @@ namespace Sheepy.PhoenixPt.LimitedWar {
    public class Mod : ZyMod {
       private static ModConfig Config;
 
-      public static void Init () => new Mod().MainMod();
+      public static void Init () => new Mod().GeoscapeMod();
 
-      public void MainMod ( Func< string, object, object > api = null ) {
+      public void MainMod ( Func< string, object, object > api ) => GeoscapeMod( api );
+
+      public void GeoscapeMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
 
          if ( Config.Faction_Attack_Zone || Config.Pandora_Attack_Zone ) {

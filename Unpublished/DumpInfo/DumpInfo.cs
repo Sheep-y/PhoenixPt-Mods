@@ -14,30 +14,29 @@ using PhoenixPoint.Geoscape.Entities.Research;
 using PhoenixPoint.Geoscape.Entities.Sites;
 using PhoenixPoint.Geoscape.Events.Eventus;
 using PhoenixPoint.Geoscape.Levels;
-using PhoenixPoint.Geoscape.Levels.Factions;
 using PhoenixPoint.Geoscape.View;
 using PhoenixPoint.Tactical.Entities;
 using PhoenixPoint.Tactical.Entities.DamageKeywords;
 using PhoenixPoint.Tactical.Entities.Equipments;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    public class Mod : ZyMod {
-      public void Init () => new Mod().MainMod();
+      public void Init () => new Mod().GameMod();
 
       internal static string ModDir;
       internal static string GameVersion;
 
       private static IPatch DumpPatch;
 
-      public void MainMod ( Func< string, object, object > api = null ) {
+      public void MainMod ( Func< string, object, object > api ) => GameMod( api );
+
+      public void GameMod ( Func< string, object, object > api = null ) {
          SetApi( api );
          if ( api != null ) {
             ModDir = api( "path", null )?.ToString();
@@ -45,8 +44,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             GameVersion = api( "version", "game" )?.ToString();
          } else
             ModDir = ".";
-
-         DumpPatch = Patch( typeof( GeoscapeView ), "ResetViewState", null, postfix: nameof( DumpData ) );
+         DumpData();
+         //DumpPatch = Patch( typeof( GeoscapeView ), "ResetViewState", null, postfix: nameof( DumpData ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogWeapons ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogAbilities ) );
          //Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: nameof( DumpResearches ) );
