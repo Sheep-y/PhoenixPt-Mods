@@ -1,5 +1,9 @@
 Changelog of Tech Progression, a Phoenix Point Mod by Sheepy
 
+# Version 2, in development
+
+* Support Modnix lazy loading.
+
 # Version 1.1, 2020-01-12
 
 * Unlocks independent machine gun with The Phoenix Archives research.
