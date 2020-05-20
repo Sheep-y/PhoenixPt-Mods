@@ -38,9 +38,13 @@ namespace Sheepy.PhoenixPt.TechProgression {
          { "NEU_Sniper_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
          { "NEU_Sniper_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
          { "NEU_Sniper_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" },
-         // { "NEU_Assault_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" }, // Not exists?
+         //{ "NEU_Assault_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" }, // Not exists?
          { "NEU_Assault_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
-         { "NEU_Assault_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" }
+         { "NEU_Assault_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" },
+         // Basic weapons
+         { "AN_Redemptor_WeaponDef", "PX_DisciplesOfAnu_ResearchDef" },
+         { "NJ_PRCR_PDW_WeaponDef", "PX_NewJericho_ResearchDef" },
+         { "SY_Crossbow_WeaponDef", "PX_Synedrion_ResearchDef" },
       };
    }
 
@@ -79,12 +83,12 @@ namespace Sheepy.PhoenixPt.TechProgression {
             if ( techs.Contains( def.Id ) || techs.Contains( def.Guid ) ) {
                foreach ( var entry in Config.Manufacture_Unlock ) {
                   if ( entry.Value == def.Id || entry.Value == def.Guid ) {
-                     var item = Api( "pp.def", entry.Key ) as TacticalItemDef ?? FindTacItem( entry.Key );
+                     var item = Api( "\v pp.def", entry.Key ) as TacticalItemDef ?? FindTacItem( entry.Key );
                      if ( item != null ) {
                         UnlockItemByResearch( factions, tech, item );
                         unlockCount++;
                      } else
-                        Warn( "Tech {0} found, but Item {0} not found.", def.name, entry.Key );
+                        Warn( "Tech {0} found, but Item {1} not found.", def.name, entry.Key );
                   }
                }
                if ( uncap != null && def.Id == uncap || def.Guid == uncap ) {
