@@ -11,9 +11,7 @@ using PhoenixPoint.Tactical.Entities.Weapons;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
-using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.TechProgression {
 
@@ -73,7 +71,6 @@ namespace Sheepy.PhoenixPt.TechProgression {
       }
 
       #region Mutation Cap
-
       public static void BeforeMutationInit_UnlockMutation () {
          try {
             if ( UltimateMutation == null ) return;
@@ -96,14 +93,21 @@ namespace Sheepy.PhoenixPt.TechProgression {
       }
 
       private static IEnumerable<CodeInstruction> TranspileInitCharacterInfo ( IEnumerable<CodeInstruction> instr ) {
-         if ( instr.Count( e => e.opcode == OpCodes.Ldc_I4_2 ) != 3 ) {
-            Error( new Exception( "Unrecognised mutation code. Aborting." ) );
-            foreach ( var code in instr ) Verbo( code );
+         var allCount = instr.Count( e => e.opcode == OpCodes.Ldc_I4_2 );
+         if ( allCount < 3 || allCount > 4 ) { // Pre-Blood and Titanium = 3, Post-B&T = 4
+            Error( new Exception( $"Unrecognised argument code.  Cap count {allCount}, expected 3 or 4.  Aborting." ) );
+            //foreach ( var code in instr ) Verbo( code );
             return instr;
          }
-         foreach ( var code in instr )
-            if ( code.opcode == OpCodes.Ldc_I4_2 )
+         var codes = instr.ToArray();
+         for ( var i = 0 ; i < codes.Length ; i++ ) {
+            var code = codes[i];
+            if ( code.opcode != OpCodes.Ldc_I4_2 ) continue;
+            // Post-B&T, the second ldc.i4.2 loads the enum AugumentSlotState.AugumentationLimitReached.
+            // It follows a stloc.s 5 and must be skipped.
+            if ( allCount == 3 || ( i > 0 && codes[ i-1 ].opcode != OpCodes.Stloc_S ) )
                code.opcode = OpCodes.Ldc_I4_3;
+         }
          return instr.ToList();
       }
 

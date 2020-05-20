@@ -68,4 +68,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>cd $(SolutionDir)
+mkdir distro
+cd distro
+copy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" .</PostBuildEvent>
+  </PropertyGroup>
 </Project>
