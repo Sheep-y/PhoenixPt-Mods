@@ -27,16 +27,16 @@ using System.Threading.Tasks;
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    public class Mod : ZyMod {
-      public void Init () => new Mod().GameMod();
+      public void Init () => new Mod().GeoscapeMod();
 
       internal static string ModDir;
       internal static string GameVersion;
 
       private static IPatch DumpPatch;
 
-      public void MainMod ( Func< string, object, object > api ) => GameMod( api );
+      public void MainMod ( Func< string, object, object > api ) => GeoscapeMod( api );
 
-      public void GameMod ( Func< string, object, object > api = null ) {
+      public void GeoscapeMod ( Func< string, object, object > api = null ) {
          SetApi( api );
          if ( api != null ) {
             ModDir = api( "path", null )?.ToString();
@@ -44,8 +44,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             GameVersion = api( "version", "game" )?.ToString();
          } else
             ModDir = ".";
-         DumpData();
-         //DumpPatch = Patch( typeof( GeoscapeView ), "ResetViewState", null, postfix: nameof( DumpData ) );
+         DumpPatch = Patch( typeof( GeoscapeView ), "ResetViewState", null, postfix: nameof( DumpData ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogWeapons ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogAbilities ) );
          //Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: nameof( DumpResearches ) );
@@ -56,6 +55,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private static Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
 
       private static void DumpData () { try {
+         Unpatch( ref DumpPatch );
          Info( "Dumping data to {0}", ModDir );
          Info( "Scanning text" );
          foreach ( var src in LocalizationManager.Sources ) {
@@ -102,7 +102,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Task.WaitAll( tasks.ToArray() );
          Info( "{0} entries dumped", sum );
          ExportData.Clear();
-         Unpatch( ref DumpPatch );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void AddDataToExport ( string name, Type type, object obj ) {
