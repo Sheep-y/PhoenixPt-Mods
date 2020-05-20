@@ -21,9 +21,10 @@ namespace Sheepy.PhoenixPt.TechProgression {
 
       public Dictionary<string,string> Manufacture_Unlock = new Dictionary<string, string>( Default_Manufacture_Unlock );
 
-      public string Augment_Uncap = "ANU_MutationTech3_ResearchDef"; // Ultimate Mutation Technology
+      public string Mutation_Uncap = "ANU_MutationTech3_ResearchDef"; // Ultimate Mutation Technology
+      public string Bionics_Uncap = "SYN_Bionics3_ResearchDef"; // Restricted Bionic Technology
 
-      public int Config_Version = 20200520;
+      public int Config_Version = 20200521;
 
       private static readonly Dictionary<string,string> Default_Manufacture_Unlock = new Dictionary<string, string> {
          // Unlock indepent guns with "The Phoenix Archives"
@@ -62,20 +63,22 @@ namespace Sheepy.PhoenixPt.TechProgression {
          ME = this;
          SetApi( api, out Config );
          Patch( typeof( Research ), "Initialize", postfix: nameof( AfterSetupResearch_AddRewards ) );
-         Patch( typeof( UIModuleMutate ), "Init", nameof( BeforeMutationInit_UncapAugment ) );
+         if ( ! string.IsNullOrWhiteSpace( Config.Mutation_Uncap ) )
+            Patch( typeof( UIModuleMutate ), "Init", nameof( BeforeAugInit_UncapAugment ) );
+         if ( ! string.IsNullOrWhiteSpace( Config.Bionics_Uncap ) )
+            Patch( typeof( UIModuleBionics ), "Init", nameof( BeforeAugInit_UncapAugment ) );
       }
 
       private static void AfterSetupResearch_AddRewards ( Research __instance ) { try {
          if ( !( __instance.Faction is GeoPhoenixFaction ) ) return;
          var factions = new List<GeoFactionDef>{ __instance.Faction.Def };
 
-         var uncap = Config.Augment_Uncap;
          var techs = new HashSet<string>();
          if ( Config.Manufacture_Unlock != null )
             techs.AddRange( Config.Manufacture_Unlock?.Values );
-         if ( uncap != null )
-            techs.Add( uncap );
-         AugmentUncapTech = null;
+         if ( Config.Mutation_Uncap != null ) techs.Add( Config.Mutation_Uncap );
+         if ( Config.Bionics_Uncap != null ) techs.Add( Config.Bionics_Uncap );
+         MutateUncapTech = BionicsUncapTech = null;
 
          var unlockCount = 0;
          foreach ( var tech in __instance.AllResearchesArray ) {
@@ -91,9 +94,13 @@ namespace Sheepy.PhoenixPt.TechProgression {
                         Warn( "Tech {0} found, but Item {1} not found.", def.name, entry.Key );
                   }
                }
-               if ( uncap != null && def.Id == uncap || def.Guid == uncap ) {
-                  Verbo( "Monitoring augmentation uncap tech {0}", (Func<string>) tech.GetLocalizedName );
-                  AugmentUncapTech = tech;
+               if ( def.Id == Config.Mutation_Uncap || def.Guid == Config.Mutation_Uncap ) {
+                  Verbo( "Monitoring mutation uncap tech {0}", (Func<string>) tech.GetLocalizedName );
+                  MutateUncapTech = tech;
+               }
+               if ( def.Id == Config.Bionics_Uncap || def.Guid == Config.Bionics_Uncap ) {
+                  Verbo( "Monitoring bionics uncap tech {0}", (Func<string>) tech.GetLocalizedName );
+                  BionicsUncapTech = tech;
                }
             }
          }
@@ -127,28 +134,31 @@ namespace Sheepy.PhoenixPt.TechProgression {
       }
 
       #region Augmentation Cap
-      private static ResearchElement AugmentUncapTech;
+      private static ResearchElement MutateUncapTech, BionicsUncapTech;
+      private static IPatch MutUncapPatch, BioUncapPatch;
 
-      private static void BeforeMutationInit_UncapAugment () { try {
-         if ( AugmentUncapTech == null ) return;
-         if ( AugmentUncapTech.IsCompleted )
-            PatchAugUncap();
-         else
-            Unpatch( ref AugUncapPatch );
+      private static void BeforeAugInit_UncapAugment () { try {
+         CheckUncapTech( typeof( UIModuleMutate  ), MutateUncapTech , ref MutUncapPatch );
+         CheckUncapTech( typeof( UIModuleBionics ), BionicsUncapTech, ref BioUncapPatch );
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static IPatch AugUncapPatch;
+      private static void CheckUncapTech ( Type screen, ResearchElement tech, ref IPatch patch ) {
+         if ( tech?.IsCompleted == true ) {
+            if ( patch == null ) patch = PatchAugUncap( screen, tech );
+         } else
+            Unpatch( ref patch );
+      }
 
-      private static void PatchAugUncap () {
-         if ( AugUncapPatch != null ) return;
-         AugUncapPatch = ME.TryPatch( typeof( UIModuleMutate ), "InitCharacterInfo", transpiler: nameof( TranspileInitCharacterInfo ) );
-         if ( AugmentUncapTech != null )
-            Info( "Tech {0} is researched, uncapped augmentations", (Func<string>) AugmentUncapTech.GetLocalizedName );
+      private static IPatch PatchAugUncap ( Type screen, ResearchElement tech ) {
+         var patch = ME.TryPatch( screen, "InitCharacterInfo", transpiler: nameof( TranspileInitCharacterInfo ) );
+         if ( patch != null )
+            Info( "Tech {0} is researched, uncapped augmentations", (Func<string>) tech.GetLocalizedName );
+         return patch;
       }
 
       private static IEnumerable<CodeInstruction> TranspileInitCharacterInfo ( IEnumerable<CodeInstruction> instr ) {
          var allCount = instr.Count( e => e.opcode == OpCodes.Ldc_I4_2 );
-         if ( allCount < 3 || allCount > 4 ) { // Pre-Blood and Titanium = 3, Post-B&T = 4
+         if ( allCount < 3 || allCount > 4 ) { // Pre-Blood and Titanium Mutation = 3, Post-B&T Mutation = 4, Post-B&T Bionics = 3
             Error( new Exception( $"Unrecognised argument code.  Cap count {allCount}, expected 3 or 4.  Aborting." ) );
             //foreach ( var code in instr ) Verbo( code );
             return instr;
@@ -159,12 +169,11 @@ namespace Sheepy.PhoenixPt.TechProgression {
             if ( code.opcode != OpCodes.Ldc_I4_2 ) continue;
             // Post-B&T, the second ldc.i4.2 loads the enum AugumentSlotState.AugumentationLimitReached.
             // It follows a stloc.s 5 and must be skipped.
-            if ( allCount == 3 || ( i > 0 && codes[ i-1 ].opcode != OpCodes.Stloc_S ) )
+            if ( i > 0 && codes[ i-1 ].opcode != OpCodes.Stloc_S )
                code.opcode = OpCodes.Ldc_I4_3;
          }
          return instr.ToList();
       }
-
       #endregion
    }
 }
