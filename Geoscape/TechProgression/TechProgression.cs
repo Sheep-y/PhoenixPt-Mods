@@ -25,26 +25,23 @@ namespace Sheepy.PhoenixPt.TechProgression {
 
       public int Config_Version = 20200520;
 
-      private static readonly Dictionary<string,string> Default_Manufacture_Unlock = new Dictionary<string, string>();
-
-      static ModConfig () {
+      private static readonly Dictionary<string,string> Default_Manufacture_Unlock = new Dictionary<string, string> {
          // Unlock indepent guns with "The Phoenix Archives"
-         Default_Manufacture_Unlock.Add( "NE_Pistol_WeaponDef", "PX_PhoenixProject_ResearchDef" );
-         Default_Manufacture_Unlock.Add( "NE_AssaultRifle_WeaponDef", "PX_PhoenixProject_ResearchDef" );
-         Default_Manufacture_Unlock.Add( "NE_SniperRifle_WeaponDef", "PX_PhoenixProject_ResearchDef" );
-         Default_Manufacture_Unlock.Add( "NE_MachineGun_WeaponDef", "PX_PhoenixProject_ResearchDef" );
+         { "NE_Pistol_WeaponDef", "PX_PhoenixProject_ResearchDef" },
+         { "NE_AssaultRifle_WeaponDef", "PX_PhoenixProject_ResearchDef" },
+         { "NE_SniperRifle_WeaponDef", "PX_PhoenixProject_ResearchDef" },
+         { "NE_MachineGun_WeaponDef", "PX_PhoenixProject_ResearchDef" },
          // Indepent armours
-         Default_Manufacture_Unlock.Add( "NEU_Heavy_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" );
-         Default_Manufacture_Unlock.Add( "NEU_Heavy_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" );
-         Default_Manufacture_Unlock.Add( "NEU_Heavy_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" );
-         Default_Manufacture_Unlock.Add( "NEU_Sniper_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" );
-         Default_Manufacture_Unlock.Add( "NEU_Sniper_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" );
-         Default_Manufacture_Unlock.Add( "NEU_Sniper_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" );
-         // Default_Manufacture_Unlock.Add( "NEU_Assault_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" ); // Not exists?
-         Default_Manufacture_Unlock.Add( "NEU_Assault_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" );
-         Default_Manufacture_Unlock.Add( "NEU_Assault_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" );
-         
-      }
+         { "NEU_Heavy_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
+         { "NEU_Heavy_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
+         { "NEU_Heavy_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" },
+         { "NEU_Sniper_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
+         { "NEU_Sniper_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
+         { "NEU_Sniper_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" },
+         // { "NEU_Assault_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" }, // Not exists?
+         { "NEU_Assault_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
+         { "NEU_Assault_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" }
+      };
    }
 
    public class Mod : ZyMod {
@@ -64,35 +61,39 @@ namespace Sheepy.PhoenixPt.TechProgression {
          Patch( typeof( UIModuleMutate ), "Init", nameof( BeforeMutationInit_UncapAugment ) );
       }
 
-
       private static void AfterSetupResearch_AddRewards ( Research __instance ) { try {
          if ( !( __instance.Faction is GeoPhoenixFaction ) ) return;
+         var factions = new List<GeoFactionDef>{ __instance.Faction.Def };
+
          var uncap = Config.Augment_Uncap;
          var techs = new HashSet<string>();
          if ( Config.Manufacture_Unlock != null )
             techs.AddRange( Config.Manufacture_Unlock?.Values );
          if ( uncap != null )
             techs.Add( uncap );
+         AugmentUncapTech = null;
 
+         var unlockCount = 0;
          foreach ( var tech in __instance.AllResearchesArray ) {
             var def = tech.ResearchDef;
             if ( techs.Contains( def.Id ) || techs.Contains( def.Guid ) ) {
                foreach ( var entry in Config.Manufacture_Unlock ) {
                   if ( entry.Value == def.Id || entry.Value == def.Guid ) {
                      var item = Api( "pp.def", entry.Key ) as TacticalItemDef ?? FindTacItem( entry.Key );
-                     if ( item == null )
+                     if ( item != null ) {
+                        UnlockItemByResearch( factions, tech, item );
+                        unlockCount++;
+                     } else
                         Warn( "Tech {0} found, but Item {0} not found.", def.name, entry.Key );
-                     else
-                        UnlockItemByResearch( __instance.Faction, tech, item );
                   }
                }
-
-               if ( def.Id == uncap || def.Guid == uncap ) {
+               if ( uncap != null && def.Id == uncap || def.Guid == uncap ) {
                   Verbo( "Monitoring augmentation uncap tech {0}", (Func<string>) tech.GetLocalizedName );
                   AugmentUncapTech = tech;
                }
             }
          }
+         Info( "{0} items added to research tree.", unlockCount );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static DefRepository Repo;
@@ -105,7 +106,7 @@ namespace Sheepy.PhoenixPt.TechProgression {
          return Repo.GetAllDefs<TacticalItemDef>().FirstOrDefault( e => e.name == key );
       }
 
-      private static void UnlockItemByResearch ( GeoFaction faction, ResearchElement tech, TacticalItemDef item ) {
+      private static void UnlockItemByResearch ( List<GeoFactionDef> factions, ResearchElement tech, TacticalItemDef item ) {
          if ( tech.Rewards.Any( e => ( e.BaseDef as ManufactureResearchRewardDef )?.Items?.Contains( item ) ?? false ) ) return;
          Verbo( "Adding {0} to {1}", item.name, tech.ResearchDef.name );
 
@@ -113,30 +114,24 @@ namespace Sheepy.PhoenixPt.TechProgression {
          if ( ! item.Tags.Any( e => e == Shared.SharedGameTags.ManufacturableTag ) )
             item.Tags.Add( Shared.SharedGameTags.ManufacturableTag );
 
-         List<ResearchReward> rewards = tech.Rewards.ToList();
-         var items = new List<ItemDef>();
-         items.Add( item );
+         var rewards = tech.Rewards.ToList();
+         var items = new List<ItemDef>{ item };
          if ( item.CompatibleAmmunition != null )
             items.AddRange( item.CompatibleAmmunition );
-         rewards.Add( new ManufactureResearchReward( new ManufactureResearchRewardDef() {
-            Items = items.ToArray(),
-            ValidForFactions = new GeoFactionDef[] { faction.Def }.ToList()
-         } ) );
+         rewards.Add( new ManufactureResearchReward( new ManufactureResearchRewardDef() { Items = items.ToArray(), ValidForFactions = factions } ) );
          typeof( ResearchElement ).GetProperty( "Rewards" ).SetValue( tech, rewards.ToArray() );
       }
 
       #region Augmentation Cap
       private static ResearchElement AugmentUncapTech;
 
-      private static void BeforeMutationInit_UncapAugment () {
-         try {
-            if ( AugmentUncapTech == null ) return;
-            if ( AugmentUncapTech.IsCompleted )
-               PatchAugUncap();
-            else
-               Unpatch( ref AugUncapPatch );
-         } catch ( Exception ex ) { Error( ex ); }
-      }
+      private static void BeforeMutationInit_UncapAugment () { try {
+         if ( AugmentUncapTech == null ) return;
+         if ( AugmentUncapTech.IsCompleted )
+            PatchAugUncap();
+         else
+            Unpatch( ref AugUncapPatch );
+      } catch ( Exception ex ) { Error( ex ); } }
 
       private static IPatch AugUncapPatch;
 
