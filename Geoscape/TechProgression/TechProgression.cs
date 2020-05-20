@@ -1,13 +1,15 @@
-﻿using Base.Core;
+﻿using Base;
+using Base.Core;
 using Base.Defs;
 using Harmony;
+using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Geoscape.Entities.Research;
 using PhoenixPoint.Geoscape.Entities.Research.Reward;
 using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Geoscape.Levels.Factions;
 using PhoenixPoint.Geoscape.View.ViewModules;
-using PhoenixPoint.Tactical.Entities.Weapons;
+using PhoenixPoint.Tactical.Entities.Equipments;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +17,40 @@ using System.Reflection.Emit;
 
 namespace Sheepy.PhoenixPt.TechProgression {
 
+   internal class ModConfig {
+
+      public Dictionary<string,string> Manufacture_Unlock = new Dictionary<string, string>( Default_Manufacture_Unlock );
+
+      public string Augment_Uncap = "ANU_MutationTech3_ResearchDef"; // Ultimate Mutation Technology
+
+      public int Config_Version = 20200520;
+
+      private static readonly Dictionary<string,string> Default_Manufacture_Unlock = new Dictionary<string, string>();
+
+      static ModConfig () {
+         // Unlock indepent guns with "The Phoenix Archives"
+         Default_Manufacture_Unlock.Add( "NE_Pistol_WeaponDef", "PX_PhoenixProject_ResearchDef" );
+         Default_Manufacture_Unlock.Add( "NE_AssaultRifle_WeaponDef", "PX_PhoenixProject_ResearchDef" );
+         Default_Manufacture_Unlock.Add( "NE_SniperRifle_WeaponDef", "PX_PhoenixProject_ResearchDef" );
+         Default_Manufacture_Unlock.Add( "NE_MachineGun_WeaponDef", "PX_PhoenixProject_ResearchDef" );
+         // Indepent armours
+         Default_Manufacture_Unlock.Add( "NEU_Heavy_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" );
+         Default_Manufacture_Unlock.Add( "NEU_Heavy_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" );
+         Default_Manufacture_Unlock.Add( "NEU_Heavy_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" );
+         Default_Manufacture_Unlock.Add( "NEU_Sniper_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" );
+         Default_Manufacture_Unlock.Add( "NEU_Sniper_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" );
+         Default_Manufacture_Unlock.Add( "NEU_Sniper_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" );
+         // Default_Manufacture_Unlock.Add( "NEU_Assault_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" ); // Not exists?
+         Default_Manufacture_Unlock.Add( "NEU_Assault_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" );
+         Default_Manufacture_Unlock.Add( "NEU_Assault_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" );
+         
+      }
+   }
+
    public class Mod : ZyMod {
+
+      private static ModConfig Config;
+
       private static Mod ME;
 
       public static void Init () => new Mod().GeoscapeMod();
@@ -24,72 +59,92 @@ namespace Sheepy.PhoenixPt.TechProgression {
 
       public void GeoscapeMod ( Func< string, object, object > api = null ) {
          ME = this;
-         SetApi( api );
-         Patch( typeof( Research ), "Initialize", postfix: "AfterSetupResearch_AddResearch" );
-         Patch( typeof( UIModuleMutate ), "Init", "BeforeMutationInit_UnlockMutation" );
+         SetApi( api, out Config );
+         Patch( typeof( Research ), "Initialize", postfix: nameof( AfterSetupResearch_AddRewards ) );
+         Patch( typeof( UIModuleMutate ), "Init", nameof( BeforeMutationInit_UncapAugment ) );
       }
 
-      private static ResearchElement UltimateMutation;
 
-      public static void AfterSetupResearch_AddResearch ( Research __instance ) {
-         try {
-            if ( !( __instance.Faction is GeoPhoenixFaction ) ) return;
-            int patchCount = 2;
+      private static void AfterSetupResearch_AddRewards ( Research __instance ) { try {
+         if ( !( __instance.Faction is GeoPhoenixFaction ) ) return;
+         var uncap = Config.Augment_Uncap;
+         var techs = new HashSet<string>();
+         if ( Config.Manufacture_Unlock != null )
+            techs.AddRange( Config.Manufacture_Unlock?.Values );
+         if ( uncap != null )
+            techs.Add( uncap );
 
-            foreach ( var tech in __instance.AllResearchesArray ) {
-               switch ( tech.ResearchDef.Id ) {
-                  // The Phoenix Archives, 11dd78fb-37a5-0341-d2bb-a7b0e77fefb8
-                  case "PX_PhoenixProject_ResearchDef":
-                     // Uragan MG, 5694855c-3869-fbd4-19a0-06850493b037
-                     WeaponDef mg = GameUtl.GameComponent<DefRepository>().GetAllDefs<WeaponDef>().FirstOrDefault( e => e.name == "NE_MachineGun_WeaponDef" );
-                     UnlockWeaponByResearch( __instance.Faction, tech, mg );
-                     break;
-
-                  // Ultimate Mutation Technology, 61602b54-8940-70d2-5353-a8c87e2b74b6
-                  case "ANU_MutationTech3_ResearchDef":
-                     UltimateMutation = tech;
-                     break;
-
-                  default: continue; // Skip patch count decrement
+         foreach ( var tech in __instance.AllResearchesArray ) {
+            var def = tech.ResearchDef;
+            if ( techs.Contains( def.Id ) || techs.Contains( def.Guid ) ) {
+               foreach ( var entry in Config.Manufacture_Unlock ) {
+                  if ( entry.Value == def.Id || entry.Value == def.Guid ) {
+                     var item = Api( "pp.def", entry.Key ) as TacticalItemDef ?? FindTacItem( entry.Key );
+                     if ( item == null )
+                        Warn( "Tech {0} found, but Item {0} not found.", def.name, entry.Key );
+                     else
+                        UnlockItemByResearch( __instance.Faction, tech, item );
+                  }
                }
-               //Log.Info( "Upgraded research {0}", tech.GetLocalizedName() );
-               if ( --patchCount <= 0 ) break;
+
+               if ( def.Id == uncap || def.Guid == uncap ) {
+                  Verbo( "Monitoring augmentation uncap tech {0}", (Func<string>) tech.GetLocalizedName );
+                  AugmentUncapTech = tech;
+               }
             }
-         } catch ( Exception ex ) { Error( ex ); }
+         }
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      private static DefRepository Repo;
+      private static SharedData Shared;
+
+      private static TacticalItemDef FindTacItem ( string key ) {
+         if ( Repo == null ) Repo = GameUtl.GameComponent<DefRepository>();
+         var def = Repo.GetDef( key ) as TacticalItemDef;
+         if ( def != null ) return def;
+         return Repo.GetAllDefs<TacticalItemDef>().FirstOrDefault( e => e.name == key );
       }
 
-      public static void UnlockWeaponByResearch ( GeoFaction faction, ResearchElement tech, WeaponDef weapon ) {
-         if ( tech.Rewards.Any( e => ( e.BaseDef as ManufactureResearchRewardDef )?.Items?.Contains( weapon ) ?? false ) )
-            return;
+      private static void UnlockItemByResearch ( GeoFaction faction, ResearchElement tech, TacticalItemDef item ) {
+         if ( tech.Rewards.Any( e => ( e.BaseDef as ManufactureResearchRewardDef )?.Items?.Contains( item ) ?? false ) ) return;
+         Verbo( "Adding {0} to {1}", item.name, tech.ResearchDef.name );
+
+         if ( Shared == null ) Shared = GameUtl.GameComponent<SharedData>();
+         if ( ! item.Tags.Any( e => e == Shared.SharedGameTags.ManufacturableTag ) )
+            item.Tags.Add( Shared.SharedGameTags.ManufacturableTag );
 
          List<ResearchReward> rewards = tech.Rewards.ToList();
+         var items = new List<ItemDef>();
+         items.Add( item );
+         if ( item.CompatibleAmmunition != null )
+            items.AddRange( item.CompatibleAmmunition );
          rewards.Add( new ManufactureResearchReward( new ManufactureResearchRewardDef() {
-            Items = new ItemDef[] { weapon, weapon.CompatibleAmmunition[ 0 ] },
+            Items = items.ToArray(),
             ValidForFactions = new GeoFactionDef[] { faction.Def }.ToList()
          } ) );
          typeof( ResearchElement ).GetProperty( "Rewards" ).SetValue( tech, rewards.ToArray() );
       }
 
-      #region Mutation Cap
-      public static void BeforeMutationInit_UnlockMutation () {
+      #region Augmentation Cap
+      private static ResearchElement AugmentUncapTech;
+
+      private static void BeforeMutationInit_UncapAugment () {
          try {
-            if ( UltimateMutation == null ) return;
-            if ( UltimateMutation.IsCompleted )
-               PatchFullMutation();
+            if ( AugmentUncapTech == null ) return;
+            if ( AugmentUncapTech.IsCompleted )
+               PatchAugUncap();
             else
-               UnpatchFullMutation();
+               Unpatch( ref AugUncapPatch );
          } catch ( Exception ex ) { Error( ex ); }
       }
 
-      private static IPatch FullMutationPatch;
+      private static IPatch AugUncapPatch;
 
-      private static void PatchFullMutation () {
-         if ( FullMutationPatch != null ) return;
-         FullMutationPatch = ME.Patch( typeof( UIModuleMutate ), "InitCharacterInfo", transpiler: nameof( TranspileInitCharacterInfo ) );
-      }
-
-      private static void UnpatchFullMutation () {
-         Unpatch( ref FullMutationPatch );
+      private static void PatchAugUncap () {
+         if ( AugUncapPatch != null ) return;
+         AugUncapPatch = ME.TryPatch( typeof( UIModuleMutate ), "InitCharacterInfo", transpiler: nameof( TranspileInitCharacterInfo ) );
+         if ( AugmentUncapTech != null )
+            Info( "Tech {0} is researched, uncapped augmentations", (Func<string>) AugmentUncapTech.GetLocalizedName );
       }
 
       private static IEnumerable<CodeInstruction> TranspileInitCharacterInfo ( IEnumerable<CodeInstruction> instr ) {
