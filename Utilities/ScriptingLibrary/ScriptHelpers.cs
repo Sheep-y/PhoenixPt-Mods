@@ -1,7 +1,5 @@
 ﻿using Base.Core;
 using Base.Defs;
-using com.ootii.Utilities.Debug;
-using Epic.OnlineServices.Presence;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Tactical.Entities.DamageKeywords;
 using PhoenixPoint.Tactical.Entities.Weapons;
