@@ -94,9 +94,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          if ( type.IsClass ) {
             if ( ! ( val is Array ) ) { // Simple objects
                if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
-               if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "path", faction.ResourcePath, true ); return; }
-               if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "path", tacChar.ResourcePath, true ); return; }
-               if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "path", tacItem.ResourcePath, true ); return; }
+               if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "name", faction.name, true ); return; }
+               if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "name", tacChar.name, true ); return; }
+               if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "name", tacItem.name, true ); return; }
                if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
                   { StartTag( name, "type", type.FullName, true ); return; }
             }
@@ -110,7 +110,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                try {
                   if ( RecurringObject.TryGetValue( val, out int link ) ) {
                      if ( val is BaseDef def )
-                        StartTag( name, "path", def.ResourcePath, true );
+                        StartTag( name, "guid", def.Guid, true );
                      else
                         StartTag( name, "ref", link.ToString( "X" ), true );
                      return;
