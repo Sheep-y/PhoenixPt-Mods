@@ -18,7 +18,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       public static BaseDef API_PP_Def ( string spec, object param ) {
          CreateCache();
-         if ( param == null ) return null;
+         if ( param == null ) throw new ArgumentNullException( nameof( param ) );
          if ( param is string txt && ( "guid".Equals( spec ) || IsGuid( txt ) ) )
             return Repo.GetDef( txt );
          return GetDefs( spec, param ).FirstOrDefault();
@@ -32,6 +32,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       private static BaseDefs GetDefs ( string spec, object param ) {
          if ( param is string txt ) {
+            if ( string.IsNullOrWhiteSpace( txt ) ) throw new ArgumentNullException( nameof( param ) );
             if ( IsGuid( txt ) ) return DefsByGuid( txt );
             BaseDefs result = null;
             if ( ! txt.Contains( '/' ) )
