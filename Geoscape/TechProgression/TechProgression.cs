@@ -76,8 +76,8 @@ namespace Sheepy.PhoenixPt.TechProgression {
          var techs = new HashSet<string>();
          if ( Config.Manufacture_Unlock != null )
             techs.AddRange( Config.Manufacture_Unlock?.Values );
-         if ( Config.Mutation_Uncap != null ) techs.Add( Config.Mutation_Uncap );
-         if ( Config.Bionics_Uncap != null ) techs.Add( Config.Bionics_Uncap );
+         if ( ! string.IsNullOrWhiteSpace( Config.Mutation_Uncap ) ) techs.Add( Config.Mutation_Uncap );
+         if ( ! string.IsNullOrWhiteSpace( Config.Bionics_Uncap  ) ) techs.Add( Config.Bionics_Uncap );
          MutateUncapTech = BionicsUncapTech = null;
 
          var unlockCount = 0;
@@ -95,11 +95,11 @@ namespace Sheepy.PhoenixPt.TechProgression {
                   }
                }
                if ( def.Id == Config.Mutation_Uncap || def.Guid == Config.Mutation_Uncap ) {
-                  Verbo( "Monitoring mutation uncap tech {0}", (Func<string>) tech.GetLocalizedName );
+                  Verbo( "Marked mutation uncap tech {0} ({1})", Config.Mutation_Uncap, (Func<string>) tech.GetLocalizedName );
                   MutateUncapTech = tech;
                }
                if ( def.Id == Config.Bionics_Uncap || def.Guid == Config.Bionics_Uncap ) {
-                  Verbo( "Monitoring bionics uncap tech {0}", (Func<string>) tech.GetLocalizedName );
+                  Verbo( "Marked bionics uncap tech {0} ({1})", Config.Bionics_Uncap, (Func<string>) tech.GetLocalizedName );
                   BionicsUncapTech = tech;
                }
             }
@@ -119,7 +119,7 @@ namespace Sheepy.PhoenixPt.TechProgression {
 
       private static void UnlockItemByResearch ( List<GeoFactionDef> factions, ResearchElement tech, TacticalItemDef item ) {
          if ( tech.Rewards.Any( e => ( e.BaseDef as ManufactureResearchRewardDef )?.Items?.Contains( item ) ?? false ) ) return;
-         Verbo( "Adding {0} to {1}", item.name, tech.ResearchDef.name );
+         Verbo( "Adding {0} to {1} ({2})", item.name, tech.ResearchDef.name, (Func<string>) tech.GetLocalizedName );
 
          if ( Shared == null ) Shared = GameUtl.GameComponent<SharedData>();
          if ( ! item.Tags.Any( e => e == Shared.SharedGameTags.ManufacturableTag ) )
@@ -143,6 +143,7 @@ namespace Sheepy.PhoenixPt.TechProgression {
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void CheckUncapTech ( Type screen, ResearchElement tech, ref IPatch patch ) {
+         //Verbo( "Checking {0} for uncap", tech?.ResearchDef.name );
          if ( tech?.IsCompleted == true ) {
             if ( patch == null ) patch = PatchAugUncap( screen, tech );
          } else
@@ -151,8 +152,7 @@ namespace Sheepy.PhoenixPt.TechProgression {
 
       private static IPatch PatchAugUncap ( Type screen, ResearchElement tech ) {
          var patch = ME.TryPatch( screen, "InitCharacterInfo", transpiler: nameof( TranspileInitCharacterInfo ) );
-         if ( patch != null )
-            Info( "Tech {0} is researched, uncapped augmentations", (Func<string>) tech.GetLocalizedName );
+         if ( patch != null ) Info( "Tech {0} is researched, uncapped augmentations", tech.ResearchDef.name );
          return patch;
       }
 
