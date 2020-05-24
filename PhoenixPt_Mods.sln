@@ -83,6 +83,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechProgression", "Geoscape
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FullBodyAug", "Tactical\FullBodyAug\FullBodyAug.csproj", "{DB79A8A6-FAE9-4638-824B-93089BAC3813}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndiGear", "Tactical\IndiGear\IndiGear.csproj", "{4DF4CDE6-748D-4444-98DE-40E6368E3D6B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -165,6 +167,10 @@ Global
 		{DB79A8A6-FAE9-4638-824B-93089BAC3813}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB79A8A6-FAE9-4638-824B-93089BAC3813}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB79A8A6-FAE9-4638-824B-93089BAC3813}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DF4CDE6-748D-4444-98DE-40E6368E3D6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DF4CDE6-748D-4444-98DE-40E6368E3D6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DF4CDE6-748D-4444-98DE-40E6368E3D6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DF4CDE6-748D-4444-98DE-40E6368E3D6B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
