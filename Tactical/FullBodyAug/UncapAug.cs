@@ -13,7 +13,7 @@ namespace Sheepy.PhoenixPt.FullBodyAug {
 
       internal IPatch UncapBionic () => PatchAugUncap( typeof( UIModuleBionics ) );
 
-      private IPatch PatchAugUncap ( Type screen ) => TryPatch( screen, "InitCharacterInfo", transpiler: nameof( TranspileInitCharacterInfo ) );
+      internal IPatch PatchAugUncap ( Type screen ) => TryPatch( screen, "InitCharacterInfo", transpiler: nameof( TranspileInitCharacterInfo ) );
 
       private static IEnumerable<CodeInstruction> TranspileInitCharacterInfo ( IEnumerable<CodeInstruction> instr ) {
          var allCount = instr.Count( e => e.opcode == OpCodes.Ldc_I4_2 );

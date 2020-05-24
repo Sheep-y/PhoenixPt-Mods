@@ -57,6 +57,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Tactical\FullBodyAug\UncapAug.cs">
+      <Link>UncapAug.cs</Link>
+    </Compile>
     <Compile Include="..\..\Utilities\ZyMod\ZyMod.cs">
       <Link>ZyMod.cs</Link>
     </Compile>

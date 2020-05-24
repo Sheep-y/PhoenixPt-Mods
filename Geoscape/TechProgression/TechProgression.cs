@@ -11,6 +11,8 @@ using PhoenixPoint.Geoscape.Levels.Factions;
 using PhoenixPoint.Geoscape.View.ViewModules;
 using PhoenixPoint.Tactical.Entities.Equipments;
 
+using Sheepy.PhoenixPt.FullBodyAug;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -137,35 +139,14 @@ namespace Sheepy.PhoenixPt.TechProgression {
       private static void CheckUncapTech ( Type screen, ResearchElement tech, ref IPatch patch ) {
          //Verbo( "Checking {0} for uncap", tech?.ResearchDef.name );
          if ( tech?.IsCompleted == true ) {
-            if ( patch == null ) patch = PatchAugUncap( screen, tech );
+            if ( patch == null ) {
+               patch = new UncapAug().PatchAugUncap( screen );
+               if ( patch != null ) Info( "Tech {0} is researched, uncapped augmentations", tech.ResearchDef.name );
+            }
          } else
             Unpatch( ref patch );
       }
 
-      private static IPatch PatchAugUncap ( Type screen, ResearchElement tech ) {
-         var patch = ME.TryPatch( screen, "InitCharacterInfo", transpiler: nameof( TranspileInitCharacterInfo ) );
-         if ( patch != null ) Info( "Tech {0} is researched, uncapped augmentations", tech.ResearchDef.name );
-         return patch;
-      }
-
-      private static IEnumerable<CodeInstruction> TranspileInitCharacterInfo ( IEnumerable<CodeInstruction> instr ) {
-         var allCount = instr.Count( e => e.opcode == OpCodes.Ldc_I4_2 );
-         if ( allCount < 3 || allCount > 4 ) { // Pre-Blood and Titanium Mutation = 3, Post-B&T Mutation = 4, Post-B&T Bionics = 3
-            Error( new Exception( $"Unrecognised argument code.  Cap count {allCount}, expected 3 or 4.  Aborting." ) );
-            //foreach ( var code in instr ) Verbo( code );
-            return instr;
-         }
-         var codes = instr.ToArray();
-         for ( var i = 0 ; i < codes.Length ; i++ ) {
-            var code = codes[i];
-            if ( code.opcode != OpCodes.Ldc_I4_2 ) continue;
-            // Post-B&T, the second ldc.i4.2 loads the enum AugumentSlotState.AugumentationLimitReached.
-            // It follows a stloc.s 5 and must be skipped.
-            if ( i > 0 && codes[ i - 1 ].opcode != OpCodes.Stloc_S )
-               code.opcode = OpCodes.Ldc_I4_3;
-         }
-         return instr.ToList();
-      }
       #endregion
    }
 }
