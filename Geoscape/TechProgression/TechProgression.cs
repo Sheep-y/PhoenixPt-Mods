@@ -1,16 +1,9 @@
 ﻿using Base;
 using Base.Core;
 using Base.Defs;
-
-using Epic.OnlineServices;
-
 using Harmony;
-
 using PhoenixPoint.Common.Core;
-using PhoenixPoint.Common.Entities;
-using PhoenixPoint.Common.Entities.Addons;
 using PhoenixPoint.Common.Entities.Items;
-using PhoenixPoint.Common.Utils;
 using PhoenixPoint.Geoscape.Entities.Research;
 using PhoenixPoint.Geoscape.Entities.Research.Reward;
 using PhoenixPoint.Geoscape.Levels;
@@ -35,22 +28,9 @@ namespace Sheepy.PhoenixPt.TechProgression {
       public int Config_Version = 20200521;
 
       private static readonly Dictionary<string,string> Default_Manufacture_Unlock = new Dictionary<string, string> {
-         // Unlock indepent guns with "The Phoenix Archives"
-         { "NE_Pistol_WeaponDef", "PX_PhoenixProject_ResearchDef" },
-         { "NE_AssaultRifle_WeaponDef", "PX_PhoenixProject_ResearchDef" },
-         { "NE_SniperRifle_WeaponDef", "PX_PhoenixProject_ResearchDef" },
+         // Unlock independent machine gun with "The Phoenix Archives"
          { "NE_MachineGun_WeaponDef", "PX_PhoenixProject_ResearchDef" },
-         // Indepent armours
-         { "NEU_Heavy_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
-         { "NEU_Heavy_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
-         { "NEU_Heavy_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" },
-         { "NEU_Sniper_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
-         { "NEU_Sniper_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
-         { "NEU_Sniper_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" },
-         //{ "NEU_Assault_Helmet_BodyPartDef", "PX_PhoenixProject_ResearchDef" }, // Not exists?
-         { "NEU_Assault_Torso_BodyPartDef", "PX_PhoenixProject_ResearchDef" },
-         { "NEU_Assault_Legs_ItemDef", "PX_PhoenixProject_ResearchDef" },
-         // Basic weapons
+         // Unlock specialise weapons with faction intros.
          { "AN_Redemptor_WeaponDef", "PX_DisciplesOfAnu_ResearchDef" },
          { "NJ_PRCR_PDW_WeaponDef", "PX_NewJericho_ResearchDef" },
          { "SY_Crossbow_WeaponDef", "PX_Synedrion_ResearchDef" },
