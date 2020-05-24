@@ -2,14 +2,14 @@
 
 namespace Sheepy.PhoenixPt.FullBodyAug {
 
-   public class Mod : ZyMod {
+   public static class Mod {
 
-      public static void Init () => new Mod().GeoscapeMod();
+      public static void Init () => GeoscapeMod();
 
-      public void MainMod ( Func<string, object, object> api ) => GeoscapeMod( api );
+      public static void MainMod ( Func<string, object, object> api ) => GeoscapeMod( api );
 
-      public void GeoscapeMod ( Func<string, object, object> api = null ) {
-         SetApi( api );
+      public static void GeoscapeMod ( Func<string, object, object> api = null ) {
+         ZyMod.SetApi( api );
          var module = new UncapAug();
          module.UncapMutate();
          module.UncapBionic();
