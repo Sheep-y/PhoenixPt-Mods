@@ -1,0 +1,128 @@
+// These are the values that can be adjsuted for ODI.
+// The values are default for Phoenix Point 1.0.57335
+[{
+   comment : "Pandoran Nest ODI scores",
+   guid : "4df7995f-39f6-e174-191f-19ee5b731ec0", // GeoAlienBaseTypeDef, name=Nest_GeoAlienBaseTypeDef
+   modletlist : [{
+      field : "SDIWhenSpawned", // Default 35
+      value : 35,
+   },{
+      field : "SDIWhenDestroyed", // Default -70
+      value : -70,
+   }],
+},{
+   comment : "Pandoran Lair ODI scores",
+   guid : "11a48f56-0bee-7164-7bdc-d2ab4db5682f", // GeoAlienBaseTypeDef, name=Lair_GeoAlienBaseTypeDef
+   modletlist : [{
+      field : "SDIWhenSpawned", // Default 70
+      value : 70,
+   },{
+      field : "SDIWhenDestroyed", // Default -140
+      value : -140,
+   }],
+},{
+   comment : "Pandoran Citidel ODI scores",
+   guid : "1a427c14-261f-1c24-eb44-a6a9ac8f253b", // GeoAlienBaseTypeDef, name=Citadel_GeoAlienBaseTypeDef
+   modletlist : [{
+      field : "SDIWhenSpawned", // Default 150
+      value : 150,
+   },{
+      field : "SDIWhenDestroyed", // Default -300
+      value : -300,
+   }],
+},{
+   comment : "Base ODI scores.",
+   guid : "cf8eea9a-f47a-79c4-cb3b-7a484831dede", // GeoAlienFactionDef, unique
+   modletlist : [{
+      field : "StartingSDI", // Default 0
+      value : 0,
+   },{
+      field : "MaxSDI", // Default 10000
+      value : 10000,
+   },{
+      field : "SDIPerDay", // Default 25
+      value : 25,
+   },{
+      field : "SDIPerDestroyedHaven", // Default 30
+      value : 30,
+   },{
+      field : "SDIPerDestroyedPhoenixBase", // Default 100
+      value : 100,
+   }],
+},{
+   comment : "Rookie ODI Multipliers.",
+   guid : "a32d90d0-61f7-93d4-39e0-7d1f88a8a2cc", // GameDifficultyLevelDef name=Easy_GameDifficultyLevelDef
+   modletlist : [{
+      field : "SDIPerDay", // Default 0 = 1x
+      value : 0,
+   },{
+      field : "SDIPerDestroyedHaven", // Default 0 = 1x
+      value : 0,
+   },{
+      field : "SDIPerDestroyedPhoenix", // Default 0 = 1x
+      value : 0,
+   },{
+      field : "SDIWhenSpawned", // Default 0 = 1x
+      value : 0,
+   },{
+      field : "SDIWhenDestroyed", // Default 0 = 1x
+      value : 0,
+   }],
+},{
+   comment : "Veteran ODI Multipliers.",
+   guid : "caedf391-625d-f304-bacd-a384a41934a7", // GameDifficultyLevelDef name=Standard_GameDifficultyLevelDef
+   modletlist : [{
+      field : "SDIPerDay", // Default 0.5 = 1.5x
+      value : 0.5,
+   },{
+      field : "SDIPerDestroyedHaven", // Default 0.5 = 1.5x
+      value : 0.5,
+   },{
+      field : "SDIPerDestroyedPhoenix", // Default 0.5 = 1.5x
+      value : 0.5,
+   },{
+      field : "SDIWhenSpawned", // Default 0 = 1x
+      value : 0,
+   },{
+      field : "SDIWhenDestroyed", // Default -0.25 = 0.75x = 3/4
+      value : -0.25,
+   }],
+},{
+   comment : "Hero ODI Multipliers.",
+   guid : "c8304dae-596c-10d4-c97f-0152af0e5fd6", // GameDifficultyLevelDef name=Hard_GameDifficultyLevelDef
+   modletlist : [{
+      field : "SDIPerDay", // Default 1 = 2x
+      value : 1,
+   },{
+      field : "SDIPerDestroyedHaven", // Default 1 = 2x
+      value : 1,
+   },{
+      field : "SDIPerDestroyedPhoenix", // Default 1 = 2x
+      value : 1,
+   },{
+      field : "SDIWhenSpawned", // Default 0 = 1x
+      value : 0,
+   },{
+      field : "SDIWhenDestroyed", // Default -0.5 = 0.5x = 1/2
+      value : -0.5,
+   }],
+},{
+   comment : "Legend ODI Multipliers.",
+   guid : "0e2f4034-9bb5-fe54-a889-ba56d739a855", // GameDifficultyLevelDef name=VeryHard_GameDifficultyLevelDef
+   modletlist : [{
+      field : "SDIPerDay", // Default 2 = 3x
+      value : 2,
+   },{
+      field : "SDIPerDestroyedHaven", // Default 1 = 2x
+      value : 1,
+   },{
+      field : "SDIPerDestroyedPhoenix", // Default 2 = 3x
+      value : 2,
+   },{
+      field : "SDIWhenSpawned", // Default 0 = 1x
+      value : 0,
+   },{
+      field : "SDIWhenDestroyed", // Default -0.75 = 0.25x = 1/4
+      value : -0.75,
+   }],
+}]
