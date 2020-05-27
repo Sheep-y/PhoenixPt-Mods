@@ -65,6 +65,7 @@ namespace Sheepy.PhoenixPt.IndiGear {
             else
                UnlockItem( def );
          }
+         Info( "Unlocked {0} items", UnlockCount );
       }
 
       private static void UnlockItem ( TacticalItemDef item ) {
@@ -84,6 +85,7 @@ namespace Sheepy.PhoenixPt.IndiGear {
       private static void AddItem ( TacticalItemDef item ) {
          Verbo( "Unlock item: {0}", item.name );
          Manufacture.AddAvailableItem( item );
+         UnlockCount++;
       }
 
       private static ItemManufacturing Manufacture => GameUtl.CurrentLevel().GetComponent<GeoLevelController>().PhoenixFaction.Manufacture;
