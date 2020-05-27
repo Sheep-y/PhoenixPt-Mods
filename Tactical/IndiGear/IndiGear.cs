@@ -66,7 +66,7 @@ namespace Sheepy.PhoenixPt.IndiGear {
 
       private static void UnlockItem ( TacticalItemDef item ) {
          if ( Manufacture.Contains( item ) ) {
-            Api( "log v", "Already manufacturable: " + item.name );
+            Api( "log v", "Already unlocked: " + item.name );
             return;
          }
          if ( Shared == null ) Shared = GameUtl.GameComponent<SharedData>();
@@ -83,15 +83,7 @@ namespace Sheepy.PhoenixPt.IndiGear {
          Manufacture.AddAvailableItem( item );
       }
 
-      private static ItemManufacturing Manufacture { get {
-         var a = GameUtl.CurrentLevel();
-         Api( "log", a.GetType() );
-         var b = a.GetComponent<GeoLevelController>();
-         Api( "log", b );
-         Api( "log", b.PhoenixFaction );
-         Api( "log", b.PhoenixFaction.Manufacture );
-         return b.PhoenixFaction.Manufacture;
-      } }
+      private static ItemManufacturing Manufacture => GameUtl.CurrentLevel().GetComponent<GeoLevelController>().PhoenixFaction.Manufacture;
 
       private static DefRepository Repo;
       private static SharedData Shared;
