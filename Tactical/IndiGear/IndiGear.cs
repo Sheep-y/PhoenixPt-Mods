@@ -50,15 +50,18 @@ namespace Sheepy.PhoenixPt.IndiGear {
          AfterSetupResearch_UnlockItems();
       }
 
+      private static int UnlockCount;
+
       private static void AfterSetupResearch_UnlockItems () {
          if ( Config.Unlock == null ) {
-            Api( "log warn", "Unlock list is null.  Nothing to unlock." );
+            Warn( "Unlock list is null.  Nothing to unlock." );
             return;
          }
+         UnlockCount = 0;
          foreach ( var id in Config.Unlock ) {
             var def = Api( "\v pp.def", id ) as TacticalItemDef ?? FindTacItem( id );
             if ( def == null )
-               Api( "log warn", "Not found: " + id );
+               Warn( "Not found: {0}", id );
             else
                UnlockItem( def );
          }
@@ -66,7 +69,7 @@ namespace Sheepy.PhoenixPt.IndiGear {
 
       private static void UnlockItem ( TacticalItemDef item ) {
          if ( Manufacture.Contains( item ) ) {
-            Api( "log v", "Already unlocked: " + item.name );
+            Verbo( "Already unlocked: {0}", item.name );
             return;
          }
          if ( Shared == null ) Shared = GameUtl.GameComponent<SharedData>();
@@ -79,7 +82,7 @@ namespace Sheepy.PhoenixPt.IndiGear {
       }
 
       private static void AddItem ( TacticalItemDef item ) {
-         Api( "log", "Unlock item: " + item.name );
+         Verbo( "Unlock item: {0}", item.name );
          Manufacture.AddAvailableItem( item );
       }
 
