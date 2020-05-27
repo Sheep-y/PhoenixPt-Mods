@@ -181,7 +181,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          var logger = loggerField?.GetValue( null );
          string levelText = logger != null ? levelField.GetValue( logger )?.ToString() : null;
          if ( levelText == null ) { WriteError( "Modnix logger not found or not recognised." ); return; }
-         
+
          if ( level != null && level.Length >= 1 ) switch ( Char.ToLower( level[0] ) ) {
             case 'g' :
                console.WriteLine( "Modnix log level: " + levelText );

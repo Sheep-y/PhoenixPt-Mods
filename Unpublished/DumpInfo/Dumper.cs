@@ -204,7 +204,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          w.Write( EscXml( aVal ) );
          w.Write( selfClose ? "\"/>" : "\">" );
       }
-      
+
       private void EndTag ( string tag ) {
          var w = Writer;
          w.Write( "</" );

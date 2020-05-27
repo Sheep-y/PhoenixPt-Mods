@@ -86,8 +86,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       [ HarmonyPriority( Priority.VeryHigh ) ]
       private static void BeforeHealthChange_SetST  () => ST_Changed = true;
       private static void AfterHealthChange_UnsetST () => ST_Changed = false;
-      
-		private static void CheckHPSTRested ( GeoCharacter restedCharacter, List<IGeoCharacterContainer> ____justRestedContainer, GeoFaction ____faction ) { try {
+
+      private static void CheckHPSTRested ( GeoCharacter restedCharacter, List<IGeoCharacterContainer> ____justRestedContainer, GeoFaction ____faction ) { try {
          if ( ! HP_Changed && ! ST_Changed ) return;
          if ( HP_Changed && ! Mod.Config.Notice_On_HP_Only_Heal ) return;
          if ( ST_Changed && ! Mod.Config.Notice_On_Stamina_Only_Heal ) return;

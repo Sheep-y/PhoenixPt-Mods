@@ -10,7 +10,7 @@ using UnityEngine.UI;
 namespace Sheepy {
 
    /* Mod config class, saved as json through Modnix api, which calls Newtonsoft Json.NET.
-    * The config class must be specfied as "ConfigType" in mod_info. 
+    * The config class must be specfied as "ConfigType" in mod_info.
     * Its initial values will be used as defaults. */
    internal class ModConfig {
       public int ConfigVersion = 2; // Having a "version" helps when you need to migrate from old config.
@@ -37,7 +37,7 @@ namespace Sheepy {
       internal static volatile ModConfig Config;               // Mod config, the patches need this to work.
 
       // PPML 0.1 and 0.3+ entry point. (Doing 0.2 would crash the other two.)
-      public static void Init () => HomeMod(); 
+      public static void Init () => HomeMod();
 
       // Modnix 1 & 2 entry point, before Main Menu is loaded.
       public static void MainMod ( Func<string, object, object> api ) => HomeMod( api );

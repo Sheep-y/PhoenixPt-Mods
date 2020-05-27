@@ -43,7 +43,7 @@ namespace Sheepy.PhoenixPt_MarkUnpowered {
          return true;
       }
       #endregion
-      
+
       private static HashSet<PhoenixFacilityController> MarkFacilities;
       private static Timer MarkTimer;
       private static int LoopCount = 0;
@@ -53,12 +53,12 @@ namespace Sheepy.PhoenixPt_MarkUnpowered {
          GeoPhoenixFacility facility = me.Facility;
          if ( facility == null || facility.IsWorking ) {
             me.FacilityName.color = Color.white;
-			   me.RepairBuildContainer.SetActive( false );
+            me.RepairBuildContainer.SetActive( false );
          } else {
             me.FacilityName.color = Color.red;
             //Log.Info( "{0} {1}", facility.ViewElementDef.DisplayName1.Localize(), facility.State );
             if ( facility.State == GeoPhoenixFacility.FacilityState.Functioning && facility.CanBePowered && ! facility.IsPowered ) {
-			      me.RepairBuildContainer.SetActive( true );
+               me.RepairBuildContainer.SetActive( true );
                me.RepairBuildSlidingContainer.gameObject.SetActive( true );
                me.RepairBuildSlidingContainer.offsetMin = new Vector2( __instance.RepairBuildSlidingContainer.offsetMin.x, 0 );
                me.RepairBuildText.enabled = true;

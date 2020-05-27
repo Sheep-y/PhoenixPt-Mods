@@ -2,9 +2,9 @@
 #define ZyBatch
 #define ZyConfig
 #define ZyDefLog
-#define ZyLang   
-#define ZyLib   
-#define ZyYield  
+#define ZyLang
+#define ZyLib
+#define ZyYield
 #endif
 
 #if ZyBatch
@@ -362,7 +362,7 @@ namespace Sheepy.PhoenixPt {
          return instr;
       }
       #endif
-      
+
       #if ZyLog
       public static Action< TraceEventType, object, object[] > Logger;
       public static void ApiLog ( TraceEventType level, object msg, params object[] augs ) { lock ( _SLock ) Logger?.Invoke( level, msg, augs ); }

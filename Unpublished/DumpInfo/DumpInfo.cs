@@ -93,7 +93,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          var tasks = new List<Task>();
          foreach ( var entry in ExportData ) { lock( entry.Value ) {
             var type = ExportType[ entry.Key ];
-            var dump = type == typeof( TermData ) 
+            var dump = type == typeof( TermData )
                   ? (Dumper) new TermDumper( entry.Key, type, entry.Value )
                   : new BaseDefDumper( "Data-" + entry.Key, type, entry.Value ) ;
             var task = Task.Run( dump.DumpData );

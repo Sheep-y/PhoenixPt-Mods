@@ -33,14 +33,14 @@ namespace Sheepy.PhoenixPt.FlatDifficulty {
       }
 
       private static void BeforeCalculate_Readjust ( DynamicDifficultySystem __instance, GeoMission mission, Dictionary<DifficultyThreatLevel, DynamicDifficultySystem.DeploymentModifier> ____deploymentModPerThreatLevel ) { try {
-         Info( "Deploy Modifier: Min {0} Cur {1}", 
+         Info( "Deploy Modifier: Min {0} Cur {1}",
             ____deploymentModPerThreatLevel[ mission.ThreatLevel ].MinDeploymentModifier,
             ____deploymentModPerThreatLevel[ mission.ThreatLevel ].CurrentDeploymentModifier
             );
          ____deploymentModPerThreatLevel.Clear();
             /*
          typeof( DynamicDifficultySystem ).GetMethod( "SetInitialDeploymentValues", NonPublic | Instance ).Invoke( __instance, new object[]{ mission.ThreatLevel } );
-         Info( "After recalc: Min {0} Cur {1}", 
+         Info( "After recalc: Min {0} Cur {1}",
             ____deploymentModPerThreatLevel[ mission.ThreatLevel ].MinDeploymentModifier,
             ____deploymentModPerThreatLevel[ mission.ThreatLevel ].CurrentDeploymentModifier
             );

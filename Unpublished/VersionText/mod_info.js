@@ -22,7 +22,7 @@
    /* Default zero.  Lower index = load earlier.  Higher index = load later. */
    LoadIndex : -10,
 
-   /* If any mod listed here is not found, this mod will be disabled. 
+   /* If any mod listed here is not found, this mod will be disabled.
       Depending on a mod does NOT mean your mod will be loaded after it.
       Dependency does not affect load order (beyond disabling mods). */
    Requires : { Id: "Sheepy.DebugConsole", Min : "3.0" },
