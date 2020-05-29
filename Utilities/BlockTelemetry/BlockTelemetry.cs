@@ -1,7 +1,11 @@
 ﻿using Base.Core;
+
+using Harmony;
+
 using PhoenixPoint.Common.View.ViewModules;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Sheepy.PhoenixPt.BlockTelemetry {
 
@@ -14,23 +18,32 @@ namespace Sheepy.PhoenixPt.BlockTelemetry {
 
       public void SplashMod ( Func<string, object, object> api = null ) {
          SetApi( api );
-         var type = GameAssembly?.GetType( "AmplitudeWebClient" );
-         if ( type == null ) {
-            Api( "log err", "AmplitudeWebClient not found." );
-            return;
+         if ( PatchTelemetry( GameAssembly?.GetType( "AmplitudeWebClient" ) ?? typeof( PhoenixTelemetry ) ) ) {
+            // Disable tele button
+            TryPatch( typeof( UIModuleGameplayOptionsPanel ), "Show", postfix: nameof( DisableTeleToggle ) );
          }
-
-         // Disable all telemetry checks
-         TryPatch( type, "get_Enabled", nameof( DisableAll ) );
-         TryPatch( type, "get_UserHasAllowed", nameof( DisableAll ) );
-         TryPatch( type, "get_TelemetryOptionValue", nameof( OptOutTele ) );
-         // Disable events that ignored the checks
-         TryPatch( type, "SendEventTask", nameof( BlockSendEvent ) );
-
-         // Disable tele button
-         TryPatch( typeof( UIModuleGameplayOptionsPanel ), "Show", postfix: nameof( DisableTeleToggle ) );
       }
 
+      public bool PatchTelemetry ( Type type ) {
+         if ( type == null ) {
+            Api( "log err", "Telemetry client not found" );
+            return false;
+         }
+         var patched = false;
+         // Disable all telemetry checks
+         if ( TryPatch( type, "get_Enabled", nameof( DisableAll ) ) != null ) patched = true;
+         if ( TryPatch( type, "get_UserHasAllowed", nameof( DisableAll ) ) != null ) patched = true;
+         if ( TryPatch( type, "get_TelemetryOptionValue", nameof( OptOutTele ) ) != null ) patched = true;
+         // Disable events that ignored the checks
+         if ( TryPatch( type, "AddEvent", nameof( BlockAddEvent ) ) != null ) patched = true;
+         if ( TryPatch( type, "SendEventTask", nameof( BlockSendEvent ) ) != null ) patched = true;
+         return patched;
+      }
+
+      public void PatchPhoenixTelemetry () {
+         TryPatch( typeof( PhoenixTelemetry ), "SendEventTask", postfix: nameof( BlockSendEvent ) );
+      }
+         
       public static void MainMod () {
          // Opt out of tele
          GameUtl.GameComponent<OptionsComponent>().Options.Set( "TelemetryInformationAccepted", 0 );
@@ -46,9 +59,14 @@ namespace Sheepy.PhoenixPt.BlockTelemetry {
          return false;
       }
 
-      private static bool BlockSendEvent () {
+      private static bool BlockAddEvent () {
          Api( "log", "Blocking unexpected telemetry" );
          Api( "log v", new StackTrace( 1, false ) );
+         return false;
+      }
+
+      private static bool BlockSendEvent () {
+         Api( "log", "Blocking unexpected telemetry send" );
          return false;
       }
 
