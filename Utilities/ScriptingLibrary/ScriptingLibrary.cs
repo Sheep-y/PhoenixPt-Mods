@@ -11,6 +11,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       public void SplashMod ( ModnixAPI api ) {
          SetApi( api );
+         CopyLib();
          ScriptingExt.RegisterAPI();
          DataCache.RegisterAPI();
          Task.Run( () => Api( "eval.cs", "\"Scripting Warmup\"" ) );
@@ -44,6 +45,21 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          "Microsoft.CodeAnalysis.dll",
          "Microsoft.CodeAnalysis.Scripting.dll" };
 
+      // Some libraries, specifically System.Numerics.Vectors.dll, works only when copied to code folder.
+      // Thus, to play it safe, we try to copy all critical dlls.
+      public static void CopyLib () {
+         foreach ( var lib in Eval_Libraries ) { try {
+            var from = Path.Combine( Api( "dir" ).ToString(), "lib", lib );
+            var to = Path.Combine( Api( "dir", "loader" ).ToString(), lib );
+            if ( ! File.Exists( from ) ) return;
+            if ( File.Exists( to ) && new FileInfo( to ).Length == new FileInfo( from ).Length ) return;
+            Info( "Copy {0} to {1}", from, to );
+            File.Copy( from, to );
+         } catch ( SystemException ex ) {
+            Error( ex );
+         } }
+      }
+
       private static object Eval_Lib_Result;
 
       internal static object LoadLibraries () { lock ( Eval_Libraries ) { try {
@@ -58,9 +74,9 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             if ( File.Exists( path ) ) {
                //Verbo( "Loading {0}", path );
                var asm = Assembly.LoadFrom( path );
-               Verbo( "Loaded {0}", asm?.FullName );
+               Verbo( "Loaded {0} {1}", asm?.FullName, asm.IsDynamic ? "(dynamic)" : asm.Location );
             } else
-               Warn( "Not found: {0}", path );
+               Error( "Not found: {0}", path );
          }
          return Eval_Lib_Result = true;
       } catch ( Exception ex ) { return Eval_Lib_Result = ex; } } }
