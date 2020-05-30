@@ -1,7 +1,6 @@
 ﻿using Base;
 using Base.Core;
 using Base.Defs;
-using Harmony;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Geoscape.Entities.Research;
@@ -10,13 +9,10 @@ using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Geoscape.Levels.Factions;
 using PhoenixPoint.Geoscape.View.ViewModules;
 using PhoenixPoint.Tactical.Entities.Equipments;
-
 using Sheepy.PhoenixPt.FullBodyAug;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 
 namespace Sheepy.PhoenixPt.TechProgression {
 
@@ -34,14 +30,14 @@ namespace Sheepy.PhoenixPt.TechProgression {
          { "NE_MachineGun_WeaponDef", "PX_PhoenixProject_ResearchDef" },
          // Unlock specialise weapons with faction intros.
          { "AN_Redemptor_WeaponDef", "PX_DisciplesOfAnu_ResearchDef" },
-         { "NJ_PRCR_PDW_WeaponDef", "PX_NewJericho_ResearchDef" },
+         { "NJ_Gauss_PDW_WeaponDef", "PX_NewJericho_ResearchDef" },
          { "SY_Crossbow_WeaponDef", "PX_Synedrion_ResearchDef" },
       };
    }
 
    public class Mod : ZyMod {
 
-      private static ModConfig Config;
+      private static volatile ModConfig Config;
 
       private static Mod ME;
 
@@ -51,12 +47,17 @@ namespace Sheepy.PhoenixPt.TechProgression {
 
       public void GeoscapeMod ( Func<string, object, object> api = null ) {
          ME = this;
-         SetApi( api, out Config );
+         Config = SetApi( api, out Config );
          Patch( typeof( Research ), "Initialize", postfix: nameof( AfterSetupResearch_AddRewards ) );
-         if ( !string.IsNullOrWhiteSpace( Config.Mutation_Uncap ) )
-            Patch( typeof( UIModuleMutate ), "Init", nameof( BeforeAugInit_UncapAugment ) );
-         if ( !string.IsNullOrWhiteSpace( Config.Bionics_Uncap ) )
-            Patch( typeof( UIModuleBionics ), "Init", nameof( BeforeAugInit_UncapAugment ) );
+         if ( Api( "mod_info", "Sheepy.FullBodyAug" ) != null ) {
+            Info( "Full Body Augmentation found.  Aug uncap skipped." );
+            Config.Bionics_Uncap = Config.Mutation_Uncap = null;
+         } else {
+            if ( !string.IsNullOrWhiteSpace( Config.Mutation_Uncap ) )
+               Patch( typeof( UIModuleMutate ), "Init", nameof( BeforeAugInit_UncapAugment ) );
+            if ( !string.IsNullOrWhiteSpace( Config.Bionics_Uncap ) )
+               Patch( typeof( UIModuleBionics ), "Init", nameof( BeforeAugInit_UncapAugment ) );
+         }
       }
 
       private static void AfterSetupResearch_AddRewards ( Research __instance ) {
