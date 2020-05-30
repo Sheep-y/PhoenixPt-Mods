@@ -10,7 +10,6 @@ using System.Linq;
 
 namespace Sheepy.PhoenixPt.IndiGear {
 
-
    internal class ModConfig {
 
       public List<string> Unlock = new List<string>{
@@ -42,11 +41,11 @@ namespace Sheepy.PhoenixPt.IndiGear {
 
       public void MainMod ( Func<string, object, object> api = null ) {
          SetApi( api, out Config );
-         Patch( typeof( Research ), "Initialize", postfix: nameof( AfterSetupResearch_UnlockItems ) );
+         Patch( typeof( GeoMissionScheduler ), "Init", postfix: nameof( AfterSetupResearch_UnlockItems ) );
       }
 
       public static void GeoscapeOnShow ( Func<string, object, object> api = null ) {
-         SetApi( api, out Config );
+         if ( ! HasApi ) SetApi( api, out Config );
          AfterSetupResearch_UnlockItems();
       }
 
@@ -69,17 +68,17 @@ namespace Sheepy.PhoenixPt.IndiGear {
       }
 
       private static void UnlockItem ( TacticalItemDef item ) {
-         if ( Manufacture.Contains( item ) ) {
-            Verbo( "Already unlocked: {0}", item.name );
-            return;
-         }
          if ( Shared == null ) Shared = GameUtl.GameComponent<SharedData>();
          var manufacturableTag = Shared.SharedGameTags.ManufacturableTag;
          if ( !item.Tags.Any( e => e == manufacturableTag ) )
             item.Tags.Add( manufacturableTag );
-         AddItem( item );
-         if ( item.CompatibleAmmunition?.Length > 0 )
-            AddItem( item.CompatibleAmmunition[ 0 ] );
+         if ( Manufacture.ManufacturableItems.Contains( item ) ) {
+            Verbo( "Already unlocked: {0}", item.name );
+            return;
+         } else
+            AddItem( item );
+         if ( item.CompatibleAmmunition?.Length > 0 && item.CompatibleAmmunition[0] != item )
+            UnlockItem( item.CompatibleAmmunition[ 0 ] );
       }
 
       private static void AddItem ( TacticalItemDef item ) {
