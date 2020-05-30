@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
-   using ModnixAPI = Func<string,object,object>;
+   using ModnixAPI = Func< string, object, object >;
    using SimpleCache = Dictionary< string, object >;
    using BaseDefs = IEnumerable< BaseDef >;
 
