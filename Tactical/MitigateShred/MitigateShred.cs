@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using Base.Core;
-using Base.Defs;
 using PhoenixPoint.Tactical.Entities;
-using PhoenixPoint.Tactical.Entities.DamageKeywords;
-using PhoenixPoint.Tactical.Entities.Effects.DamageTypes;
+using UnityEngine;
 
 namespace Sheepy.PhoenixPt.MitigateShred {
 
@@ -23,38 +18,18 @@ namespace Sheepy.PhoenixPt.MitigateShred {
 
       public void TacticalMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
-         Patch( typeof( DamageAccumulation ), "GenerateStandardDamageTargetData", null, "AfterStandardDamage_Shred" );
-         //Patch( typeof( DamageAccumulation ), "GenerateStandardDamageTargetData", null, "AfterStandardDamage_Shred" );
+         Patch( typeof( DamageAccumulation ), "GenerateStandardDamageTargetData", postfix: nameof( AfterDamage_AddShred ) );
       }
 
-      private static PiercingDamageKeywordDataDef ShredDef;
-
-      public static void AfterStandardDamage_Shred ( DamageAccumulation __instance, DamageAccumulation.TargetData __result ) { try {
+      public static void AfterDamage_AddShred ( DamageAccumulation __instance, DamageAccumulation.TargetData __result ) { try {
          var damage = __result.DamageResult;
-         float mitigated = damage.ArmorMitigatedDamage;
-         float shred = mitigated > 0 ? (float) Math.Max( Config.Min_Shred, Math.Round( mitigated * Config.Convert_Ratio ) ) : 0f;
-         var shredDef = ShredDef ?? ( ShredDef = GameUtl.GameComponent<DefRepository>().GetAllDefs<PiercingDamageKeywordDataDef>().FirstOrDefault() );
-         if ( shredDef == null ) {
-               Warn( "Cannot find PiercingDamageKeywordDataDef" );
-               return;
-            }
-         var effect = __instance.DamageKeywords.FirstOrDefault( e => e.DamageKeywordDef == ShredDef );
-         if ( shred > 0 ) {
-            damage.ArmorDamage += shred;
-            if ( effect != null ) {
-               Verbo( "Adding shred {0} to {1}", shred, effect.Value );
-               effect.Value += shred;
-            } else {
-               Verbo( "Creating shred {0}", shred );
-               __instance.DamageKeywords.Add( new DamageKeywordPair(){ DamageKeywordDef = shredDef, Value = shred } );
-            }
-            damage.ArmorDamage += shred;
-         }
-         /* // Called on every frame during damage preview!
-         Log( shred > 0 ? TraceEventType.Information : TraceEventType.Verbose,
-            "Mitigate Shred Damage: Raw {0}, HP {1}, Mitigated {2}, Shred {3}+{4}",
-            __instance.Amount, damage.HealthDamage, damage.ArmorMitigatedDamage, damage.ArmorDamage, shred );
-            */
-      } catch ( Exception ex ) { Error( ex ); } }
+         var mitigated = damage.ArmorMitigatedDamage;
+         if ( mitigated <= 0 ) return;
+         var shred = Mathf.Max( Config.Min_Shred, Mathf.Round( mitigated * Config.Convert_Ratio ) );
+         var orig = damage.ArmorDamage;
+         //Trace( "Shred {0}+{1} = {2}", orig, shred, orig + shred ); // Triggered by damage preview. Pretty hot code.
+         damage.ArmorDamage += shred;
+         __instance.ArmorShred += shred;
+      } catch ( Exception ex ) { Api( "log e", ex ); } }
    }
 }

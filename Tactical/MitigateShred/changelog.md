@@ -1,8 +1,9 @@
 Changelog of Mitigate Shred, a Phoenix Point Mod by Sheepy
 
-# Version 2, in development
+# Version 2, 2020-05-30
 
-* New: Updated to Modnix and made configurable and lazy loaded.
+* Update to support 1.0.57335 Derleth, tested on 1.0.57630.
+* Support Modnix 2 config and Modnix 3 lazy load.
 
 # Version 1, 2019-12-29
 
