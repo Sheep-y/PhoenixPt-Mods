@@ -1,8 +1,9 @@
 Changelog of Tech Progression, a Phoenix Point Mod by Sheepy
 
-# Version 2, in development
+# Version 2, 2020-05-30
 
-* Support Modnix lazy loading.
+* Support Modnix 3 lazy loading.
+* Unlocks specalist weapons (Eros CRB III, Redeemer, VDM Defender) with initial faction research to give specialists some weapons.
 
 # Version 1.1, 2020-01-12
 

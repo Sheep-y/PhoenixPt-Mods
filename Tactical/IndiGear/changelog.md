@@ -1,9 +1,10 @@
 Changelog of Independent Gear, a Phoenix Point Mod by Sheepy
 
-# Version 2, in development
+# Version 2, 2020-05-30
 
-* Support Modnix lazy loading.
+* Adds all independent weapons and armours without research.
 * Split from Tech Progression for easier application.
+* Support Modnix 3 lazy loading.
 
 # Version 1.1, 2020-01-12
 

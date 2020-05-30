@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle( "Indepdenet Gear" )]
-[assembly: AssemblyDescription( "Phoenix Point mod -" )]
+[assembly: AssemblyDescription( "Phoenix Point mod - Add independent weapons and armour for manufacturing" )]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany( "Sheepy" )]
 [assembly: AssemblyProduct( "" )]
