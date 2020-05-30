@@ -48,10 +48,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             using ( var writer = new StreamWriter( buffer ) ) {
                Writer = writer;
                writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
-               StartTag( DataType.Name, "count", Data.Count.ToString(), false );
-               if ( Mod.GameVersion != null )
-                  StartTag( "Game", "Version", Mod.GameVersion, true );
-               StartTag( "DumpInfo", "Version", Assembly.GetExecutingAssembly().GetName().Version.ToString(), true );
+               var attr = new List<string>{ "count", Data.Count.ToString() };
+               if ( Mod.GameVersion != null ) attr.AddRange( new string[]{ "game", Mod.GameVersion } );
+               attr.AddRange( new string[]{ "dumpinfo", Assembly.GetExecutingAssembly().GetName().Version.ToString() } );
+               StartTag( DataType.Name, false, attr.ToArray() );
                foreach ( var val in Data )
                   RecurringObject.Add( val, RecurringObject.Count );
                foreach ( var val in Data )
@@ -75,17 +75,17 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private void Mem2Xml ( string name, object val, int level ) {
          if ( val == null ) { NullMem( name ); return; }
-         if ( val is string str ) { StartTag( name, "val", str, true ); return; }
+         if ( val is string str ) { StartTag( name, true, "val", str ); return; }
          if ( val is LocalizedTextBind l10n ) {
-            StartTag( name, "key", l10n.LocalizationKey, false );
+            StartTag( name, false, "key", l10n.LocalizationKey );
             Writer.Write( EscXml( l10n.Localize() ) );
             EndTag( name );
             return;
          }
-         if ( val is GameObject obj ) { StartTag( name, "name", obj.name, true ); return; }
+         if ( val is GameObject obj ) { StartTag( name, true, "name", obj.name ); return; }
          if ( val is byte[] bary ) {
             if ( name == "NativeData" ) // MapParcelDef.NativeData
-               StartTag( name, "length", bary.Length.ToString(), true );
+               StartTag( name, true, "length", bary.Length.ToString() );
             else
                SimpleMem( name, Convert.ToBase64String( bary ) );
             return;
@@ -94,11 +94,11 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          if ( type.IsClass ) {
             if ( ! ( val is Array ) ) { // Simple objects
                if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
-               if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, "name", faction.name, true ); return; }
-               if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, "name", tacChar.name, true ); return; }
-               if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, "name", tacItem.name, true ); return; }
+               if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, true, "name", faction.name ); return; }
+               if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, true, "name", tacChar.name ); return; }
+               if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, true, "name", tacItem.name ); return; }
                if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
-                  { StartTag( name, "type", type.FullName, true ); return; }
+                  { StartTag( name, true, "type", type.FullName ); return; }
             }
             if ( level >= MaxDepth ) { SimpleMem( name, "..." ); return; }
             if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
@@ -110,12 +110,12 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                try {
                   if ( RecurringObject.TryGetValue( val, out int link ) ) {
                      if ( val is BaseDef def )
-                        StartTag( name, "guid", def.Guid, true );
+                        StartTag( name, true, "name", def.name, "guid", def.Guid );
                      else
-                        StartTag( name, "ref", link.ToString( "X" ), true );
+                        StartTag( name, true, "ref", link.ToString( "X" ) );
                      return;
                   }
-               } catch ( Exception ex ) { StartTag( name, "err_H", ex.GetType().Name, true ); return; } // Hash error
+               } catch ( Exception ex ) { StartTag( name, true, "err_H", ex.GetType().Name ); return; } // Hash error
                id = RecurringObject.Count;
                RecurringObject.Add( val, id );
             } else
@@ -123,9 +123,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( val is BaseDef )
                StartTag( name );
             else
-               StartTag( name, "id", id.ToString( "X" ), false );
+               StartTag( name, false, "id", id.ToString( "X" ) );
          } else {
-            if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, "val", val.ToString(), true ); return; }
+            if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, true, "val", val.ToString() ); return; }
             if ( val is Color color ) { WriteColour( name, color ); return; }
             StartTag( name ); // Other structs
          }
@@ -152,14 +152,14 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
-            StartTag( f.Name, "err_F", ex.GetType().Name, true ); // Field.GetValue error
+            StartTag( f.Name, true, "err_F", ex.GetType().Name ); // Field.GetValue error
          }
          if ( subject.GetType().IsClass ) {
             foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
                if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), false ).Any() ) continue;
                Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
             } catch ( ApplicationException ex ) {
-               StartTag( f.Name, "err_P", ex.GetType().Name, true ); // Property.GetValue error
+               StartTag( f.Name, true, "err_P", ex.GetType().Name ); // Property.GetValue error
             }
          }
       }
@@ -185,24 +185,35 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          w.Write( "\"/>" );
       }
 
-      private void NullMem ( string name ) => StartTag( name, "null", "1", true );
-
-      private void StartTag ( string name ) {
-         var w = Writer;
-         w.Write( '<' );
-         w.Write( EscTag( name ) );
-         w.Write( '>' );
+      private void NullMem ( string name ) {
+         _StartTag( name );
+         Writer.Write( " null=\"1\">" );
       }
 
-      private void StartTag ( string tag, string attr, string aVal, bool selfClose ) {
+      private void _StartTag ( string tag ) {
+         Writer.Write( '<' );
+         Writer.Write( EscTag( tag ) );
+      }
+
+      private void _WriteAttr ( string attr, string aVal ) {
          var w = Writer;
-         w.Write( '<' );
-         w.Write( EscTag( tag ) );
          w.Write( ' ' );
          w.Write( attr );
          w.Write( "=\"" );
          w.Write( EscXml( aVal ) );
-         w.Write( selfClose ? "\"/>" : "\">" );
+         w.Write( '"' );
+      }
+
+      private void StartTag ( string tag ) {
+         _StartTag( tag );
+         Writer.Write( '>' );
+      }
+
+      private void StartTag ( string tag, bool selfClose, params string[] attrs ) {
+         _StartTag( tag );
+         for ( var i = 0 ; i < attrs.Length ; i += 2 )
+            _WriteAttr( attrs[i], attrs[i+1] );
+         Writer.Write( selfClose ? "/>" : ">" );
       }
 
       private void EndTag ( string tag ) {
