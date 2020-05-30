@@ -1,4 +1,4 @@
-Changelog of Tech Progression, a Phoenix Point Mod by Sheepy
+Changelog of Full Body Augmentations, a Phoenix Point Mod by Sheepy
 
 # Version 2, 2020-05-30
 
