@@ -1,7 +1,7 @@
 ({
    Id : "Sheepy.IndiGear",
    Lang : "-",
-   Name : "Indepdenet Gear",
+   Name : "Independent Gear",
    Description : "Enables manufacturing of independent equipments.",
    Url : {
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/17/",
