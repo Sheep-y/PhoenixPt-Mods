@@ -97,12 +97,13 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          }
          var type = val.GetType();
          if ( type.IsClass ) {
+            var bDef = val as BaseDef;
             if ( ! ( val is Array ) ) { // Simple objects
                if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
-               if ( val is BaseDef def )
+               if ( bDef != null )
                   foreach ( var simpleDef in SimpleDefs )
                      if ( DataType != simpleDef && simpleDef.IsAssignableFrom( val.GetType() ) ) {
-                        StartTag( name, true, "name", def.name, "guid", def.Guid );
+                        SimpleBaseDef( name, bDef );
                         return;
                      }
                if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
@@ -117,8 +118,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( level > 0 ) {
                try {
                   if ( RecurringObject.TryGetValue( val, out int link ) ) {
-                     if ( val is BaseDef def )
-                        StartTag( name, true, "name", def.name, "guid", def.Guid );
+                     if ( bDef != null )
+                        SimpleBaseDef( name, bDef );
                      else
                         StartTag( name, true, "ref", link.ToString( "X" ) );
                      return;
@@ -128,8 +129,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                RecurringObject.Add( val, id );
             } else
                id = RecurringObject[ val ];
-            if ( val is BaseDef )
-               StartTag( name );
+            if ( bDef != null )
+               SimpleBaseDef( name, bDef, false );
             else
                StartTag( name, false, "id", id.ToString( "X" ) );
          } else {
@@ -140,6 +141,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Obj2Xml( val, level + 2 ); // Either structs or non-enum objects
          EndTag( name );
       }
+
+      private void SimpleBaseDef ( string tag, BaseDef def, bool selfClose = true ) => StartTag( tag, selfClose, "name", def.name, "guid", def.Guid );
 
       private void DumpList ( string name, IEnumerable list, int level ) {
          StartTag( name );
