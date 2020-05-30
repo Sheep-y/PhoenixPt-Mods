@@ -54,6 +54,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{345FC9DB-1B23-4388-A225-8B2DB5812A64}"
 	ProjectSection(SolutionItems) = preProject
 		Tactical\LaserOnFire\LaserOnFire.js = Tactical\LaserOnFire\LaserOnFire.js
+		Geoscape\ODI Factors\ODI_Factors.json = Geoscape\ODI Factors\ODI_Factors.json
 		README.md = README.md
 	EndProjectSection
 EndProject
