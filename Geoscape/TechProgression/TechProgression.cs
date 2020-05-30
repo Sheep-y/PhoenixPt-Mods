@@ -1,6 +1,9 @@
 ﻿using Base;
 using Base.Core;
 using Base.Defs;
+
+using Newtonsoft.Json;
+
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Geoscape.Entities.Research;
@@ -13,6 +16,7 @@ using Sheepy.PhoenixPt.FullBodyAug;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Sheepy.PhoenixPt.TechProgression {
 
@@ -49,7 +53,7 @@ namespace Sheepy.PhoenixPt.TechProgression {
          ME = this;
          Config = SetApi( api, out Config );
          Patch( typeof( Research ), "Initialize", postfix: nameof( AfterSetupResearch_AddRewards ) );
-         if ( Api( "mod_info", "Sheepy.FullBodyAug" ) != null ) {
+         if ( ( Api( "mod_list", new Regex( "^Sheepy.FullBodyAug$" ) ) as IEnumerable<string> ).Any() ) { // Should use mod_info but had bug!
             Info( "Full Body Augmentation found.  Aug uncap skipped." );
             Config.Bionics_Uncap = Config.Mutation_Uncap = null;
          } else {
