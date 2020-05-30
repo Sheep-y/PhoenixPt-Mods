@@ -2,8 +2,9 @@ Changelog of Tech Progression, a Phoenix Point Mod by Sheepy
 
 # Version 2, 2020-05-30
 
-* Support Modnix 3 lazy loading.
+* Update to Blood and Titanium, unlocks full Bionics with Restricted Bionic Technology
 * Unlocks specalist weapons (Eros CRB III, Redeemer, VDM Defender) with initial faction research to give specialists some weapons.
+* Support Modnix 2 configuration and Modnix 3 lazy loading.
 
 # Version 1.1, 2020-01-12
 
