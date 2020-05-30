@@ -55,8 +55,12 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          var lib = Path.Combine( Api( "dir" )?.ToString(), "lib" );
          foreach ( var f in Eval_Libraries ) {
             var path = Path.Combine( lib, f );
-            Verbo( "Loading {0}", path );
-            Assembly.LoadFrom( path );
+            if ( File.Exists( path ) ) {
+               //Verbo( "Loading {0}", path );
+               var asm = Assembly.LoadFrom( path );
+               Verbo( "Loaded {0}", asm?.FullName );
+            } else
+               Warn( "Not found: {0}", path );
          }
          return Eval_Lib_Result = true;
       } catch ( Exception ex ) { return Eval_Lib_Result = ex; } } }
