@@ -1,8 +1,11 @@
 ﻿using Base.Defs;
+using Base.Levels;
 using Base.UI;
 using PhoenixPoint.Common.Entities.Addons;
+using PhoenixPoint.Common.Entities.GameTags;
 using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Tactical.Entities;
+using PhoenixPoint.Tactical.Entities.DamageKeywords;
 using PhoenixPoint.Tactical.Entities.Equipments;
 using System;
 using System.Collections;
@@ -73,6 +76,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Writer.Write( '\n' );
       }
 
+      private Type[] SimpleDefs = new Type[]{ typeof( GeoFactionDef ), typeof( TacticalActorDef ), typeof( TacticalItemDef ), typeof( GameTagDef ) };
+
       private void Mem2Xml ( string name, object val, int level ) {
          if ( val == null ) { NullMem( name ); return; }
          if ( val is string str ) { StartTag( name, true, "val", str ); return; }
@@ -94,9 +99,12 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          if ( type.IsClass ) {
             if ( ! ( val is Array ) ) { // Simple objects
                if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
-               if ( val is GeoFactionDef faction && DataType != typeof( GeoFactionDef ) ) { StartTag( name, true, "name", faction.name ); return; }
-               if ( val is TacticalActorDef tacChar && DataType != typeof( TacticalActorDef ) ) { StartTag( name, true, "name", tacChar.name ); return; }
-               if ( val is TacticalItemDef tacItem && DataType != typeof( TacticalItemDef ) ) { StartTag( name, true, "name", tacItem.name ); return; }
+               if ( val is BaseDef def )
+                  foreach ( var simpleDef in SimpleDefs )
+                     if ( DataType != simpleDef && simpleDef.IsAssignableFrom( val.GetType() ) ) {
+                        StartTag( name, true, "name", def.name, "guid", def.Guid );
+                        return;
+                     }
                if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
                   { StartTag( name, true, "type", type.FullName ); return; }
             }
@@ -187,7 +195,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private void NullMem ( string name ) {
          _StartTag( name );
-         Writer.Write( " null=\"1\">" );
+         Writer.Write( " null=\"1\"/>" );
       }
 
       private void _StartTag ( string tag ) {
