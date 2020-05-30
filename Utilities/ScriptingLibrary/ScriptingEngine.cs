@@ -69,15 +69,17 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static readonly Dictionary< string, object > Sessions = new Dictionary< string, object >();
 
       public static object Eval ( string id, string code ) { try {
-         Task<ScriptState<object>> task;
+         Task< ScriptState< object > > task;
          object state;
          lock ( Sessions ) Sessions.TryGetValue( id, out state );
+         ScriptOptions opt = Options as ScriptOptions;
+         Info ( opt );
          if ( ! ( state is ScriptState session ) ) {
             PrepareScript();
             Verbo( "New eval shell for {0}", id );
-            task = CSharpScript.RunAsync( code, Options as ScriptOptions );
+            task = CSharpScript.RunAsync( code, opt );
          } else
-            task = session.ContinueWithAsync( code, Options as ScriptOptions );
+            task = session.ContinueWithAsync( code, opt );
          task.Wait();
          if ( task.IsFaulted ) return new EvaluateException( "Eval error", task.Exception );
          lock ( Sessions ) {

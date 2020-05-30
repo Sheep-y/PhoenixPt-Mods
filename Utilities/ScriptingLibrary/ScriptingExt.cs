@@ -16,10 +16,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          if ( string.IsNullOrWhiteSpace( code ) ) return new ArgumentNullException( nameof( param ) );
          if ( ScriptingLibrary.LoadLibraries() is Exception err ) return err;
          Info( "API> {0}", code );
-         return Eval( "API", code );
+         return ScriptingEngine.Eval( "API", code );
       }
-
-      private static object Eval ( string id, string code ) => ScriptingEngine.Eval( id, code ); // TODO: Change to use caller mod's session
 
       [ ConsoleCommand( Command = "Eval", Description = "(code) - Evaluate C# code, or enter C# shell if no code" ) ]
       public static void Console_Eval_CS ( IConsole console, string[] param ) {
@@ -36,7 +34,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             console.Write( FormatException( err ) );
             return;
          }
-         var result = Eval( "Console", code );
+         var result = ScriptingEngine.Eval( "Console", code );
          if ( result == null && code.IndexOf( '-' ) > 0 ) return; // Ignore "null" result from assignment statement.
          if ( result is Exception ex ) result = FormatException( ex ) + ex.StackTrace;
          if ( Api( "console.write", result ) is bool write && write ) return;
