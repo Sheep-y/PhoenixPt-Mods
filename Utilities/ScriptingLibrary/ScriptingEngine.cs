@@ -15,13 +15,13 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       // Assemblies usable by the script, beyond System.* and Unity.*
       private static readonly string[] ScriptAssemblies = new string[]{ "mscorlib", "Assembly-CSharp,", "Cinemachine,", "0Harmony,", "Newtonsoft.Json," };
-      private static ScriptOptions Options;
+      private static object Options;
 
       private static void PrepareScript () { lock ( ScriptAssemblies ) {
          if ( Options != null ) return;
          Info( "Initiating C# scripting" );
 
-         Options = ScriptOptions.Default
+         var opt = ScriptOptions.Default
             .WithLanguageVersion( Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_3 )
             .WithAllowUnsafe( false )
             .WithCheckOverflow( true )
@@ -58,7 +58,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          names.Add( "Sheepy.PhoenixPt.ScriptingLibrary.ScriptHelpers" );
 
          var usings = names.ToArray();
-         Options = Options.WithReferences( assemblies.ToArray() ).WithImports( usings );
+         Options = opt.WithReferences( assemblies.ToArray() ).WithImports( usings );
          string usingLog () {
             Array.Sort( usings );
             return string.Join( ";", usings );
@@ -66,18 +66,18 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Verbo( "{0} namespaces found and added to scripts: {1}", usings.Length, (Func<string>) usingLog );
       } }
 
-      private static readonly Dictionary< string, ScriptState > Sessions = new Dictionary<string, ScriptState>();
+      private static readonly Dictionary< string, object > Sessions = new Dictionary< string, object >();
 
       public static object Eval ( string id, string code ) { try {
          Task<ScriptState<object>> task;
-         ScriptState state;
+         object state;
          lock ( Sessions ) Sessions.TryGetValue( id, out state );
-         if ( state == null ) {
+         if ( ! ( state is ScriptState session ) ) {
             PrepareScript();
             Verbo( "New eval shell for {0}", id );
-            task = CSharpScript.RunAsync( code, Options );
+            task = CSharpScript.RunAsync( code, Options as ScriptOptions );
          } else
-            task = state.ContinueWithAsync( code, Options );
+            task = session.ContinueWithAsync( code, Options as ScriptOptions );
          task.Wait();
          if ( task.IsFaulted ) return new EvaluateException( "Eval error", task.Exception );
          lock ( Sessions ) {
