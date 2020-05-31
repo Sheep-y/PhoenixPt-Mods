@@ -53,10 +53,10 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             var to = Path.Combine( Api( "dir", "loader" ).ToString(), lib );
             if ( ! File.Exists( from ) ) return;
             if ( File.Exists( to ) && new FileInfo( to ).Length == new FileInfo( from ).Length ) return;
-            Info( "Copy {0} to {1}", from, to );
+            Info( "Copy {0} to {1}", lib, to );
             File.Copy( from, to );
          } catch ( SystemException ex ) {
-            Error( ex );
+            Warn( ex );
          } }
       }
 
@@ -74,7 +74,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             if ( File.Exists( path ) ) {
                //Verbo( "Loading {0}", path );
                var asm = Assembly.LoadFrom( path );
-               Verbo( "Loaded {0} {1}", asm?.FullName, asm.IsDynamic ? "(dynamic)" : asm.Location );
+               Verbo( "Loaded {0}", asm?.FullName, asm.IsDynamic ? "(dynamic)" : asm.Location );
             } else
                Error( "Not found: {0}", path );
          }
