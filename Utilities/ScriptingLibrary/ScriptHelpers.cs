@@ -32,7 +32,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       public static IEnumerable< BaseDef > GetDefs ( object nameOrType ) => DataCache.API_PP_Defs( null, nameOrType );
 
-      public static IEnumerable< T > GetDefs< T > ( object nameOrType ) where T : BaseDef => DataCache.API_PP_Defs( null, nameOrType ).OfType<T>();
+      public static IEnumerable< T > GetDefs< T > ( object nameOrType = null ) where T : BaseDef => DataCache.API_PP_Defs( null, nameOrType ).OfType<T>();
 
       private static SharedDamageKeywordsDataDef DmgType;
 
