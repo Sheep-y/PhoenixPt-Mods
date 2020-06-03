@@ -70,14 +70,13 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
       private static void AfterSetMenuItems_CalcTime ( GeoSite site, List<SiteContextualMenuItem> ____menuItems ) {
          foreach ( var menu in ____menuItems ) try {
-            var vehicle = menu.Ability.GeoActor as GeoVehicle;
+            var vehicle = menu.Ability?.GeoActor as GeoVehicle;
 
             if ( menu.Ability is MoveVehicleAbility move && move.GeoActor is GeoVehicle flier )
                menu.ItemText.text += HoursToText( FlightHours( site, flier ) );
 
             else if ( menu.Ability is ExploreSiteAbility explore ) {
                var hours = GetVehicleTimeLeft( vehicle, (float) site.ExplorationTime.TimeSpan.TotalHours );
-               Info( "Explore", hours );
                menu.ItemText.text += HoursToText( hours );
 
             } else if ( menu.Ability is ScanAbility scan ) {
