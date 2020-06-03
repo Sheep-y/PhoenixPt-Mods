@@ -1,8 +1,9 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
-# Version ?,  in development
+# Version 5.1, in development
 
-* Support Modnix 3 lazy loading
+* Fix: Vehicle recruits are properly handled for haven mouseovers.
+* Support Modnix 3 lazy loading.
 
 # Version 5, 2020-05-02
 

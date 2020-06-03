@@ -55,7 +55,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          __instance.RecruitAvailableText.text = OriginalRecruitText + " (" + GetClassName( recruit ) + ')';
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static string GetClassName ( GeoCharacter recruit ) => recruit.Progression.MainSpecDef.ViewElementDef.DisplayName1.Localize();
+      private static string GetClassName ( GeoCharacter recruit ) => recruit.ClassViewElementDefs.First().DisplayName1.Localize();
 
       private static void AfterSetHaven_ShowResourceStock ( UIModuleSelectionInfoBox __instance, GeoSite ____site ) { try {
          var res = ____site.GetComponent<GeoHaven>()?.GetResourceTrading();
