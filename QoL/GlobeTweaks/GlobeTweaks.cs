@@ -1,7 +1,4 @@
 ﻿using Base.Core;
-
-using com.ootii.Utilities.Debug;
-
 using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.Entities.Abilities;
 using PhoenixPoint.Geoscape.Levels;
@@ -9,9 +6,9 @@ using PhoenixPoint.Geoscape.View.ViewControllers;
 using PhoenixPoint.Geoscape.View.ViewModules;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
-
-using UnityEngine.Experimental.PlayerLoop;
 
 namespace Sheepy.PhoenixPt.GlobeTweaks {
 
@@ -69,24 +66,33 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          new GlyphModule().DoPatches();
       }
 
-      private static void AfterSetMenuItems_CalcTime ( GeoSite site, List<SiteContextualMenuItem> ____menuItems ) { try {
-         foreach ( var menu in ____menuItems ) {
+      private static void AfterSetMenuItems_CalcTime ( GeoSite site, List<SiteContextualMenuItem> ____menuItems ) {
+         foreach ( var menu in ____menuItems ) try {
+            var vehicle = menu.Ability.GeoActor as GeoVehicle;
+
             if ( menu.Ability is MoveVehicleAbility move && move.GeoActor is GeoVehicle flier )
                menu.ItemText.text += HoursToText( FlightHours( site, flier ) );
+
             else if ( menu.Ability is ExploreSiteAbility explore ) {
-               var minutes = GetVehicleTimeLeft( explore.GeoActor as GeoVehicle, (float) site.ExplorationTime.TimeSpan.TotalMinutes );
-               Info( "Explore", minutes );
-               menu.ItemText.text += HoursToText( minutes / 60f );
-            }
-         }
-      } catch ( Exception ex ) { Error( ex ); } }
+               var hours = GetVehicleTimeLeft( vehicle, (float) site.ExplorationTime.TimeSpan.TotalHours );
+               Info( "Explore", hours );
+               menu.ItemText.text += HoursToText( hours );
+
+            } else if ( menu.Ability is ScanAbility scan ) {
+               var scanner = vehicle?.Owner?.Scanners?.Where( e => e.Location == site )?.First();
+               if ( scanner == null ) continue;
+               var data = scanner.SerializationData as GeoScanner.GeoScannerInstanceData;
+               menu.ItemText.text += HoursToText( (float) ( data.ExpansionEndDate - scanner.Timing.Now ).TimeSpan.TotalHours );
+            } // LaunchMissionAbility, HavenTradeAbility, HavenDetailsAbility
+         } catch ( Exception ex ) { Error( ex ); }
+      }
 
       private static float GetVehicleTimeLeft ( GeoVehicle vehicle, float def ) { try {
          if ( vehicle == null ) return def;
          var updateable = typeof( GeoVehicle ).GetField( "_explorationUpdateable", BindingFlags.NonPublic | BindingFlags.Instance ).GetValue( vehicle );
          if ( updateable == null ) return def;
          NextUpdate endTime = (NextUpdate) updateable.GetType().GetProperty( "NextUpdate" ).GetValue( updateable );
-         return (float) -( vehicle.Timing.Now - endTime.NextTime ).TimeSpan.TotalMinutes;
+         return (float) -( vehicle.Timing.Now - endTime.NextTime ).TimeSpan.TotalHours;
       } catch ( Exception ex ) { Warn( ex ); return def; } }
 
       private static float FlightHours ( GeoSite site, GeoVehicle vehicle ) {
@@ -100,7 +106,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       }
 
       private static string HoursToText ( float hours ) {
-         if ( hours < 0 ) return "";
+         if ( hours < 0 ) return "-" + HoursToText( -hours );
          int intHour = (int) hours;
          int d = Math.DivRem( intHour, 24, out int h ), m = (int) Math.Ceiling( ( hours - intHour ) * 60 );
          return string.Format( d > 0 ? Config.Days_Format : Config.Hours_Format, d, h, m, hours, hours * 60 );

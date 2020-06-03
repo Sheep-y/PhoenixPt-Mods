@@ -1,10 +1,11 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
-# Version 5.1, 2020-06-03
+# Version 6, 2020-06-03
 
+* New: Show_Airplane_Action_Time now show remaining time of active scanner, if any.
+* Fix: Vehicle recruits are properly handled for haven mouseovers.
 * Change "No_Auto_Unpause" config to "Auto_Unpause_Multiple".
 * Add "Auto_Unpause_Single" config.
-* Fix: Vehicle recruits are properly handled for haven mouseovers.
 * Explore menu now shows remaining time for ongoing exploration.
 * Support Modnix 3 lazy loading.
 * Tested on Phoenix Point 1.0.57630.
