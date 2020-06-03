@@ -7,13 +7,13 @@ using PhoenixPoint.Geoscape.View.ViewModules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Sheepy.PhoenixPt.GlobeTweaks {
 
    internal class ModConfig {
       public bool Show_Airplane_Action_Time = true;
+      public int  Same_Site_Scan_Cooldown_Min = 60;
       public string Hours_Format = " ({1}:{2:D2})";
       public string Days_Format = " ({3:F0}:{2:D2})";
       public bool Base_Centre_On_Heal = true;
@@ -62,6 +62,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          SetApi( api, out Config ).Upgrade();
          if ( Config.Show_Airplane_Action_Time )
             TryPatch( typeof( UIModuleSiteContextualMenu ), "SetMenuItems", postfix: nameof( AfterSetMenuItems_CalcTime ) );
+         if ( Config.Same_Site_Scan_Cooldown_Min != 0 )
+            TryPatch( typeof( UIModuleSiteContextualMenu ), "SetMenuItems", postfix: nameof( AfterSetMenuItems_DisableDupScan ) );
          new PauseModule().DoPatches();
          new GlyphModule().DoPatches();
       }
@@ -79,12 +81,37 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
                menu.ItemText.text += HoursToText( hours );
 
             } else if ( menu.Ability is ScanAbility scan ) {
-               var scanner = vehicle?.Owner?.Scanners?.Where( e => e.Location == site )?.First();
-               if ( scanner == null ) continue;
-               var data = scanner.SerializationData as GeoScanner.GeoScannerInstanceData;
-               menu.ItemText.text += HoursToText( (float) ( data.ExpansionEndDate - scanner.Timing.Now ).TimeSpan.TotalHours );
+               var scanner = GetScanner( site, scan, out float hours, true );
+               if ( scanner != null ) menu.ItemText.text += HoursToText( hours );
             } // LaunchMissionAbility, HavenTradeAbility, HavenDetailsAbility
          } catch ( Exception ex ) { Error( ex ); }
+      }
+
+      private static void AfterSetMenuItems_DisableDupScan ( GeoSite site, List<SiteContextualMenuItem> ____menuItems ) { try {
+         foreach ( var menu in ____menuItems ) {
+            if ( ! ( menu.Ability is ScanAbility scan ) ) continue;
+            if ( ! menu.Button.IsInteractable() ) return;
+            var scanner = GetScanner( site, scan, out float hours, false );
+            if ( scanner == null ) return;
+            if ( Config.Same_Site_Scan_Cooldown_Min > 0 ) {
+               var duration = scanner.ScannerDef.ExpansionTimeHours - hours;
+               var cooldown = Config.Same_Site_Scan_Cooldown_Min / 60f;
+               Info( duration, hours, cooldown );
+               if ( duration > cooldown ) return;
+            }
+            Info( "Kill" );
+            menu.Button.SetInteractable( false );
+            break;
+         }
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      private static GeoScanner GetScanner ( GeoSite site, GeoAbility ability, out float remainingHours, bool GetFirst ) {
+         remainingHours = 0;
+         var scanners = ( ability.GeoActor as GeoVehicle )?.Owner?.Scanners?.Where( e => e.Location == site );
+         if ( scanners == null || ! scanners.Any() ) return null;
+         var scanner = GetFirst ? scanners.First() : scanners.Last();
+         remainingHours = (float) ( ( scanner.SerializationData as GeoScanner.GeoScannerInstanceData ).ExpansionEndDate - scanner.Timing.Now ).TimeSpan.TotalHours;
+         return scanner;
       }
 
       private static float GetVehicleTimeLeft ( GeoVehicle vehicle, float def ) { try {

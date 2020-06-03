@@ -2,6 +2,7 @@ Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
 # Version 6, 2020-06-03
 
+* New: Same_Site_Scan_Cooldown_Min, prevents duplicate scan on same site.
 * New: Show_Airplane_Action_Time now show remaining time of active scanner, if any.
 * Fix: Vehicle recruits are properly handled for haven mouseovers.
 * Change "No_Auto_Unpause" config to "Auto_Unpause_Multiple".
