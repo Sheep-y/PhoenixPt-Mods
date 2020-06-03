@@ -1,4 +1,7 @@
 ﻿using Base.Core;
+
+using com.ootii.Utilities.Debug;
+
 using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.Entities.Abilities;
 using PhoenixPoint.Geoscape.Levels;
@@ -6,6 +9,9 @@ using PhoenixPoint.Geoscape.View.ViewControllers;
 using PhoenixPoint.Geoscape.View.ViewModules;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+
+using UnityEngine.Experimental.PlayerLoop;
 
 namespace Sheepy.PhoenixPt.GlobeTweaks {
 
@@ -67,10 +73,21 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          foreach ( var menu in ____menuItems ) {
             if ( menu.Ability is MoveVehicleAbility move && move.GeoActor is GeoVehicle flier )
                menu.ItemText.text += HoursToText( FlightHours( site, flier ) );
-            else if ( menu.Ability is ExploreSiteAbility explore )
-               menu.ItemText.text += HoursToText( (float) site.ExplorationTime.TimeSpan.TotalMinutes / 60f );
+            else if ( menu.Ability is ExploreSiteAbility explore ) {
+               var minutes = GetVehicleTimeLeft( explore.GeoActor as GeoVehicle, (float) site.ExplorationTime.TimeSpan.TotalMinutes );
+               Info( "Explore", minutes );
+               menu.ItemText.text += HoursToText( minutes / 60f );
+            }
          }
       } catch ( Exception ex ) { Error( ex ); } }
+
+      private static float GetVehicleTimeLeft ( GeoVehicle vehicle, float def ) { try {
+         if ( vehicle == null ) return def;
+         var updateable = typeof( GeoVehicle ).GetField( "_explorationUpdateable", BindingFlags.NonPublic | BindingFlags.Instance ).GetValue( vehicle );
+         if ( updateable == null ) return def;
+         NextUpdate endTime = (NextUpdate) updateable.GetType().GetProperty( "NextUpdate" ).GetValue( updateable );
+         return (float) -( vehicle.Timing.Now - endTime.NextTime ).TimeSpan.TotalMinutes;
+      } catch ( Exception ex ) { Warn( ex ); return def; } }
 
       private static float FlightHours ( GeoSite site, GeoVehicle vehicle ) {
          var pos = vehicle.CurrentSite?.WorldPosition ?? vehicle.WorldPosition;
