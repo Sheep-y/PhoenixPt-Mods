@@ -93,13 +93,10 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
             if ( ! menu.Button.IsInteractable() ) return;
             var scanner = GetScanner( site, scan, out float hours, false );
             if ( scanner == null ) return;
-            if ( Config.Same_Site_Scan_Cooldown_Min > 0 ) {
-               var duration = scanner.ScannerDef.ExpansionTimeHours - hours;
-               var cooldown = Config.Same_Site_Scan_Cooldown_Min / 60f;
-               Info( duration, hours, cooldown );
-               if ( duration > cooldown ) return;
-            }
-            Info( "Kill" );
+            var duration = scanner.ScannerDef.ExpansionTimeHours - hours;
+            var cooldown = Config.Same_Site_Scan_Cooldown_Min / 60f;
+            if ( cooldown == 0 || ( cooldown > 0 && duration > cooldown ) ) return;
+            Verbo( "Preventing duplicate scan.  Last scan {0}hr, threshold {1}hr.", duration, cooldown );
             menu.Button.SetInteractable( false );
             break;
          }
