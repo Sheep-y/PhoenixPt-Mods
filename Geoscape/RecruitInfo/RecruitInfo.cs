@@ -1,5 +1,4 @@
 ﻿using Base.Core;
-using Base.UI;
 using Harmony;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities.Characters;
@@ -19,12 +18,13 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
    internal class ModConfig {
       public ListConfig Skills = new ListConfig();
       public ListConfig Grafts = new ListConfig();
-      public ListConfig Equipments = new ListConfig{ Name = "<size=36>...</size>" };
+      public ListConfig Equipments = new ListConfig{ Name = "<size=36>...</size>", List_Names = false };
       public int Config_Version = 20200417;
    }
 
    internal class ListConfig {
       public bool Enabled = true;
+      public bool List_Names = true;
       public bool Mouse_Over_Popup = true;
       public string Name = "<size=42>...</size>";
       public string Popup_Title = "<size=36><b>...</b></size>";
@@ -85,7 +85,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       private static void AfterSetRecruitment_ListPerks ( HavenFacilityItemController __instance, GeoHaven ____haven ) { try {
          var recruit = ____haven?.AvailableRecruit;
-         Info( "Creating Info Panel" );
+         if ( recruit == null ) return;
+         Info( "Showing info of {0}", recruit.DisplayName );
          if ( Config.Skills.Enabled )
             ShowRecruitInfo( __instance, "PersonalSkills", new PersonalSkillInfo( recruit ) );
          if ( Config.Grafts.Enabled )
@@ -102,7 +103,10 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
             infoText.SetActive( false );
             return;
          }
-         infoText.GetComponent<UnityEngine.UI.Text>().text = "     " + info.NameTags[0] + names.Join() + info.NameTags[1];
+         if ( info.Config.List_Names || names.Count() == 1 )
+            infoText.GetComponent<UnityEngine.UI.Text>().text = "     " + info.NameTags[0] + names.Join() + info.NameTags[1];
+         else
+            infoText.GetComponent<UnityEngine.UI.Text>().text = "     Equipment x" + info.NameTags[0] + names.Count() + info.NameTags[1];
          if ( info.Config.Mouse_Over_Popup ) {
             info.SetTags();
             infoText.GetComponent<UITooltipText>().TipText = info.GetDesc().Join( e => BuildHint( e, info.DescTags ), "\n\n" );
@@ -143,7 +147,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       #endregion
 
       #region Helpers
-      private static Regex regexBodyParts = new Regex( "^KEY_(TORSO|HEAD|LEGS)_NAME$", RegexOptions.Compiled );
+      private static readonly Regex RegexBodyParts = new Regex( "^KEY_(TORSO|HEAD|LEGS)_NAME$", RegexOptions.Compiled );
 
       protected KeyValuePair< string, string > Stringify ( ViewElementDef view ) {
          string title = view.DisplayName1.Localize(), desc = view.Description.Localize(), key = view.DisplayName1.LocalizationKey;
@@ -152,7 +156,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
             desc = mut.MutationDescription.Localize();
          } else if ( key.IndexOf( "_PERSONALTRACK_", StringComparison.Ordinal ) >= 0 || key.IndexOf( "KEY_CLASS_", StringComparison.Ordinal ) == 0 ) { // Class & Skills
             title = ZyMod.TitleCase( title );
-         } else if ( regexBodyParts.IsMatch( key ) ) // Armours
+         } else if ( RegexBodyParts.IsMatch( key ) ) // Armours
             title = view.DisplayName2.Localize();
          return new KeyValuePair<string, string>( title, desc );
       }
@@ -166,9 +170,10 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       protected abstract IEnumerable< ViewElementDef > Items { get; }
 
-      internal virtual IEnumerable<string> GetNames () => GetDesc().Select( e => e.Key );
+      internal virtual IEnumerable<string> GetNames () => GetDesc().Select( e => e.Key ).Where( e => ! string.IsNullOrEmpty( e ) );
 
       internal virtual IEnumerable<KeyValuePair<string,string>> GetDesc() {
+         if ( Items == null ) yield break;
          foreach ( var e in Items ) yield return Stringify( e );
       }
    }

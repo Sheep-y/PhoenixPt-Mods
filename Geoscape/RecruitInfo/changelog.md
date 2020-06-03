@@ -1,8 +1,9 @@
 Changelog of Recruit Info, a Phoenix Point Mod by Sheepy
 
-# Version ?,  in development
+# Version 3,  in development
 
-* Support Modnix 3 lazy loading
+* Show augmentation and equipment count instead of full list, by default.
+* Support Modnix 3 lazy loading.
 
 # Version 2.0.1, 2020-04-17
 
