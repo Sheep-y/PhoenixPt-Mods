@@ -6,9 +6,6 @@ using PhoenixPoint.Geoscape.View.ViewControllers;
 using PhoenixPoint.Geoscape.View.ViewModules;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.GlobeTweaks {
 
@@ -19,17 +16,22 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public bool Base_Centre_On_Heal = true;
       public bool Base_Pause_On_Heal = true;
       public bool Center_On_New_Base = true;
-      public bool No_Auto_Unpause = true;
+      public bool Auto_Unpause_Single = true;
+      public bool Auto_Unpause_Multiple = false;
       public bool Notice_On_HP_Only_Heal = false;
       public bool Notice_On_Stamina_Only_Heal = true;
       public bool Vehicle_Centre_On_Heal = true;
       public bool Vehicle_Pause_On_Heal = true;
       public HavenIconConfig Haven_Icons = new HavenIconConfig();
-      public uint  Config_Version = 20200419;
+      public uint  Config_Version = 20200603;
+
+      public bool? No_Auto_Unpause { internal get; set; } // Replaced by Auto_Unpause_Multiple on ver 20200603
 
       internal void Upgrade () {
-         if ( Config_Version < 20200419 ) {
-            Config_Version = 20200419;
+         if ( Config_Version < 20200603 ) {
+            Config_Version = 202000603;
+            if ( No_Auto_Unpause == false )
+               Auto_Unpause_Multiple = true;
             ZyMod.Api( "config save", this );
          }
       }
@@ -54,7 +56,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public void MainMod ( Func< string, object, object > api ) => GeoscapeMod( api );
 
       public void GeoscapeMod ( Func< string, object, object > api = null ) {
-         SetApi( api, out Config );
+         SetApi( api, out Config ).Upgrade();
          if ( Config.Show_Airplane_Action_Time )
             TryPatch( typeof( UIModuleSiteContextualMenu ), "SetMenuItems", postfix: nameof( AfterSetMenuItems_CalcTime ) );
          new PauseModule().DoPatches();

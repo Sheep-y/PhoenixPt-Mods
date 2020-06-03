@@ -1,4 +1,5 @@
-﻿using Base.UI;
+﻿using Base.Core;
+using Base.UI;
 using Harmony;
 using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.Levels;
@@ -17,7 +18,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       private static PropertyInfo ContextGetter;
 
       public void DoPatches () {
-         if ( Mod.Config.No_Auto_Unpause ) {
+         if ( Mod.Config.Auto_Unpause_Multiple || Mod.Config.Auto_Unpause_Single ) {
             ContextGetter = typeof( GeoscapeViewState ).GetProperty( "Context", NonPublic | Instance );
             if ( ContextGetter != null )
                TryPatch( typeof( UIStateVehicleSelected ), "AddTravelSite", nameof( BeforeAddTravelSite_GetPause ), nameof( AfterAddTravelSite_RestorePause ) );
@@ -72,6 +73,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void AfterAddTravelSite_RestorePause ( UIStateVehicleSelected __instance, ref bool __state ) { try {
+         var craft_count = GameUtl.CurrentLevel().GetComponent<GeoLevelController>().ViewerFaction.Vehicles.Count();
+         if ( ( craft_count <= 1 && Mod.Config.Auto_Unpause_Single ) || ( craft_count > 1 && Mod.Config.Auto_Unpause_Multiple ) ) return;
          Verbo( "New vehicle travel plan. Setting time to {0}.", __state ? "Paused" : "Running" );
          getContext( __instance ).Level.Timing.Paused = __state;
       } catch ( Exception ex ) { Error( ex ); } }

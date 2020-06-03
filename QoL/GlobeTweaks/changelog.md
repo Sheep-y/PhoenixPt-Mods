@@ -3,6 +3,8 @@ Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 # Version 5.1, in development
 
 * Fix: Vehicle recruits are properly handled for haven mouseovers.
+* Change "No_Auto_Unpause" config to "Auto_Unpause_Multiple".
+* Add "Auto_Unpause_Single" config.
 * Support Modnix 3 lazy loading.
 
 # Version 5, 2020-05-02
