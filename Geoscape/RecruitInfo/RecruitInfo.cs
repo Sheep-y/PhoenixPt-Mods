@@ -55,8 +55,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          SetApi( api, out Config ).Upgrade();
          if ( Config.Augments.Enabled ) {
             var sharedData = GameUtl.GameComponent<SharedData>();
-            GraftInfo.AnuMutation = sharedData.SharedGameTags.AnuMutationTag;
-            GraftInfo.BioAugTag = sharedData.SharedGameTags.BionicalTag;
+            AugInfo.AnuMutation = sharedData.SharedGameTags.AnuMutationTag;
+            AugInfo.BioAugTag = sharedData.SharedGameTags.BionicalTag;
          }
          if ( Config.Skills.Enabled || Config.Augments.Enabled || Config.Equipments.Enabled )
             Patch( typeof( HavenFacilityItemController ), "SetRecruitmentGroup", postfix: nameof( AfterSetRecruitment_ListPerks ) );
@@ -102,8 +102,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          Info( "Showing info of {0}", recruit.DisplayName );
          if ( Config.Skills.Enabled )
             ShowRecruitInfo( __instance, "PersonalSkills", new PersonalSkillInfo( recruit ) );
-         if ( Config.Grafts.Enabled )
-            ShowRecruitInfo( __instance, "GraftList", new GraftInfo( recruit ) );
+         if ( Config.Augments.Enabled )
+            ShowRecruitInfo( __instance, "AugmentList", new AugInfo( recruit ) );
          if ( Config.Equipments.Enabled )
             ShowRecruitInfo( __instance, "EquipmentList", new EquipmentInfo( recruit ) );
          //ModnixApi?.Invoke( "zy.ui.dump", __instance.gameObject );
@@ -216,19 +216,19 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       private IEnumerable<KeyValuePair<string, string>> ClassDesc () { yield return Stringify( MainClass ); }
    }
 
-   internal class GraftInfo : RecruitInfo {
+   internal class AugInfo : RecruitInfo {
 
       internal static GameTagDef AnuMutation, BioAugTag;
 
-      internal GraftInfo ( GeoCharacter recruit ) : base( recruit ) { }
+      internal AugInfo ( GeoCharacter recruit ) : base( recruit ) { }
 
-      protected internal override ListConfig Config => Mod.Config.Grafts;
+      protected internal override ListConfig Config => Mod.Config.Augments;
 
       protected internal override string Count_Label => "Blood Titanium/KEY_AUGMENT"; // "Augmentation"
 
-      protected override IEnumerable< ViewElementDef > Items => Map( recruit.ArmourItems, IsGraft );
+      protected override IEnumerable< ViewElementDef > Items => Map( recruit.ArmourItems, IsAugment );
 
-      internal static bool IsGraft ( ItemDef def ) => def.Tags.Any( tag => tag == AnuMutation || tag == BioAugTag );
+      internal static bool IsAugment ( ItemDef def ) => def.Tags.Any( tag => tag == AnuMutation || tag == BioAugTag );
    }
 
    internal class EquipmentInfo : RecruitInfo {
@@ -243,8 +243,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       private IEnumerable< ViewElementDef > Equipments => Map( recruit.EquipmentItems.Concat( recruit.InventoryItems ) );
 
-      private IEnumerable< ViewElementDef > Armours => Map( recruit.ArmourItems, Mod.Config.Grafts.Enabled ?
-         ( Func< ItemDef, bool > ) ( e => ! GraftInfo.IsGraft( e ) ) : null );
+      private IEnumerable< ViewElementDef > Armours => Map( recruit.ArmourItems, Mod.Config.Augments.Enabled ?
+         ( Func< ItemDef, bool > ) ( e => ! AugInfo.IsAugment( e ) ) : null );
 
       internal override IEnumerable<KeyValuePair<string, string>> GetDesc () {
          foreach ( var e in Equipments ) yield return Stringify( e );
