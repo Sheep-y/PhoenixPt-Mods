@@ -29,6 +29,9 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
             Config_Version = 20200604;
             ZyMod.Api( "config save", this );
          }
+         if ( Skills == null ) Skills = new ListConfig{ Enabled = false };
+         if ( Augments == null ) Augments = new ListConfig{ Enabled = false };
+         if ( Equipments == null ) Equipments = new ListConfig{ Enabled = false };
       }
    }
 
@@ -50,12 +53,12 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       public void GeoscapeMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config ).Upgrade();
-         if ( Config.Grafts.Enabled ) {
+         if ( Config.Augments.Enabled ) {
             var sharedData = GameUtl.GameComponent<SharedData>();
             GraftInfo.AnuMutation = sharedData.SharedGameTags.AnuMutationTag;
             GraftInfo.BioAugTag = sharedData.SharedGameTags.BionicalTag;
          }
-         if ( Config.Skills.Enabled || Config.Grafts.Enabled || Config.Equipments.Enabled )
+         if ( Config.Skills.Enabled || Config.Augments.Enabled || Config.Equipments.Enabled )
             Patch( typeof( HavenFacilityItemController ), "SetRecruitmentGroup", postfix: nameof( AfterSetRecruitment_ListPerks ) );
       }
 
