@@ -1,4 +1,5 @@
 ﻿using Base.Core;
+using Base.UI;
 using Harmony;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities.Characters;
@@ -16,15 +17,24 @@ using UnityEngine;
 namespace Sheepy.PhoenixPt.RecruitInfo {
 
    internal class ModConfig {
-      public ListConfig Skills = new ListConfig();
-      public ListConfig Grafts = new ListConfig();
-      public ListConfig Equipments = new ListConfig{ Name = "<size=36>...</size>", List_Names = false };
-      public int Config_Version = 20200417;
+      public ListConfig Skills = new ListConfig{ List_Names = true };
+      public ListConfig Grafts { internal get; set; }
+      public ListConfig Augments = new ListConfig();
+      public ListConfig Equipments = new ListConfig{ Name = "<size=36>...</size>" };
+      public int Config_Version = 20200604;
+
+      internal void Upgrade () {
+         if ( Config_Version < 20200604 ) {
+            if ( Grafts != null ) Augments = Grafts;
+            Config_Version = 20200604;
+            ZyMod.Api( "config save", this );
+         }
+      }
    }
 
    internal class ListConfig {
       public bool Enabled = true;
-      public bool List_Names = true;
+      public bool List_Names = false;
       public bool Mouse_Over_Popup = true;
       public string Name = "<size=42>...</size>";
       public string Popup_Title = "<size=36><b>...</b></size>";
@@ -39,7 +49,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       public void MainMod ( Func< string, object, object > api ) => GeoscapeMod( api );
 
       public void GeoscapeMod ( Func< string, object, object > api = null ) {
-         SetApi( api, out Config );
+         SetApi( api, out Config ).Upgrade();
          if ( Config.Grafts.Enabled ) {
             var sharedData = GameUtl.GameComponent<SharedData>();
             GraftInfo.AnuMutation = sharedData.SharedGameTags.AnuMutationTag;
@@ -103,10 +113,12 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
             infoText.SetActive( false );
             return;
          }
+         var text = "     " + info.NameTags[0];
          if ( info.Config.List_Names || names.Count() == 1 )
-            infoText.GetComponent<UnityEngine.UI.Text>().text = "     " + info.NameTags[0] + names.Join() + info.NameTags[1];
+            text += names.Join();
          else
-            infoText.GetComponent<UnityEngine.UI.Text>().text = "     Equipment x" + info.NameTags[0] + names.Count() + info.NameTags[1];
+            text += TitleCase( new LocalizedTextBind( info.Count_Label ).Localize() ) + " x" + names.Count();
+         infoText.GetComponent<UnityEngine.UI.Text>().text = text + info.NameTags[1];
          if ( info.Config.Mouse_Over_Popup ) {
             info.SetTags();
             infoText.GetComponent<UITooltipText>().TipText = info.GetDesc().Join( e => BuildHint( e, info.DescTags ), "\n\n" );
@@ -123,6 +135,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       }
 
       protected internal abstract ListConfig Config { get; }
+
+      protected internal abstract string Count_Label { get; }
 
       #region Tags
       internal string[] NameTags { get; }
@@ -190,6 +204,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       protected internal override ListConfig Config => Mod.Config.Skills;
 
+      protected internal override string Count_Label => "Roster Screen/KEY_GEOROSTER_PROGRESS"; // "Training"
+
       internal override IEnumerable<string> GetNames () => base.GetDesc().Select( e => e.Key );
 
       internal override IEnumerable<KeyValuePair<string, string>> GetDesc () => ClassDesc().Concat( base.GetDesc() );
@@ -203,7 +219,9 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       internal GraftInfo ( GeoCharacter recruit ) : base( recruit ) { }
 
-      protected internal override ListConfig Config => Mod.Config.Skills;
+      protected internal override ListConfig Config => Mod.Config.Grafts;
+
+      protected internal override string Count_Label => "Blood Titanium/KEY_AUGMENT"; // "Augmentation"
 
       protected override IEnumerable< ViewElementDef > Items => Map( recruit.ArmourItems, IsGraft );
 
@@ -215,6 +233,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       internal EquipmentInfo ( GeoCharacter recruit ) : base( recruit ) { }
 
       protected internal override ListConfig Config => Mod.Config.Equipments;
+
+      protected internal override string Count_Label => "Equipping Screen/KEY_GEOSCAPE_EQUIPMENT"; // Equipment
 
       protected override IEnumerable< ViewElementDef > Items => Equipments.Concat( Armours );
 

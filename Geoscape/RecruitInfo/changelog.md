@@ -1,9 +1,10 @@
 Changelog of Recruit Info, a Phoenix Point Mod by Sheepy
 
-# Version 3,  in development
+# Version 3, in development
 
-* Show augmentation and equipment count instead of full list, by default.
-* Support Modnix 3 lazy loading.
+* New: Show augmentation and equipment count instead of full list, by default.
+* New: Support Modnix 3 lazy loading.
+* Fix: Rename Graft to Augment, and fix it not being applied (was using Skills instead). Old configs will auto-migrate on first run.
 
 # Version 2.0.1, 2020-04-17
 
