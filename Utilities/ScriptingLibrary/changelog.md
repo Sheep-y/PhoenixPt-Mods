@@ -1,5 +1,9 @@
 Changelog of Scripting Library, a Phoenix Point Mod by Sheepy
 
+# Version Alpha 0.0.2020.0605
+
+* Mod id changed to "Zy.cSharp" which is shorter and more precise than "Zy.Scripting".
+
 # Version Alpha 0.0.2020.0603
 
 * First public release.
