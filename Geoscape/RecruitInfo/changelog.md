@@ -2,8 +2,9 @@ Changelog of Recruit Info, a Phoenix Point Mod by Sheepy
 
 # Version 3, in development
 
-* New: Show augmentation and equipment count instead of full list, by default.  Game has button to show class and equipments since 1.0.57335.
+* New: Show equipment count instead of full list, by default.  Game has button to show class and equipments since 1.0.57335.
 * New: Support Modnix 3 lazy loading.
+* Fix: NRE when a list return null, such as vehicle skills.
 * Fix: Rename Graft to Augment, and fix it not being applied (was using Skills instead). Old configs will auto-migrate on first run.
 * Fix: The main config classes can now be set to null which disables the display without throwing NRE.
 

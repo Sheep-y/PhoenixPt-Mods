@@ -17,10 +17,10 @@ using UnityEngine;
 namespace Sheepy.PhoenixPt.RecruitInfo {
 
    internal class ModConfig {
-      public ListConfig Skills = new ListConfig{ List_Names = true };
+      public ListConfig Skills = new ListConfig();
       public ListConfig Grafts { internal get; set; }
       public ListConfig Augments = new ListConfig();
-      public ListConfig Equipments = new ListConfig{ Name = "<size=36>...</size>" };
+      public ListConfig Equipments = new ListConfig{ Name = "<size=36>...</size>", List_Names = false };
       public int Config_Version = 20200604;
 
       internal void Upgrade () {
@@ -37,7 +37,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
    internal class ListConfig {
       public bool Enabled = true;
-      public bool List_Names = false;
+      public bool List_Names = true;
       public bool Mouse_Over_Popup = true;
       public string Name = "<size=42>...</size>";
       public string Popup_Title = "<size=36><b>...</b></size>";
