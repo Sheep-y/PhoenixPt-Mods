@@ -39,7 +39,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       public bool Enabled = true;
       public bool List_Names = true;
       public bool Mouse_Over_Popup = true;
-      public string Name = "<size=42>...</size>";
+      public string Name = "<size=40>...</size>";
       public string Popup_Title = "<size=36><b>...</b></size>";
       public string Popup_Body = "<size=30>...</size>";
    }
@@ -115,7 +115,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          if ( ! names.Any() ) {
             infoText.SetActive( false );
             return;
-         }
+         } else
+            infoText.SetActive( true );
          var text = "     " + info.NameTags[0];
          if ( info.Config.List_Names || names.Count() == 1 )
             text += names.Join();
