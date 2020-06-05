@@ -59,4 +59,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>cd "$(SolutionDir)"
+mkdir distro
+cd distro
+del PhoenixPt_LaserOnFire.7z
+"c:\Program Files\7-Zip\7z.exe" a -bd -bb0 -t7z -mx=9 -mfb=258 "PhoenixPt_LaserOnFire.7z" "$(SolutionDir)/Tactical/LaserOnFire/LaserOnFire.js" "$(SolutionDir)/Tactical/LaserOnFire/changelog.md"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

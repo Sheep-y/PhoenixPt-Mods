@@ -53,7 +53,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeafTheDead", "Tactical\Dea
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{345FC9DB-1B23-4388-A225-8B2DB5812A64}"
 	ProjectSection(SolutionItems) = preProject
-		Tactical\LaserOnFire\LaserOnFire.js = Tactical\LaserOnFire\LaserOnFire.js
 		Geoscape\ODI Factors\ODI_Factors.json = Geoscape\ODI Factors\ODI_Factors.json
 		README.md = README.md
 	EndProjectSection
@@ -86,7 +85,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FullBodyAug", "Tactical\Ful
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndiGear", "Tactical\IndiGear\IndiGear.csproj", "{4DF4CDE6-748D-4444-98DE-40E6368E3D6B}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "LaserOnFire", "Tactical\LaserOnFire\LaserOnFire.shproj", "{0B467FAB-7AA1-4FAC-B4A3-FEC5EC9DDBA6}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Tactical\LaserOnFire\LaserOnFire.projitems*{0b467fab-7aa1-4fac-b4a3-fec5ec9ddba6}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
