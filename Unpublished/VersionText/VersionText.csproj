@@ -77,9 +77,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>cd "$(SolutionDir)"
-mkdir distro
-cd distro
-copy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" .</PostBuildEvent>
+    <PostBuildEvent>copy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" "$(SolutionDir)distro/"</PostBuildEvent>
   </PropertyGroup>
 </Project>

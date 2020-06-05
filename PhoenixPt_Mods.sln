@@ -46,10 +46,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeoTweaks", "QoL\MarkUnpowe
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionText", "Unpublished\VersionText\VersionText.csproj", "{C8F4BA02-8DF1-41C2-A3BE-7638AB6411E8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PpmlTest", "Unpublished\PpmlTest\PpmlTest.csproj", "{C9DBB18F-4C9F-43FF-9023-12F686EB2124}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeafTheDead", "Tactical\DeafTheDead\DeafTheDead.csproj", "{C8BD9E4E-C1E7-4AC6-B3AE-023265FA57C7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{345FC9DB-1B23-4388-A225-8B2DB5812A64}"
 	ProjectSection(SolutionItems) = preProject
@@ -78,12 +84,24 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockTelemetry", "Utilities
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptingLibrary", "Utilities\ScriptingLibrary\ScriptingLibrary.csproj", "{67113E35-0434-4BBE-AA1C-DDBF950DD233}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechProgression", "Geoscape\TechProgression\TechProgression.csproj", "{F88F5CD2-1F26-4B7C-BE5C-A934DBB4E38F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FullBodyAug", "Tactical\FullBodyAug\FullBodyAug.csproj", "{DB79A8A6-FAE9-4638-824B-93089BAC3813}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndiGear", "Tactical\IndiGear\IndiGear.csproj", "{4DF4CDE6-748D-4444-98DE-40E6368E3D6B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
+	EndProjectSection
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "LaserOnFire", "Tactical\LaserOnFire\LaserOnFire.shproj", "{0B467FAB-7AA1-4FAC-B4A3-FEC5EC9DDBA6}"
 EndProject

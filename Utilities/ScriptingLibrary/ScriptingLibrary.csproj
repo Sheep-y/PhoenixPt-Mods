@@ -149,7 +149,7 @@
   </Target>
   <Import Project="..\..\packages\Microsoft.CodeAnalysis.Analyzers.3.0.0\build\Microsoft.CodeAnalysis.Analyzers.targets" Condition="Exists('..\..\packages\Microsoft.CodeAnalysis.Analyzers.3.0.0\build\Microsoft.CodeAnalysis.Analyzers.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>echo del "$(SolutionDir)distro\$(TargetName).7z"
+    <PostBuildEvent>del "$(SolutionDir)distro\$(TargetName).7z"
 cd "$(ProjectDir)"
 "c:\Program Files\7-Zip\7z.exe" a -bd -bb0 -mx=9 -mfb=258 "$(SolutionDir)distro\$(TargetName).7z" "$(ProjectDir)$(OutDir)$(TargetFileName)" ".\lib" -x!lib\extra\ -x!lib\README.md</PostBuildEvent>
   </PropertyGroup>
