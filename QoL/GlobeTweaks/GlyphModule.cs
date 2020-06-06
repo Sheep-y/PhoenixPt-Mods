@@ -4,7 +4,6 @@ using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.View;
 using PhoenixPoint.Geoscape.View.ViewModules;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -14,7 +13,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       private static IPatch FovPatch;
 
       public void DoPatches () {
-         var conf = Mod.Config.Haven_Icons ?? new HavenIconConfig();
+         var conf = Mod.Config.Haven_Icons;
          if ( conf.Always_Show_Action || conf.Always_Show_Soldier )
             FovPatch = TryPatch( typeof( GeoSiteVisualsController ), "Awake", postfix: nameof( AfterAwake_DisableFov ) );
          if ( conf.Popup_Show_Recruit_Class )
@@ -28,7 +27,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       }
 
       private static void AfterAwake_DisableFov ( GeoSiteVisualsController __instance ) { try {
-         var conf = Mod.Config.Haven_Icons ?? new HavenIconConfig();
+         var conf = Mod.Config.Haven_Icons;
          if ( conf.Always_Show_Action ) DisableFov( __instance.RecruitAvailableIcon .transform.parent, "RecruitAvailableIcon"  );
          if ( conf.Always_Show_Soldier ) DisableFov( __instance.SoldiersAvailableIcon.transform.parent, "SoldiersAvailableIcon" );
          // Supply FOV is same as recruit
@@ -62,7 +61,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          var text = __instance.LeaderMottoText;
          if ( res?.Count > 0 && text != null ) {
             var conf = Mod.Config.Haven_Icons;
-            text.text = string.Join( "", res.Select( e =>
+            text.text = string.Concat( res.Select( e =>
                string.Format( e.ResourceStock >= e.HavenOfferQuantity ? conf.In_Stock_Line : conf.Out_Of_Stock_Line,
                e.HavenReceiveQuantity, ResName( e.HavenWants ), e.HavenOfferQuantity, ResName( e.HavenOffers ), e.ResourceStock )
             ) ).Trim();
@@ -87,8 +86,6 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          pos.x += 0.06f;
          __instance.RecruitAvailableClassIcon.gameObject.transform.position = pos;
       } catch ( Exception ex ) { Error( ex ); } }
-
-      private static HashSet<GameObject> icons = new HashSet<GameObject>();
 
       private static void AfterHavenInfo_HideStickman ( GeoSiteVisualsController __instance, GeoSite site ) { try {
          var icon = __instance.RecruitAvailableIcon.gameObject;

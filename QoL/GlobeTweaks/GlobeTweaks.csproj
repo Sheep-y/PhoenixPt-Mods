@@ -71,6 +71,7 @@
     <Compile Include="..\..\Utilities\ZyMod\ZyMod.cs">
       <Link>ZyMod.cs</Link>
     </Compile>
+    <Compile Include="TimeModule.cs" />
     <Compile Include="GlobeTweaks.cs" />
     <Compile Include="GlyphModule.cs" />
     <Compile Include="PauseModule.cs" />

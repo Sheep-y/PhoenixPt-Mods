@@ -1,5 +1,9 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
+# Version 6.1, in development
+
+* Setting Hours_Format / Days_Format / Haven_Icons to null no longer throw NRE.
+
 # Version 6, 2020-06-03
 
 * New: Same_Site_Scan_Cooldown_Min, prevents duplicate scan on same site.
