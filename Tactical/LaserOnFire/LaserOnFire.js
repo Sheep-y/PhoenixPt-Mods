@@ -1,6 +1,8 @@
 ({
    Id : "Sheepy.LaserOnFire",
    Name : "Laser on Fire",
+   Duration: "temp",
+   Lang : "*",
    Author : "Sheepy",
    Version : "0.0.2020.0605",
    Description : "Add a small fire damage to laser weapons, plus pierce or shred on a few lasers.\nAlso modify Destiny III to fire in first person.\n\nThis mod requires Modnix 3+ and the Scripting Library mod. Tested on Phoenix Point Ver 1.0.57630.",
