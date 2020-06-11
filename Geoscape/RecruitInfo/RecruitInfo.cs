@@ -21,7 +21,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       public ListConfig Grafts { internal get; set; }
       public ListConfig Augments = new ListConfig();
       public ListConfig Equipments = new ListConfig{ Name = "<size=36>...</size>", List_Names = false };
-      public int Config_Version = 20200604;
+      public uint Config_Version = 20200604;
 
       internal void Upgrade () {
          if ( Config_Version < 20200604 ) {

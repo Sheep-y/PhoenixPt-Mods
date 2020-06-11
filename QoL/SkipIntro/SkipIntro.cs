@@ -20,7 +20,7 @@ namespace Sheepy.PhoenixPt.SkipIntro {
       public bool Skip_Landings = true;
       public bool Skip_CurtainDrop = true;
       public bool Skip_CurtainLift = true;
-      public int  Config_Version = 20200322;
+      public uint  Config_Version = 20200322;
 
       internal bool SkipAnyVideo => Skip_HottestYear || Skip_NewGameIntro || Skip_Landings;
    }

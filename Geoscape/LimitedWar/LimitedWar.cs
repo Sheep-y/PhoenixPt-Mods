@@ -22,9 +22,9 @@ namespace Sheepy.PhoenixPt.LimitedWar {
       public bool Attack_Raise_Faction_Alertness = true;
 
       public bool Stop_OneSided_War = true;
-      public int No_Attack_When_Sieged_Difficulty = 2;
-      public int One_Global_Attack_Difficulty = 0;
-      public int One_Attack_Per_Faction_Difficulty = 1;
+      public short No_Attack_When_Sieged_Difficulty = 2;
+      public short One_Global_Attack_Difficulty = 0;
+      public short One_Attack_Per_Faction_Difficulty = 1;
 
       internal bool Has_Less_Attack => Stop_OneSided_War ||
               No_Attack_When_Sieged_Difficulty >= 0 || One_Global_Attack_Difficulty >= 0 || One_Attack_Per_Faction_Difficulty >= 0;
@@ -32,7 +32,7 @@ namespace Sheepy.PhoenixPt.LimitedWar {
       public DefenseMultiplier Defense_Multiplier = new DefenseMultiplier();
       public bool No_Alien_Attack_On_PhoenixPoint = false;
 
-      public long Config_Version = 20200325;
+      public uint Config_Version = 20200325;
    }
 
    internal class DefenseMultiplier {

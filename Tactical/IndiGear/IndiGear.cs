@@ -30,7 +30,7 @@ namespace Sheepy.PhoenixPt.IndiGear {
          "NEU_Assault_Legs_ItemDef",
       };
 
-      public int Config_Version = 20200522;
+      public uint Config_Version = 20200522;
    }
 
    public class Mod : ZyMod {

@@ -26,7 +26,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       //public bool Optimise_Log_File = true;
       public bool Scan_Mods_For_Command = true;
       public bool Write_Modnix_To_Console_Logfile = false;
-      public int  Config_Version = 20200503;
+      public uint  Config_Version = 20200503;
 
       internal bool Log_Game => Log_Game_Error || Log_Game_Info;
       internal bool Log_Modnix => Log_Modnix_Error || Log_Modnix_Info || Log_Modnix_Verbose;

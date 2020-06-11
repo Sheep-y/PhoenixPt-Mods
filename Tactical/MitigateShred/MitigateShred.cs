@@ -7,6 +7,7 @@ namespace Sheepy.PhoenixPt.MitigateShred {
    internal class ModConfig {
       public float Convert_Ratio = 0.1f;
       public float Min_Shred = 1f;
+      public uint Config_Version = 20200530;
    }
 
    public class Mod : ZyMod {

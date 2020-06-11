@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Base.Input;
+using PhoenixPoint.Geoscape.View;
+using System;
 
 namespace Sheepy.PhoenixPt.GlobeTweaks {
 
    internal class ModConfig {
       public bool Show_Airplane_Action_Time = true;
-      public int  Same_Site_Scan_Cooldown_Min = 60;
+      public uint  Same_Site_Scan_Cooldown_Min = 60;
       public string Hours_Format = " ({1}:{2:D2})";
       public string Days_Format = " ({3:F0}:{2:D2})";
       public bool Base_Centre_On_Heal = true;
@@ -55,7 +57,11 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          new TimeModule().DoPatches();
          new PauseModule().DoPatches();
          new GlyphModule().DoPatches();
+         Patch( typeof( GeoscapeViewState ), "OnInputEvent", postfix: nameof( Test ) );
       }
 
+      private static void Test ( object __instance, InputEvent ev ) {
+         Info( __instance.GetType(), ev.InputType, ev.Name );
+      }
    }
 }

@@ -27,7 +27,7 @@ namespace Sheepy.PhoenixPt.TechProgression {
       public string Mutation_Uncap = "ANU_MutationTech3_ResearchDef"; // Ultimate Mutation Technology
       public string Bionics_Uncap = "SYN_Bionics3_ResearchDef"; // Restricted Bionic Technology
 
-      public int Config_Version = 20200521;
+      public uint Config_Version = 20200521;
 
       private static readonly Dictionary<string,string> Default_Manufacture_Unlock = new Dictionary<string, string> {
          // Unlock independent machine gun with "The Phoenix Archives"
