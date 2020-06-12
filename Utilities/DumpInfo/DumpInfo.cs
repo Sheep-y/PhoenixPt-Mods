@@ -3,7 +3,6 @@ using Base.Core;
 using Base.Defs;
 using Base.Utils.GameConsole;
 using I2.Loc;
-using PhoenixPoint.Common.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;

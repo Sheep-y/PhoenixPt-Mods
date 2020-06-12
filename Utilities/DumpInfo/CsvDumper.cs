@@ -90,11 +90,13 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       protected override void SortData() => Data.Sort( Comparator< ConsoleCommandAttribute, string >( e => e.Command ) );
 
       protected override void DoDump () {
-         NewCells( "Command", "Parameter", "Description" );
+         NewCells( "Class", "Command", "Parameter", "Description" );
          FieldInfo _method = typeof( ConsoleCommandAttribute ).GetField( "_methodInfo", BindingFlags.NonPublic | BindingFlags.Instance );
-         foreach ( var cmd in Data.OfType<ConsoleCommandAttribute>() )
-            NewRow( cmd.Command, string.Join( ", ", ( _method.GetValue( cmd ) as MethodInfo ).GetParameters()
+         foreach ( var cmd in Data.OfType<ConsoleCommandAttribute>() ) {
+            var method =  _method.GetValue( cmd ) as MethodInfo;
+            NewRow( method.DeclaringType.FullName, cmd.Command, string.Join( ", ", method.GetParameters()
                .Skip( 1 ).Select( e => e.ParameterType.Name + " " + e.Name ) ), cmd.Description );
+         }
       }
    }
 }
