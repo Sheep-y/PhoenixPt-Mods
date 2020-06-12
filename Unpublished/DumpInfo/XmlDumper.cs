@@ -254,9 +254,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          w.Write( '>' );
       }
 
-      private static Regex cleanTag = new Regex( "[^\\w:-]+", RegexOptions.Compiled );
+      private static Regex CleanTag = new Regex( "[^\\w:-]+", RegexOptions.Compiled );
       private static string EscTag ( string txt ) {
-         txt = cleanTag.Replace( txt, "." );
+         txt = CleanTag.Replace( txt, "." );
          while ( txt.Length > 0 && txt[0] == '.' ) txt = txt.Substring( 1 );
          return txt;
       }

@@ -1,8 +1,11 @@
-﻿using I2.Loc;
+﻿using Base;
+
+using I2.Loc;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
@@ -38,6 +41,27 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
    }
 
+   internal class GuidDumper : CsvDumper {
+      internal GuidDumper ( string name, List<object> list ) : base( name, list ) { }
+
+      protected override void SortData() => Data.Sort( CompareDef );
+
+      private static int CompareDef ( object left, object right ) {
+         string[] a = left as string[], b = right as string[];
+         string aid = a?[1], bid = b?[1];
+         if ( aid == null ) return bid == null ? 0 : -1;
+         if ( bid == null ) return 1;
+         return aid.CompareTo( bid );
+      }
+
+      protected override string FileExtension () => "csv";
+
+      protected override void DoDump () {
+         NewCells( "Type", "Guid", "Name" );
+         Data.OfType<string[]>().ForEach( NewRow );
+      }
+   }
+
    internal class LangDumper : CsvDumper {
       private List<string> Codes;
 
@@ -51,9 +75,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private static int CompareDef ( object left, object right ) {
          TermData a = left as TermData, b = right as TermData;
-         if ( a == null ) return -1;
-         if ( b == null ) return 1;
-         string aid = a?.Term, bid = b.Term;
+         string aid = a?.Term, bid = b?.Term;
          if ( aid == null ) return bid == null ? 0 : -1;
          if ( bid == null ) return 1;
          return aid.CompareTo( bid );

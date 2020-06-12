@@ -21,7 +21,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public bool   Multithread = true;
       public string Dump_Path = "";
       public bool   Dump_Settings = true;
-      public bool   Dump_Lang_Text = true;
+      public bool   Dump_Command_Csv = true;
+      public bool   Dump_Lang_Csv = true;
+      public bool   Dump_Guid_Csv = true;
       public string[] Dump_Defs = new string[]{ "AbilityDef", "AbilityTrackDef", "AchievementDef", "BodyPartAspectDef", "ComponentSetDef", "DamageKeywordDef", "GameTagDef", "GeoActorDef", "GeoAlienBaseDef", "GeoFactionDef", "GeoHavenZoneDef", "GeoMistGeneratorDef", "GeoSiteSceneDef", "GeoscapeEventDef", "GroundVehicleItemDef", "PhoenixFacilityDef", "ResearchDef", "SpecializationDef", "TacMissionTypeDef", "TacUnitClassDef", "TacticalActorDef", "TacticalItemDef", "VehicleItemDef" };
       public uint   Config_Version = 20200612;
    }
@@ -53,16 +55,17 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          //Patch( typeof( ItemManufacturing ), "AddAvailableItem", nameof( LogItem ) );
       }
 
+      private static List<BaseDef> AllDefs => GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs;
       private  static readonly Dictionary< string, List<object> > ExportData = new Dictionary< string, List<object> >();
       private  static readonly Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
       internal static readonly List<Type> DumpedTypes = new List<Type>();
 
       private void BuildTypeMap () {
          Info( "Buiding type map" );
-         if ( Config.Dump_Lang_Text )
+         if ( Config.Dump_Lang_Csv )
             ExportType.Add( nameof( TermData ), typeof( TermData ) );
          ExportType.Add( nameof( BaseDef ), typeof( BaseDef ) );
-         foreach ( var def in GameUtl.GameComponent< DefRepository >().DefRepositoryDef.AllDefs ) {
+         foreach ( var def in AllDefs ) {
             var type = def.GetType();
             while ( type != typeof( BaseDef ) ) {
                var name = type.Name;
@@ -70,7 +73,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                type = type.BaseType;
             }
          }
-         DumpedTypes.AddRange( StringToTypes( Config.Dump_Defs ?? new string[0] ) );
+         DumpedTypes.AddRange( StringToTypes( Config.Dump_Defs ?? new string[ 0 ] ) );
          Verbo( "Mapped {0} types", ExportType.Count );
          if ( Config.Dump_Settings )
             ExportType.Add( "Settings", typeof( BaseDef ) );
@@ -81,48 +84,26 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private static void DumpData () { try {
          Info( "Dumping data to {0}", DumpDir );
-         if ( Config.Dump_Lang_Text ) {
-            Info( "Scanning text" );
-            foreach ( var src in LocalizationManager.Sources ) {
-               if ( string.IsNullOrEmpty( src.Google_SpreadsheetKey ) ) continue;
-               var name = "Text-" + ( string.IsNullOrEmpty( src.Google_SpreadsheetName ) ? src.Google_SpreadsheetKey : src.Google_SpreadsheetName );
-               if ( name == null ) continue;
-               if ( src.HasUnloadedLanguages() ) {
-                  src.LoadAllLanguages( true );
-                  Info( "Loading {0}", name );
-               }
-               AddDataToExport( name, src.GetLanguages( false ) );
-               if ( src.mDictionary != null )
-                  foreach ( var term in src.mDictionary )
-                     AddDataToExport( name, term.Value );
-               if ( src.mDictionaryNoCategories != null )
-                  foreach ( var term in src.mDictionaryNoCategories )
-                     AddDataToExport( name, term.Value );
-            }
-         }
+         if ( Config.Dump_Lang_Csv ) AddLangToDump();
          Info( "Scanning data" );
          Type[] wanted = DumpedTypes.ToArray();
-         foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs ) {
+         foreach ( var e in AllDefs ) {
             foreach ( var type in wanted )
                if ( type.IsInstanceOfType( e ) )
                   AddDataToExport( type.Name, e );
          }
-         if ( Config.Dump_Settings ) {
-            var shared = SharedData.GetSharedDataFromGame();
-            AddDataToExport( "Settings", shared.AISettingsDef );
-            AddDataToExport( "Settings", shared.ContributionSettings );
-            AddDataToExport( "Settings", shared.DynamicDifficultySettings );
-            AddDataToExport( "Settings", shared.DiplomacySettings );
-            foreach ( var e in shared.DifficultyLevels ) AddDataToExport( "Settings", e );
-         }
+         if ( Config.Dump_Settings ) AddSettingsToDump();
+         if ( Config.Dump_Guid_Csv ) AddGuidToDump();
          var sum = ExportData.Values.Sum( e => e.Count );
          Info( "{0} entries to dump", sum );
          var multithread = Config.Multithread;
          var tasks = multithread ? new List<Task>() : null;
          foreach ( var entry in ExportData ) { lock( entry.Value ) {
+            BaseDumper dump;
             var name = entry.Key;
-            var type = name.StartsWith( "Text-" ) ? typeof( TermData ) : ExportType[ name ];
-            var dump = type == typeof( TermData ) ? (BaseDumper) new LangDumper( name, entry.Value ) : new BaseDefDumper( "Data-" + name, type, entry.Value );
+            if ( name == "Guid" ) dump = new GuidDumper( name, entry.Value );
+            else if ( name.StartsWith( "Text-" ) ) dump = new LangDumper( name, entry.Value );
+            else dump = new BaseDefDumper( "Data-" + name, ExportType[ name ], entry.Value );
             if ( multithread ) {
                var task = Task.Run( dump.DumpData );
                tasks.Add( task );
@@ -134,6 +115,40 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Info( "{0} entries dumped", sum );
          ExportData.Clear();
       } catch ( Exception ex ) { Error( ex ); } }
+
+      private static void AddLangToDump () {
+         Info( "Scanning text" );
+         foreach ( var src in LocalizationManager.Sources ) {
+            if ( string.IsNullOrEmpty( src.Google_SpreadsheetKey ) ) continue;
+            var name = "Text-" + ( string.IsNullOrEmpty( src.Google_SpreadsheetName ) ? src.Google_SpreadsheetKey : src.Google_SpreadsheetName );
+            if ( name == null ) continue;
+            if ( src.HasUnloadedLanguages() ) {
+               src.LoadAllLanguages( true );
+               Info( "Loading {0}", name );
+            }
+            AddDataToExport( name, src.GetLanguages( false ) );
+            if ( src.mDictionary != null )
+               foreach ( var term in src.mDictionary )
+                  AddDataToExport( name, term.Value );
+            if ( src.mDictionaryNoCategories != null )
+               foreach ( var term in src.mDictionaryNoCategories )
+                  AddDataToExport( name, term.Value );
+         }
+      }
+
+      private static void AddSettingsToDump () {
+         var shared = SharedData.GetSharedDataFromGame();
+         AddDataToExport( "Settings", shared.AISettingsDef );
+         AddDataToExport( "Settings", shared.ContributionSettings );
+         AddDataToExport( "Settings", shared.DynamicDifficultySettings );
+         AddDataToExport( "Settings", shared.DiplomacySettings );
+         foreach ( var e in shared.DifficultyLevels ) AddDataToExport( "Settings", e );
+      }
+
+      private static void AddGuidToDump () {
+         foreach ( var def in AllDefs )
+            AddDataToExport( "Guid", new string[]{ def.GetType().Name, def.Guid, def.name } );
+      }
 
       private static void AddDataToExport ( string name, object obj ) {
          if ( ! ExportData.TryGetValue( name, out var list ) )
