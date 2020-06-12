@@ -84,7 +84,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          if ( Config.Dump_Lang_Text ) {
             Info( "Scanning text" );
             foreach ( var src in LocalizationManager.Sources ) {
-               var name = "Text-" + src.mDictionary.FirstOrDefault().Key;
+               if ( string.IsNullOrEmpty( src.Google_SpreadsheetKey ) ) continue;
+               var name = "Text-" + ( string.IsNullOrEmpty( src.Google_SpreadsheetName ) ? src.Google_SpreadsheetKey : src.Google_SpreadsheetName );
                if ( name == null ) continue;
                if ( src.HasUnloadedLanguages() ) {
                   src.LoadAllLanguages( true );
