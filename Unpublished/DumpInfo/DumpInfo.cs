@@ -1,23 +1,7 @@
 ﻿using Base.Core;
 using Base.Defs;
-using Base.Entities.Abilities;
-using Base.Platforms;
 using I2.Loc;
 using PhoenixPoint.Common.Core;
-using PhoenixPoint.Common.Entities;
-using PhoenixPoint.Common.Entities.Characters;
-using PhoenixPoint.Common.Entities.GameTags;
-using PhoenixPoint.Common.Entities.Items;
-using PhoenixPoint.Common.Levels.Missions;
-using PhoenixPoint.Geoscape.Entities;
-using PhoenixPoint.Geoscape.Entities.Research;
-using PhoenixPoint.Geoscape.Entities.Sites;
-using PhoenixPoint.Geoscape.Events.Eventus;
-using PhoenixPoint.Geoscape.Levels;
-using PhoenixPoint.Geoscape.View;
-using PhoenixPoint.Tactical.Entities;
-using PhoenixPoint.Tactical.Entities.DamageKeywords;
-using PhoenixPoint.Tactical.Entities.Equipments;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,6 +16,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public bool   Use_GZip = true;
       public bool   Multithread = true;
       public string Dump_Path = "";
+      public bool   Dump_Settings = true;
+      public string[] Dump_Types = new string[]{ "AbilityDef", "AbilityTrackDef", "AchievementDef", "AlienMonsterClassDef", "BodyPartAspectDef", "DamageKeywordDef", "GameTagDef", "GeoActorDef", "GeoAlienBaseDef", "GeoFactionDef", "GeoHavenZoneDef", "GeoMistGeneratorDef", "GeoSiteSceneDef", "GeoscapeEventDef", "GroundVehicleItemDef", "PhoenixFacilityDef", "ResearchDef", "SpecializationDef", "TacMissionDef ", "TacUnitClassDef", "TacticalActorDef", "TacticalItemDef", "VehicleItemDef" };
       public uint   Config_Version = 20200612;
    }
 
@@ -54,6 +40,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          } else
             DumpDir = Config.Dump_Path;
          GameVersion = Api( "version", "game" )?.ToString();
+         BuildTypeMap();
          DumpData();
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogWeapons ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogAbilities ) );
@@ -63,6 +50,23 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private static readonly Dictionary< string, List<object> > ExportData = new Dictionary< string, List<object> >();
       private static readonly Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
+
+      private void BuildTypeMap () {
+         Info( "Buiding type map" );
+         ExportType.Add( nameof( TermData ), typeof( TermData ) );
+         ExportType.Add( nameof( BaseDef ), typeof( BaseDef ) );
+         foreach ( var def in GameUtl.GameComponent< DefRepository >().DefRepositoryDef.AllDefs ) {
+            var type = def.GetType();
+            while ( type != typeof( BaseDef ) ) {
+               var name = type.Name;
+               if ( ! ExportType.ContainsKey( name ) ) ExportType.Add( name, type );
+               type = type.BaseType;
+            }
+         }
+         Verbo( "Mapped {0} types", ExportType.Count );
+         if ( Config.Dump_Settings )
+            ExportType.Add( "Settings", typeof( BaseDef ) );
+      }
 
       private static void DumpData () { try {
          Info( "Dumping data to {0}", DumpDir );
@@ -75,37 +79,33 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                Info( "Loading {0}", name );
             }
             foreach ( var term in src.mDictionary )
-               AddDataToExport( name, typeof( TermData ), term.Value );
+               AddDataToExport( name, term.Value );
          }
          Info( "Scanning data" );
-         Type[] wanted = new Type[] { typeof( ResearchDef ),
-            typeof( GameTagDef ), typeof( DamageKeywordDef ),
-            typeof( GroundVehicleItemDef ), typeof( VehicleItemDef ), typeof( TacticalItemDef ),
-            typeof( AbilityDef ), typeof( AbilityTrackDef ), typeof( SpecializationDef ), typeof( TacUnitClassDef ), typeof( GeoActorDef ),
-            typeof( AlienMonsterClassDef ), typeof( BodyPartAspectDef ), typeof( TacticalActorDef ),
-            typeof( GeoAlienBaseDef ), typeof( GeoMistGeneratorDef ),
-            typeof( GeoHavenZoneDef ), typeof( GeoFactionDef ), typeof( PhoenixFacilityDef ), typeof( GeoSiteSceneDef ),
-            typeof( AchievementDef ), typeof( GeoscapeEventDef ), typeof( TacMissionDef ) };
+         Type[] wanted = Config.Dump_Types.Select( name => ExportType.TryGetValue( name, out Type type ) ? type : null ).Where( e => e != null ).ToArray();
          foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs ) {
-            var type = Array.Find( wanted, cls => cls.IsInstanceOfType( e ) );
-            if ( type == null ) continue;
-            AddDataToExport( type.Name, type, e );
+            foreach ( var type in wanted )
+               if ( type.IsInstanceOfType( e ) )
+                  AddDataToExport( type.Name, e );
          }
-         Info( "{0} entries to dump", ExportData.Values.Sum( e => e.Count ) );
-         var shared = SharedData.GetSharedDataFromGame();
-         AddDataToExport( "BaseDef", typeof( BaseDef ), shared.AISettingsDef );
-         AddDataToExport( "BaseDef", typeof( BaseDef ), shared.ContributionSettings );
-         AddDataToExport( "BaseDef", typeof( BaseDef ), shared.DynamicDifficultySettings );
-         AddDataToExport( "BaseDef", typeof( BaseDef ), shared.DiplomacySettings );
-         foreach ( var e in shared.DifficultyLevels ) AddDataToExport( "BaseDef", typeof( BaseDef ), e );
+         if ( Config.Dump_Settings ) {
+            var shared = SharedData.GetSharedDataFromGame();
+            AddDataToExport( "Settings", shared.AISettingsDef );
+            AddDataToExport( "Settings", shared.ContributionSettings );
+            AddDataToExport( "Settings", shared.DynamicDifficultySettings );
+            AddDataToExport( "Settings", shared.DiplomacySettings );
+            foreach ( var e in shared.DifficultyLevels ) AddDataToExport( "Settings", e );
+         }
          var sum = ExportData.Values.Sum( e => e.Count );
+         Info( "{0} entries to dump", sum );
          var multithread = Config.Multithread;
          var tasks = multithread ? new List<Task>() : null;
          foreach ( var entry in ExportData ) { lock( entry.Value ) {
-            var type = ExportType[ entry.Key ];
+            var name = entry.Key;
+            var type = name.StartsWith( "Text " ) ? typeof( TermData ) : ExportType[ name ];
             var dump = type == typeof( TermData )
-                  ? (Dumper) new LangDumper( entry.Key, type, entry.Value )
-                  : new BaseDefDumper( "Data-" + entry.Key, type, entry.Value ) ;
+                  ? (Dumper) new LangDumper( name, type, entry.Value )
+                  : new BaseDefDumper( "Data-" + name, type, entry.Value ) ;
             if ( multithread ) {
                var task = Task.Run( dump.DumpData );
                tasks.Add( task );
@@ -118,10 +118,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          ExportData.Clear();
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static void AddDataToExport ( string name, Type type, object obj ) {
+      private static void AddDataToExport ( string name, object obj ) {
          if ( ! ExportData.TryGetValue( name, out var list ) )
             ExportData.Add( name, list = new List<object>() );
-         ExportType[ name ] = type;
          list.Add( obj );
       }
       /*
