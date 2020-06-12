@@ -31,29 +31,30 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public bool   Replace_Recur_With_Ref = true;
       public bool   Use_GZip = true;
       public bool   Multithread = true;
+      public string Dump_Path = "";
       public uint   Config_Version = 20200612;
    }
 
    public class Mod : ZyMod {
       internal static ModConfig Config;
 
-      public static void Init () => new Mod().GeoscapeMod();
+      public static void Init () => new Mod().GeoscapeOnShow();
 
-      internal static string ModDir;
+      internal static string DumpDir;
       internal static string GameVersion;
 
       private static IPatch DumpPatch;
 
-      public void MainMod ( Func< string, object, object > api ) => GeoscapeMod( api );
+      public void MainMod ( Func< string, object, object > api ) => GeoscapeOnShow( api );
 
-      public void GeoscapeMod ( Func< string, object, object > api = null ) {
+      public void GeoscapeOnShow ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
-         if ( api != null ) {
-            ModDir = api( "path", null )?.ToString();
-            ModDir = ModDir == null ? "." : Path.GetDirectoryName( ModDir );
-            GameVersion = api( "version", "game" )?.ToString();
+         if ( string.IsNullOrWhiteSpace( Config.Dump_Path ) ) {
+            DumpDir = Api( "path" )?.ToString();
+            DumpDir = DumpDir == null ? "." : Path.GetDirectoryName( DumpDir );
          } else
-            ModDir = ".";
+            DumpDir = Config.Dump_Path;
+         GameVersion = Api( "version", "game" )?.ToString();
          DumpPatch = Patch( typeof( GeoscapeView ), "ResetViewState", null, postfix: nameof( DumpData ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogWeapons ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogAbilities ) );
@@ -66,7 +67,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private static void DumpData () { try {
          Unpatch( ref DumpPatch );
-         Info( "Dumping data to {0}", ModDir );
+         Info( "Dumping data to {0}", DumpDir );
          Info( "Scanning text" );
          foreach ( var src in LocalizationManager.Sources ) {
             var name = "Text " + src.mDictionary.FirstOrDefault().Key;

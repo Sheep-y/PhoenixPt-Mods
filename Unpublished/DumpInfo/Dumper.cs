@@ -43,7 +43,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private readonly bool   Replace_Recur_With_Ref = true;
 
       private string DeleteOldDumps () {
-         var path = Path.Combine( Mod.ModDir, Filename + ".xml" );
+         var path = Path.Combine( Mod.DumpDir, Filename + ".xml" );
          var gz = path + ".gz";
          File.Delete( path );
          File.Delete( gz );
