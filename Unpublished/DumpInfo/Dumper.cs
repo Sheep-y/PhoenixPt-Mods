@@ -110,10 +110,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             var bDef = val as BaseDef;
             if ( ! ( val is Array ) ) { // Simple objects
                if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
-               if ( val is AK.Wwise.Event wEvt && wEvt.WwiseObjectReference == null && wEvt.ObjectReference == null && wEvt.ID == 0 ) { // TODO: Replace with generic empty detection
-                  StartTag( name, true, "Name", wEvt.Name );
-                  return;
-               }
                if ( bDef != null && Skip_Dumped_Defs )
                   foreach ( var simpleDef in Mod.DumpedTypes )
                      if ( DataType != simpleDef && simpleDef.IsAssignableFrom( val.GetType() ) ) {
@@ -130,9 +126,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             }
             int id = -1;
             if ( level > 0 ) {
-               if ( isRecur( name, val, out id ) ) return;
+               if ( WasDumped( name, val, out id ) ) return;
             } else if ( Skip_Dumped_Objects )
                id = RecurringObject[ val ];
+            if ( IsEmpty( val ) ) { StartTag( name, true, "empty", "true" ); return; }
             if ( bDef != null )
                SimpleBaseDef( name, bDef, false );
             else if ( id < 0 )
@@ -142,13 +139,14 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          } else {
             if ( type.IsPrimitive || type.IsEnum || val is Guid ) { StartTag( name, true, "val", val.ToString() ); return; }
             if ( val is Color color ) { WriteColour( name, color ); return; }
+            if ( IsEmpty( val ) ) { StartTag( name, true, "empty", "true" ); return; }
             StartTag( name ); // Other structs
          }
          Obj2Xml( val, level + 2 ); // Either structs or non-enum objects
          EndTag( name );
       }
 
-      private bool isRecur ( string name, object val, out int id ) {
+      private bool WasDumped ( string name, object val, out int id ) {
          id = -1;
          if ( ! Skip_Dumped_Objects ) return false;
          try {
@@ -179,22 +177,44 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          EndTag( name );
       }
 
+      private bool IsEmpty ( object subject ) { try {
+         if ( subject is AK.Wwise.Event wEvt ) return wEvt.WwiseObjectReference == null && wEvt.ObjectReference == null && wEvt.Id == 0;
+         var type = subject.GetType();
+         foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) {
+            if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), true ).Length > 0 ) continue;
+            if ( ! IsEmptyValue( f.GetValue( subject ) ) ) return false;
+         }
+         if ( ! subject.GetType().IsClass ) return true;
+         foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) {
+            if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), true ).Length > 0 ) continue;
+            if ( ! IsEmptyValue( f.GetValue( subject ) ) ) return false;
+         }
+         return true;
+      } catch ( ApplicationException ) { return false; } }
+
+      private bool IsEmptyValue ( object val ) {
+         if ( val == null || val == default ) return true;
+         if ( val is string txt ) return string.IsNullOrEmpty( txt );
+         if ( val is IEnumerable it ) return ! it.GetEnumerator().MoveNext();
+         return false;
+      }
+
       private void Obj2Xml ( object subject, int level ) {
          var type = subject.GetType();
          if ( level == 0 ) { Writer.Write( type.Name, subject, 1 ); return; }
          if ( level > Mod.Config.Depth ) { Writer.Write( "..." ); return; }
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
+            if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), true ).Length > 0 ) continue;
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
             StartTag( f.Name, true, "err_F", ex.GetType().Name ); // Field.GetValue error
          }
-         if ( subject.GetType().IsClass ) {
-            foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
-               if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), false ).Any() ) continue;
-               Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
-            } catch ( ApplicationException ex ) {
-               StartTag( f.Name, true, "err_P", ex.GetType().Name ); // Property.GetValue error
-            }
+         if ( ! subject.GetType().IsClass ) return;
+         foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
+            if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), true ).Length > 0 ) continue;
+            Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
+         } catch ( ApplicationException ex ) {
+            StartTag( f.Name, true, "err_P", ex.GetType().Name ); // Property.GetValue error
          }
       }
 
