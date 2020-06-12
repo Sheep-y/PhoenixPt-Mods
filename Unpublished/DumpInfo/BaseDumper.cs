@@ -1,12 +1,7 @@
-﻿using Base.Defs;
-using I2.Loc;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
@@ -51,7 +46,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private void DumpToWriter ( StreamWriter writer ) {
          Writer = writer;
-         writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
          DoDump();
          writer.Flush();
       }
@@ -59,34 +53,5 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       protected abstract string FileExtension();
       protected abstract void SortData();
       protected abstract void DoDump();
-
-   }
-
-   internal class BaseDefDumper : XmlDumper {
-      internal BaseDefDumper ( string name, Type key, List<object> list ) : base( name, key, list ) { }
-
-      protected override void SortData() => Data.Sort( CompareDef );
-
-      private static int CompareDef ( object left, object right ) {
-         BaseDef a = left as BaseDef, b = right as BaseDef;
-         string aid = a?.Guid, bid = b?.Guid;
-         if ( aid == null ) return bid == null ? 0 : -1;
-         if ( bid == null ) return 1;
-         return aid.CompareTo( bid );
-      }
-   }
-
-   internal class LangDumper : XmlDumper {
-      internal LangDumper ( string name, Type key, List<object> list ) : base( name, key, list ) { }
-
-      protected override void SortData() => Data.Sort( CompareDef );
-
-      private static int CompareDef ( object left, object right ) {
-         TermData a = left as TermData, b = right as TermData;
-         string aid = a?.Term, bid = b.Term;
-         if ( aid == null ) return bid == null ? 0 : -1;
-         if ( bid == null ) return 1;
-         return aid.CompareTo( bid );
-      }
    }
 }

@@ -13,6 +13,8 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    internal abstract class XmlDumper : BaseDumper {
+      protected override string FileExtension () => "xml";
+
       protected readonly Type DataType;
 
       internal XmlDumper ( string name, Type key, List<object> list ) : base( name, list ) {
@@ -259,5 +261,19 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          return txt;
       }
       private static string EscXml ( string txt ) => SecurityElement.Escape( txt );
+   }
+
+   internal class BaseDefDumper : XmlDumper {
+      internal BaseDefDumper ( string name, Type key, List<object> list ) : base( name, key, list ) { }
+
+      protected override void SortData() => Data.Sort( CompareDef );
+
+      private static int CompareDef ( object left, object right ) {
+         BaseDef a = left as BaseDef, b = right as BaseDef;
+         string aid = a?.Guid, bid = b?.Guid;
+         if ( aid == null ) return bid == null ? 0 : -1;
+         if ( bid == null ) return 1;
+         return aid.CompareTo( bid );
+      }
    }
 }

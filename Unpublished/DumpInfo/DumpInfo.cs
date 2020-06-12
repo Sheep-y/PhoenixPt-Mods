@@ -70,7 +70,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                type = type.BaseType;
             }
          }
-         DumpedTypes.AddRange( StringToTypes( Config.Dump_Defs ) );
+         DumpedTypes.AddRange( StringToTypes( Config.Dump_Defs ?? new string[0] ) );
          Verbo( "Mapped {0} types", ExportType.Count );
          if ( Config.Dump_Settings )
             ExportType.Add( "Settings", typeof( BaseDef ) );
@@ -84,14 +84,19 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          if ( Config.Dump_Lang_Text ) {
             Info( "Scanning text" );
             foreach ( var src in LocalizationManager.Sources ) {
-               var name = "Text " + src.mDictionary.FirstOrDefault().Key;
+               var name = "Text-" + src.mDictionary.FirstOrDefault().Key;
                if ( name == null ) continue;
                if ( src.HasUnloadedLanguages() ) {
                   src.LoadAllLanguages( true );
                   Info( "Loading {0}", name );
                }
-               foreach ( var term in src.mDictionary )
-                  AddDataToExport( name, term.Value );
+               AddDataToExport( name, src.GetLanguages( false ) );
+               if ( src.mDictionary != null )
+                  foreach ( var term in src.mDictionary )
+                     AddDataToExport( name, term.Value );
+               if ( src.mDictionaryNoCategories != null )
+                  foreach ( var term in src.mDictionaryNoCategories )
+                     AddDataToExport( name, term.Value );
             }
          }
          Info( "Scanning data" );
@@ -115,10 +120,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          var tasks = multithread ? new List<Task>() : null;
          foreach ( var entry in ExportData ) { lock( entry.Value ) {
             var name = entry.Key;
-            var type = name.StartsWith( "Text " ) ? typeof( TermData ) : ExportType[ name ];
-            var dump = type == typeof( TermData )
-                  ? (XmlDumper) new LangDumper( name, type, entry.Value )
-                  : new BaseDefDumper( "Data-" + name, type, entry.Value ) ;
+            var type = name.StartsWith( "Text-" ) ? typeof( TermData ) : ExportType[ name ];
+            var dump = type == typeof( TermData ) ? (BaseDumper) new LangDumper( name, entry.Value ) : new BaseDefDumper( "Data-" + name, type, entry.Value );
             if ( multithread ) {
                var task = Task.Run( dump.DumpData );
                tasks.Add( task );

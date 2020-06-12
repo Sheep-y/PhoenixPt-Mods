@@ -60,7 +60,8 @@
     <Compile Include="..\..\Utilities\ZyMod\ZyMod.cs">
       <Link>ZyMod.cs</Link>
     </Compile>
-    <Compile Include="DumperImpl.cs" />
+    <Compile Include="BaseDumper.cs" />
+    <Compile Include="CsvDumper.cs" />
     <Compile Include="XmlDumper.cs" />
     <Compile Include="DumpInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
