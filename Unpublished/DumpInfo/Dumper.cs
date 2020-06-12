@@ -1,11 +1,9 @@
 ﻿using Base.Defs;
-using Base.Levels;
 using Base.UI;
 using PhoenixPoint.Common.Entities.Addons;
 using PhoenixPoint.Common.Entities.GameTags;
 using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Tactical.Entities;
-using PhoenixPoint.Tactical.Entities.DamageKeywords;
 using PhoenixPoint.Tactical.Entities.Equipments;
 using System;
 using System.Collections;
@@ -15,9 +13,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Security;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using UnityEngine;
 using static System.Reflection.BindingFlags;
 
@@ -56,8 +52,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                attr.AddRange( new string[]{ "dumpinfo", Assembly.GetExecutingAssembly().GetName().Version.ToString() } );
                StartTag( DataType.Name, false, attr.ToArray() );
                foreach ( var val in Data )
-                  RecurringObject.Add( val, RecurringObject.Count );
-               foreach ( var val in Data )
                   ToXml( val );
                EndTag( DataType.Name );
                writer.Flush();
@@ -72,7 +66,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private void ToXml ( object subject ) {
          if ( subject == null ) return;
-         Mem2Xml( subject.GetType().Name, subject, 0 );
+         Mem2Xml( subject.GetType().Name, subject, MaxDepth );
          Writer.Write( '\n' );
       }
 
@@ -109,26 +103,22 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
                   { StartTag( name, true, "type", type.FullName ); return; }
             }
-            if ( level >= MaxDepth ) { SimpleMem( name, "..." ); return; }
+            if ( level <= 0 ) { SimpleMem( name, "..." ); return; }
             if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
-               DumpList( name, list, level + 1 );
+               DumpList( name, list, level - 1 );
                return;
             }
-            int id;
-            if ( level > 0 ) {
-               try {
-                  if ( RecurringObject.TryGetValue( val, out int link ) ) {
-                     if ( bDef != null )
-                        SimpleBaseDef( name, bDef );
-                     else
-                        StartTag( name, true, "ref", link.ToString( "X" ) );
-                     return;
-                  }
-               } catch ( Exception ex ) { StartTag( name, true, "err_H", ex.GetType().Name ); return; } // Hash error
-               id = RecurringObject.Count;
-               RecurringObject.Add( val, id );
-            } else
-               id = RecurringObject[ val ];
+            try {
+               if ( RecurringObject.TryGetValue( val, out int link ) ) {
+                  if ( bDef != null )
+                     SimpleBaseDef( name, bDef );
+                  else
+                     StartTag( name, true, "ref", link.ToString( "X" ) );
+                  return;
+               }
+            } catch ( Exception ex ) { StartTag( name, true, "err_H", ex.GetType().Name ); return; } // Hash error
+            var id = RecurringObject.Count;
+            RecurringObject.Add( val, id );
             if ( bDef != null )
                SimpleBaseDef( name, bDef, false );
             else
@@ -138,7 +128,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( val is Color color ) { WriteColour( name, color ); return; }
             StartTag( name ); // Other structs
          }
-         Obj2Xml( val, level + 2 ); // Either structs or non-enum objects
+         Obj2Xml( val, level - 1 ); // Either structs or non-enum objects
          EndTag( name );
       }
 
@@ -161,14 +151,14 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          if ( level == 0 ) { Writer.Write( type.Name, subject, 1 ); return; }
          if ( level > MaxDepth ) { Writer.Write( "..." ); return; }
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
-            Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
+            Mem2Xml( f.Name, f.GetValue( subject ), level - 1 );
          } catch ( ApplicationException ex ) {
             StartTag( f.Name, true, "err_F", ex.GetType().Name ); // Field.GetValue error
          }
          if ( subject.GetType().IsClass ) {
             foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
                if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), false ).Any() ) continue;
-               Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
+               Mem2Xml( f.Name, f.GetValue( subject ), level - 1 );
             } catch ( ApplicationException ex ) {
                StartTag( f.Name, true, "err_P", ex.GetType().Name ); // Property.GetValue error
             }
