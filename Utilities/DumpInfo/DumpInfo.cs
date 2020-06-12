@@ -22,11 +22,11 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public bool   Use_GZip = true;
       public bool   Multithread = true;
       public string Dump_Path = "";
-      public bool   Dump_Settings = true;
+      public bool   Dump_Game_Settings = true;
       public bool   Dump_Command_Csv = true;
       public bool   Dump_Lang_Csv = true;
       public bool   Dump_Guid_Csv = true;
-      public string[] Dump_Defs = new string[]{ "AbilityDef", "AbilityTrackDef", "AchievementDef", "BodyPartAspectDef", "ComponentSetDef", "DamageKeywordDef", "GameTagDef", "GeoActorDef", "GeoAlienBaseDef", "GeoFactionDef", "GeoHavenZoneDef", "GeoMistGeneratorDef", "GeoSiteSceneDef", "GeoscapeEventDef", "GroundVehicleItemDef", "PhoenixFacilityDef", "ResearchDef", "SpecializationDef", "TacMissionTypeDef", "TacUnitClassDef", "TacticalActorDef", "TacticalItemDef", "VehicleItemDef" };
+      public string[] Dump_Defs = new string[]{ "VehicleItemDef", "TacticalItemDef", "TacticalActorDef", "TacUnitClassDef", "TacMissionTypeDef", "SpecializationDef", "ResearchDef", "PhoenixFacilityDef", "GroundVehicleItemDef", "GeoscapeEventDef", "GeoSiteSceneDef", "GeoMistGeneratorDef", "GeoHavenZoneDef", "GeoFactionDef", "GeoAlienBaseDef", "GeoActorDef", "GameTagDef", "DamageKeywordDef", "ComponentSetDef", "BodyPartAspectDef", "AchievementDef", "AbilityTrackDef", "AbilityDef" };
       public uint   Config_Version = 20200612;
    }
 
@@ -77,8 +77,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          }
          DumpedTypes.AddRange( StringToTypes( Config.Dump_Defs ?? new string[ 0 ] ) );
          Verbo( "Mapped {0} types", ExportType.Count );
-         if ( Config.Dump_Settings )
-            ExportType.Add( "Settings", typeof( BaseDef ) );
+         if ( Config.Dump_Game_Settings )
+            ExportType.Add( "GameSettings", typeof( BaseDef ) );
       }
 
       private static IEnumerable<Type> StringToTypes ( string[] types ) =>
@@ -94,7 +94,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                if ( type.IsInstanceOfType( e ) )
                   AddDataToExport( type.Name, e );
          }
-         if ( Config.Dump_Settings ) AddSettingsToDump();
+         if ( Config.Dump_Game_Settings ) AddSettingsToDump();
          if ( Config.Dump_Guid_Csv ) AllDefs.ForEach( e => AddDataToExport( "Guid", e ) );
          if ( Config.Dump_Command_Csv ) ConsoleCommandAttribute.GetCommands().ForEach( e => AddDataToExport( "ConsoleCommand", e ) );
          var sum = ExportData.Values.Sum( e => e.Count );
@@ -142,10 +142,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private static void AddSettingsToDump () {
          var shared = SharedData.GetSharedDataFromGame();
-         AddDataToExport( "Settings", shared.AISettingsDef );
-         AddDataToExport( "Settings", shared.ContributionSettings );
-         AddDataToExport( "Settings", shared.DynamicDifficultySettings );
-         AddDataToExport( "Settings", shared.DiplomacySettings );
+         AddDataToExport( "GameSettings", shared.AISettingsDef );
+         AddDataToExport( "GameSettings", shared.ContributionSettings );
+         AddDataToExport( "GameSettings", shared.DynamicDifficultySettings );
+         AddDataToExport( "GameSettings", shared.DiplomacySettings );
          foreach ( var e in shared.DifficultyLevels ) AddDataToExport( "Settings", e );
       }
 

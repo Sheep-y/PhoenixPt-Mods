@@ -66,6 +66,7 @@
     <Compile Include="DumpInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="mod_info.js" />
+    <EmbeddedResource Include="changelog.md" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
