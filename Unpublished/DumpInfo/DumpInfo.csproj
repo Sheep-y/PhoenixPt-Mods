@@ -61,7 +61,7 @@
       <Link>ZyMod.cs</Link>
     </Compile>
     <Compile Include="DumperImpl.cs" />
-    <Compile Include="Dumper.cs" />
+    <Compile Include="XmlDumper.cs" />
     <Compile Include="DumpInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="mod_info.js" />

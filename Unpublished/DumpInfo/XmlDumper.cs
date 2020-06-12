@@ -4,9 +4,6 @@ using PhoenixPoint.Common.Entities.Addons;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using System.Reflection;
 using System.Security;
 using System.Text.RegularExpressions;
@@ -15,18 +12,11 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
-   internal abstract class Dumper {
-      protected readonly string Filename;
+   internal abstract class XmlDumper : BaseDumper {
       protected readonly Type DataType;
-      protected readonly List<object> Data;
 
-      internal Dumper ( string name, Type key, List<object> list ) {
-         foreach ( var chr in Path.GetInvalidFileNameChars() )
-            name = name.Replace( chr, '-' );
-         Filename = name.Trim();
+      internal XmlDumper ( string name, Type key, List<object> list ) : base( name, list ) {
          DataType = key;
-         Data = list;
-
          var config = Mod.Config;
          Depth = config.Depth;
          Skip_Dumped_Objects = config.Skip_Dumped_Objects;
@@ -36,7 +26,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Skip_Zeros          = config.Skip_Zeros;
       }
 
-      private StreamWriter Writer;
       private readonly Dictionary< object, int > RecurringObject = new Dictionary< object, int >();
 
       private readonly ushort Depth;
@@ -46,34 +35,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private readonly bool   Skip_Empty_Lists;
       private readonly bool   Skip_Zeros;
 
-      private string DeleteOldDumps () {
-         var path = Path.Combine( Mod.DumpDir, Filename + ".xml" );
-         var gz = path + ".gz";
-         File.Delete( path );
-         File.Delete( gz );
-         return Mod.Config.Use_GZip ? gz : path;
-      }
-
-      internal void DumpData () { try { lock ( Data ) {
-         ZyMod.Info( "Dumping {0} ({1})", DataType.Name, Data.Count );
-         SortData();
-         var path = DeleteOldDumps();
-         using ( var fstream = new FileStream( path, FileMode.Create ) ) {
-            if ( Mod.Config.Use_GZip ) {
-               var buffer = new GZipStream( fstream, CompressionLevel.Optimal );
-               using ( var writer = new StreamWriter( buffer ) ) DumpToWriter( writer );
-            } else {
-               using ( var writer = new StreamWriter( fstream ) ) DumpToWriter( writer );
-            }
-         }
-         ZyMod.Verbo( "Finished {0}, {1} bytes written", DataType.Name, new FileInfo( path ).Length );
-         Data.Clear();
-         RecurringObject.Clear();
-      } } catch ( Exception ex ) {  ZyMod.Error( ex ); } }
-
-      private void DumpToWriter ( StreamWriter writer ) {
-         Writer = writer;
-         writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
+      protected override void DoDump () {
+         Writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
          var attr = new List<string>{ "count", Data.Count.ToString() };
          if ( Mod.GameVersion != null ) attr.AddRange( new string[]{ "game", Mod.GameVersion } );
          attr.AddRange( new string[]{ "dumpinfo", Assembly.GetExecutingAssembly().GetName().Version.ToString() } );
@@ -83,10 +46,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          foreach ( var val in Data )
             ToXml( val );
          EndTag( DataType.Name );
-         writer.Flush();
       }
-
-      protected abstract void SortData();
 
       private void ToXml ( object subject ) {
          if ( subject == null ) return;

@@ -117,7 +117,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             var name = entry.Key;
             var type = name.StartsWith( "Text " ) ? typeof( TermData ) : ExportType[ name ];
             var dump = type == typeof( TermData )
-                  ? (Dumper) new LangDumper( name, type, entry.Value )
+                  ? (XmlDumper) new LangDumper( name, type, entry.Value )
                   : new BaseDefDumper( "Data-" + name, type, entry.Value ) ;
             if ( multithread ) {
                var task = Task.Run( dump.DumpData );
