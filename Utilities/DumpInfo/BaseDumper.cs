@@ -25,7 +25,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          var gz = path + ".gz";
          File.Delete( path );
          File.Delete( gz );
-         return Mod.Config.Use_GZip ? gz : path;
+         return Mod.Config.GZip ? gz : path;
       }
 
       internal void DumpData () { try { lock ( Data ) {
@@ -37,7 +37,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          SortData();
          var path = DeleteOldDumps();
          using ( var fstream = new FileStream( path, FileMode.Create ) ) {
-            if ( Mod.Config.Use_GZip ) {
+            if ( Mod.Config.GZip ) {
                var buffer = new GZipStream( fstream, CompressionLevel.Optimal );
                using ( var writer = new StreamWriter( buffer ) ) DumpToWriter( writer );
             } else {

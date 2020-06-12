@@ -13,14 +13,14 @@ using System.Threading.Tasks;
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    internal class ModConfig {
+      public bool   Multithread = true;
+      public bool   GZip = true;
       public ushort Depth = 50;
       public bool   Skip_Dumped_Objects = true;
       public bool   Skip_Dumped_Defs = true;
       public bool   Skip_Empty_Objects = true;
       public bool   Skip_Empty_Lists = true;
       public bool   Skip_Zeros = true;
-      public bool   Use_GZip = true;
-      public bool   Multithread = true;
       public string Dump_Path = "";
       public bool   Dump_Command_Csv = true;
       public bool   Dump_Lang_Csv = true;
@@ -63,7 +63,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          //Patch( typeof( ItemManufacturing ), "AddAvailableItem", nameof( LogItem ) );
       }
 
-      private static List<BaseDef> AllDefs => GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs;
+      private  static List<BaseDef> AllDefs => GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs;
       private  static readonly Dictionary< string, List<object> > ExportData = new Dictionary< string, List<object> >();
       private  static readonly Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
       internal static readonly List<Type> DumpedTypes = new List<Type>();
@@ -122,6 +122,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             Task.WaitAll( tasks.ToArray() );
          Info( "{0} entries dumped", sum );
          ExportData.Clear();
+         ExportType.Clear();
+         DumpedTypes.Clear();
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void AddLangToDump () {
