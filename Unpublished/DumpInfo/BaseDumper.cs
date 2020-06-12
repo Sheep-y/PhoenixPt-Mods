@@ -29,6 +29,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
 
       internal void DumpData () { try { lock ( Data ) {
+         if ( Data.Count == 0 ) {
+            ZyMod.Verbo( "Skipping {0} because it is empty", Name );
+            return;
+         }
          ZyMod.Info( "Dumping {0} ({1})", Name, Data.Count );
          SortData();
          var path = DeleteOldDumps();
@@ -50,7 +54,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          writer.Flush();
       }
 
-      protected static Comparison<object> CompareDef < T, V > ( Func<T,V> mapper ) where T : class where V : IComparable<V> {
+      protected static Comparison<object> Comparator < T, V > ( Func<T,V> mapper ) where T : class where V : IComparable<V> {
          return ( left, right ) => {
             V a = mapper( left as T ), b = mapper( right as T );
             if ( a == null ) return b == null ? 0 : -1;

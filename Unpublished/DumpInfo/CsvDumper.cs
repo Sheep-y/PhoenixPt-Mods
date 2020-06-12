@@ -1,4 +1,5 @@
 ﻿using Base.Defs;
+using Base.Utils.GameConsole;
 using I2.Loc;
 using PhoenixPoint.Common.UI;
 using System;
@@ -9,6 +10,8 @@ using System.Reflection;
 namespace Sheepy.PhoenixPt.DumpInfo {
 
    internal abstract class CsvDumper : BaseDumper {
+      protected override string FileExtension () => "csv";
+
       internal CsvDumper ( string name, List<object> list ) : base( name, list ) { }
 
       private bool HasCell;
@@ -43,7 +46,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
    internal class GuidDumper : CsvDumper {
       internal GuidDumper ( string name, List<object> list ) : base( name, list ) { }
 
-      protected override void SortData() => Data.Sort( CompareDef< BaseDef, string >( e => e?.Guid ) );
+      protected override void SortData() => Data.Sort( Comparator< BaseDef, string >( e => e?.Guid ) );
 
       protected override string FileExtension () => "csv";
 
@@ -68,10 +71,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       protected override void SortData() {
          Codes = Data[ 0 ] as List<string>;
          Data.Remove( 0 );
-         Data.Sort( CompareDef< TermData, string >( e => e?.Term ) );
+         Data.Sort( Comparator< TermData, string >( e => e?.Term ) );
       }
-
-      protected override string FileExtension () => "csv";
 
       protected override void DoDump () {
          NewCells( "Type", "Term", "Key", "Flags", "Description" );
@@ -80,6 +81,19 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             NewRow( term.TermType.ToString(), term.Term, term.Key?.Trim(), Convert.ToBase64String( term.Flags ), term.Description );
             NewCells( term.Languages );
          }
+      }
+   }
+
+   internal class CommandDumper : CsvDumper {
+      internal CommandDumper ( string name, List<object> list ) : base( name, list ) { }
+
+      protected override void SortData() => Data.Sort( Comparator< ConsoleCommandAttribute, string >( e => e.Command ) );
+
+      protected override void DoDump () {
+         NewCells( "Command", "Parameter", "Description" );
+         FieldInfo _method = typeof( ConsoleCommandAttribute ).GetField( "_methodInfo", BindingFlags.NonPublic | BindingFlags.Instance );
+         foreach ( var cmd in Data.OfType<ConsoleCommandAttribute>() )
+            NewRow( cmd.Command, string.Join( ", ", ( _method.GetValue( cmd ) as MethodInfo ).GetParameters().Skip( 1 ).Select( e => e.ParameterType.Name ) ), cmd.Description );
       }
    }
 }

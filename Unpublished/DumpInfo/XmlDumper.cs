@@ -267,6 +267,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
    internal class BaseDefDumper : XmlDumper {
       internal BaseDefDumper ( string name, Type key, List<object> list ) : base( name, key, list ) { }
 
-      protected override void SortData() => Data.Sort( CompareDef< BaseDef, string >( e => e?.Guid ) );
+      protected override void SortData() => Data.Sort( Comparator< BaseDef, string >( e => e?.Guid ) );
    }
 }

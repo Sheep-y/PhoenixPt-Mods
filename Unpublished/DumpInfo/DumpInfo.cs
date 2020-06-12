@@ -1,5 +1,7 @@
-﻿using Base.Core;
+﻿using Base;
+using Base.Core;
 using Base.Defs;
+using Base.Utils.GameConsole;
 using I2.Loc;
 using PhoenixPoint.Common.Core;
 using System;
@@ -93,22 +95,24 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                   AddDataToExport( type.Name, e );
          }
          if ( Config.Dump_Settings ) AddSettingsToDump();
-         if ( Config.Dump_Guid_Csv ) AddGuidToDump();
+         if ( Config.Dump_Guid_Csv ) AllDefs.ForEach( e => AddDataToExport( "Guid", e ) );
+         if ( Config.Dump_Command_Csv ) ConsoleCommandAttribute.GetCommands().ForEach( e => AddDataToExport( "ConsoleCommand", e ) );
          var sum = ExportData.Values.Sum( e => e.Count );
          Info( "{0} entries to dump", sum );
          var multithread = Config.Multithread;
          var tasks = multithread ? new List<Task>() : null;
          foreach ( var entry in ExportData ) { lock( entry.Value ) {
-            BaseDumper dump;
+            Action dump;
             var name = entry.Key;
-            if ( name == "Guid" ) dump = new GuidDumper( name, entry.Value );
-            else if ( name.StartsWith( "Text-" ) ) dump = new LangDumper( name, entry.Value );
-            else dump = new BaseDefDumper( "Data-" + name, ExportType[ name ], entry.Value );
+            if ( name == "Guid" ) dump = new GuidDumper( name, entry.Value ).DumpData;
+            else if ( name == "ConsoleCommand" ) dump = new CommandDumper( name, entry.Value ).DumpData;
+            else if ( name.StartsWith( "Text-" ) ) dump = new LangDumper( name, entry.Value ).DumpData;
+            else dump = new BaseDefDumper( "Data-" + name, ExportType[ name ], entry.Value ).DumpData;
             if ( multithread ) {
-               var task = Task.Run( dump.DumpData );
+               var task = Task.Run( dump );
                tasks.Add( task );
             } else
-               dump.DumpData();
+               dump();
          } }
          if ( multithread )
             Task.WaitAll( tasks.ToArray() );
@@ -143,11 +147,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          AddDataToExport( "Settings", shared.DynamicDifficultySettings );
          AddDataToExport( "Settings", shared.DiplomacySettings );
          foreach ( var e in shared.DifficultyLevels ) AddDataToExport( "Settings", e );
-      }
-
-      private static void AddGuidToDump () {
-         foreach ( var def in AllDefs )
-            AddDataToExport( "Guid", def );
       }
 
       private static void AddDataToExport ( string name, object obj ) {
