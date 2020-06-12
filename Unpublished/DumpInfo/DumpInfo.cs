@@ -147,7 +147,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private static void AddGuidToDump () {
          foreach ( var def in AllDefs )
-            AddDataToExport( "Guid", new string[]{ def.GetType().Name, def.Guid, def.name } );
+            AddDataToExport( "Guid", def );
       }
 
       private static void AddDataToExport ( string name, object obj ) {

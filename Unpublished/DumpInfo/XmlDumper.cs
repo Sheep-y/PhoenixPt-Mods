@@ -48,6 +48,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          foreach ( var val in Data )
             ToXml( val );
          EndTag( DataType.Name );
+         RecurringObject.Clear();
       }
 
       private void ToXml ( object subject ) {

@@ -1,10 +1,14 @@
 ﻿using Base;
+using Base.Defs;
 
 using I2.Loc;
+
+using PhoenixPoint.Common.UI;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
@@ -47,8 +51,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       protected override void SortData() => Data.Sort( CompareDef );
 
       private static int CompareDef ( object left, object right ) {
-         string[] a = left as string[], b = right as string[];
-         string aid = a?[1], bid = b?[1];
+         BaseDef a = left as BaseDef, b = right as BaseDef;
+         string aid = a?.Guid, bid = b?.Guid;
          if ( aid == null ) return bid == null ? 0 : -1;
          if ( bid == null ) return 1;
          return aid.CompareTo( bid );
@@ -57,8 +61,15 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       protected override string FileExtension () => "csv";
 
       protected override void DoDump () {
-         NewCells( "Type", "Guid", "Name" );
-         Data.OfType<string[]>().ForEach( NewRow );
+         NewCells( "Type", "Guid", "name", "Name", "DispayName1", "DisplayName2", "Description", "Category" );
+         foreach ( var e in Data.OfType<BaseDef>() ) {
+            NewRow( e.GetType().Name, e.Guid, e.name );
+            ViewElementDef v = null;
+            if ( e.GetType().GetField( "ViewElementDef" ) is FieldInfo f ) v = f.GetValue( e ) as ViewElementDef;
+            else if ( e.GetType().GetProperty( "ViewElementDef" ) is PropertyInfo p ) v = p.GetValue( e ) as ViewElementDef;
+            if ( v != null )
+               NewCells( v.Name, v.DisplayName1?.Localize(), v.DisplayName2?.Localize(), v.Description?.Localize(), v.Category?.Localize() );
+         }
       }
    }
 
