@@ -22,11 +22,17 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public bool   Use_GZip = true;
       public bool   Multithread = true;
       public string Dump_Path = "";
-      public bool   Dump_Game_Settings = true;
       public bool   Dump_Command_Csv = true;
       public bool   Dump_Lang_Csv = true;
       public bool   Dump_Guid_Csv = true;
       public string[] Dump_Defs = new string[]{ "VehicleItemDef", "TacticalItemDef", "TacticalActorDef", "TacUnitClassDef", "TacMissionTypeDef", "SpecializationDef", "ResearchDef", "PhoenixFacilityDef", "GroundVehicleItemDef", "GeoscapeEventDef", "GeoSiteSceneDef", "GeoMistGeneratorDef", "GeoHavenZoneDef", "GeoFactionDef", "GeoAlienBaseDef", "GeoActorDef", "GameTagDef", "DamageKeywordDef", "ComponentSetDef", "BodyPartAspectDef", "AchievementDef", "AbilityTrackDef", "AbilityDef" };
+      public KeyValuePair< string, string >[] Dump_Others = new KeyValuePair< string, string >[] {
+         new KeyValuePair<string, string>( "GameSettings", "SharedData.GetSharedDataFromGame().AISettingsDef" ),
+         new KeyValuePair<string, string>( "GameSettings", "SharedData.GetSharedDataFromGame().ContributionSettings" ),
+         new KeyValuePair<string, string>( "GameSettings", "SharedData.GetSharedDataFromGame().DifficultyLevels" ),
+         new KeyValuePair<string, string>( "GameSettings", "SharedData.GetSharedDataFromGame().DiplomacySettings" ),
+         new KeyValuePair<string, string>( "GameSettings", "SharedData.GetSharedDataFromGame().DynamicDifficultySettings" ),
+      };
       public uint   Config_Version = 20200612;
    }
 
@@ -77,8 +83,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          }
          DumpedTypes.AddRange( StringToTypes( Config.Dump_Defs ?? new string[ 0 ] ) );
          Verbo( "Mapped {0} types", ExportType.Count );
-         if ( Config.Dump_Game_Settings )
-            ExportType.Add( "GameSettings", typeof( BaseDef ) );
       }
 
       private static IEnumerable<Type> StringToTypes ( string[] types ) =>
@@ -94,9 +98,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                if ( type.IsInstanceOfType( e ) )
                   AddDataToExport( type.Name, e );
          }
-         if ( Config.Dump_Game_Settings ) AddSettingsToDump();
          if ( Config.Dump_Guid_Csv ) AllDefs.ForEach( e => AddDataToExport( "Guid", e ) );
          if ( Config.Dump_Command_Csv ) ConsoleCommandAttribute.GetCommands().ForEach( e => AddDataToExport( "ConsoleCommand", e ) );
+         AddOthersToDump();
          var sum = ExportData.Values.Sum( e => e.Count );
          Info( "{0} entries to dump", sum );
          var multithread = Config.Multithread;
@@ -140,13 +144,27 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          }
       }
 
-      private static void AddSettingsToDump () {
-         var shared = SharedData.GetSharedDataFromGame();
-         AddDataToExport( "GameSettings", shared.AISettingsDef );
-         AddDataToExport( "GameSettings", shared.ContributionSettings );
-         AddDataToExport( "GameSettings", shared.DynamicDifficultySettings );
-         AddDataToExport( "GameSettings", shared.DiplomacySettings );
-         foreach ( var e in shared.DifficultyLevels ) AddDataToExport( "Settings", e );
+      private static void AddOthersToDump () {
+         var list = Config.Dump_Others;
+         if ( list?.Length == 0 ) return;
+         if ( Api( "api_info", "eval.cs" ) == null ) {
+            Warn( "'Dump_Others' requires Scripting Library or other mod that provides the 'eval.cs' api." );
+            return;
+         }
+         foreach ( var pair in list ) {
+            string name = pair.Key, cmd = pair.Value;
+            var data = Api( "eval.cs", cmd );
+            if ( data == null ) {
+               Info( "{0} is null", cmd );
+               continue;
+            } else if ( data is Exception ex ) {
+               Error( "Error evaluating {0} - {1}", cmd, ex );
+               continue;
+            }
+            AddDataToExport( name, data );
+            if ( ! ExportType.ContainsKey( name ) )
+               ExportType.Add( name, typeof( BaseDef ) );
+         }
       }
 
       private static void AddDataToExport ( string name, object obj ) {
