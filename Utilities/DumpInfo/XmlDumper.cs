@@ -99,7 +99,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                if ( WasDumped( name, val, out id ) ) return;
             } else if ( Skip_Dumped_Objects )
                id = RecurringObject[ val ];
-            if ( IsEmpty( val ) ) { StartTag( name, true, "empty", "true" ); return; }
+            if ( IsEmpty( val ) ) { StartTag( name, true, "empty", "1" ); return; }
             if ( bDef != null )
                SimpleBaseDef( name, bDef, false );
             else if ( id < 0 )
@@ -155,6 +155,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private bool IsEmpty ( object subject ) { try {
          if ( ! Skip_Empty_Objects ) return false;
          if ( subject is AK.Wwise.Event wEvt ) return wEvt.WwiseObjectReference == null && wEvt.ObjectReference == null && wEvt.Id == 0;
+         if ( subject is AK.Wwise.Switch wSwt ) return wSwt.WwiseObjectReference == null && wSwt.ObjectReference == null && wSwt.GroupWwiseObjectReference == null;
          var type = subject.GetType();
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) {
             if ( IsObsolete( f ) ) continue;
