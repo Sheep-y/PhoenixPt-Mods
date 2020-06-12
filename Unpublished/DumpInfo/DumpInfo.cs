@@ -21,7 +21,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public bool   Multithread = true;
       public string Dump_Path = "";
       public bool   Dump_Settings = true;
-      public string[] Dump_Types = new string[]{ "AbilityDef", "AbilityTrackDef", "AchievementDef", "BodyPartAspectDef", "ComponentSetDef", "DamageKeywordDef", "GameTagDef", "GeoActorDef", "GeoAlienBaseDef", "GeoFactionDef", "GeoHavenZoneDef", "GeoMistGeneratorDef", "GeoSiteSceneDef", "GeoscapeEventDef", "GroundVehicleItemDef", "PhoenixFacilityDef", "ResearchDef", "SpecializationDef", "TacMissionTypeDef", "TacUnitClassDef", "TacticalActorDef", "TacticalItemDef", "VehicleItemDef" };
+      public bool   Dump_Lang_Text = true;
+      public string[] Dump_Defs = new string[]{ "AbilityDef", "AbilityTrackDef", "AchievementDef", "BodyPartAspectDef", "ComponentSetDef", "DamageKeywordDef", "GameTagDef", "GeoActorDef", "GeoAlienBaseDef", "GeoFactionDef", "GeoHavenZoneDef", "GeoMistGeneratorDef", "GeoSiteSceneDef", "GeoscapeEventDef", "GroundVehicleItemDef", "PhoenixFacilityDef", "ResearchDef", "SpecializationDef", "TacMissionTypeDef", "TacUnitClassDef", "TacticalActorDef", "TacticalItemDef", "VehicleItemDef" };
       public uint   Config_Version = 20200612;
    }
 
@@ -58,7 +59,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private void BuildTypeMap () {
          Info( "Buiding type map" );
-         ExportType.Add( nameof( TermData ), typeof( TermData ) );
+         if ( Config.Dump_Lang_Text )
+            ExportType.Add( nameof( TermData ), typeof( TermData ) );
          ExportType.Add( nameof( BaseDef ), typeof( BaseDef ) );
          foreach ( var def in GameUtl.GameComponent< DefRepository >().DefRepositoryDef.AllDefs ) {
             var type = def.GetType();
@@ -68,7 +70,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                type = type.BaseType;
             }
          }
-         DumpedTypes.AddRange( StringToTypes( Config.Dump_Types ) );
+         DumpedTypes.AddRange( StringToTypes( Config.Dump_Defs ) );
          Verbo( "Mapped {0} types", ExportType.Count );
          if ( Config.Dump_Settings )
             ExportType.Add( "Settings", typeof( BaseDef ) );
@@ -79,16 +81,18 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private static void DumpData () { try {
          Info( "Dumping data to {0}", DumpDir );
-         Info( "Scanning text" );
-         foreach ( var src in LocalizationManager.Sources ) {
-            var name = "Text " + src.mDictionary.FirstOrDefault().Key;
-            if ( name == null ) continue;
-            if ( src.HasUnloadedLanguages() ) {
-               src.LoadAllLanguages( true );
-               Info( "Loading {0}", name );
+         if ( Config.Dump_Lang_Text ) {
+            Info( "Scanning text" );
+            foreach ( var src in LocalizationManager.Sources ) {
+               var name = "Text " + src.mDictionary.FirstOrDefault().Key;
+               if ( name == null ) continue;
+               if ( src.HasUnloadedLanguages() ) {
+                  src.LoadAllLanguages( true );
+                  Info( "Loading {0}", name );
+               }
+               foreach ( var term in src.mDictionary )
+                  AddDataToExport( name, term.Value );
             }
-            foreach ( var term in src.mDictionary )
-               AddDataToExport( name, term.Value );
          }
          Info( "Scanning data" );
          Type[] wanted = DumpedTypes.ToArray();
