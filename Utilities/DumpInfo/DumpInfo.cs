@@ -26,12 +26,12 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public bool   Dump_Lang_Csv = true;
       public bool   Dump_Guid_Csv = true;
       public string[] Dump_Defs = new string[]{ "VehicleItemDef", "TacticalItemDef", "TacticalActorDef", "TacUnitClassDef", "TacMissionTypeDef", "SpecializationDef", "ResearchDef", "PhoenixFacilityDef", "GroundVehicleItemDef", "GeoscapeEventDef", "GeoSiteSceneDef", "GeoMistGeneratorDef", "GeoHavenZoneDef", "GeoFactionDef", "GeoAlienBaseDef", "GeoActorDef", "GameTagDef", "DamageKeywordDef", "ComponentSetDef", "BodyPartAspectDef", "AchievementDef", "AbilityTrackDef", "AbilityDef" };
-      public KeyValuePair< string, string >[] Dump_Others = new KeyValuePair< string, string >[] {
-         new KeyValuePair<string, string>( "GameSettings", "SharedData.GetSharedDataFromGame().AISettingsDef" ),
-         new KeyValuePair<string, string>( "GameSettings", "SharedData.GetSharedDataFromGame().ContributionSettings" ),
-         new KeyValuePair<string, string>( "GameSettings", "SharedData.GetSharedDataFromGame().DifficultyLevels" ),
-         new KeyValuePair<string, string>( "GameSettings", "SharedData.GetSharedDataFromGame().DiplomacySettings" ),
-         new KeyValuePair<string, string>( "GameSettings", "SharedData.GetSharedDataFromGame().DynamicDifficultySettings" ),
+      public string[] Dump_Others = new string[] {
+         "GameSettings", "SharedData.GetSharedDataFromGame().AISettingsDef",
+         "GameSettings", "SharedData.GetSharedDataFromGame().ContributionSettings",
+         "GameSettings", "SharedData.GetSharedDataFromGame().DifficultyLevels",
+         "GameSettings", "SharedData.GetSharedDataFromGame().DiplomacySettings",
+         "GameSettings", "SharedData.GetSharedDataFromGame().DynamicDifficultySettings",
       };
       public uint   Config_Version = 20200612;
    }
@@ -151,8 +151,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             Warn( "'Dump_Others' requires Scripting Library or other mod that provides the 'eval.cs' api." );
             return;
          }
-         foreach ( var pair in list ) {
-            string name = pair.Key, cmd = pair.Value;
+         for ( var i = 0 ; i < list.Length-1 ; i += 2 ) {
+            string name = list[ i ] ?? "Others", cmd = list[ i + 1 ];
             var data = Api( "eval.cs", cmd );
             if ( data == null ) {
                Info( "{0} is null", cmd );
