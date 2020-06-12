@@ -14,6 +14,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public ushort Depth = 50;
       public bool   Skip_Dumped_Objects = true;
       public bool   Skip_Dumped_Defs = true;
+      public bool   Skip_Empty_Objects = true;
+      public bool   Skip_Empty_Lists = true;
+      public bool   Skip_Zeros = true;
       public bool   Use_GZip = true;
       public bool   Multithread = true;
       public string Dump_Path = "";
