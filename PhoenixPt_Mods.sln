@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlatDifficulty", "Unpublish
 		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumpInfo", "Unpublished\DumpInfo\DumpInfo.csproj", "{9EB89B81-E091-492C-B029-48B04E9148A6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumpInfo", "Utilities\DumpInfo\DumpInfo.csproj", "{9EB89B81-E091-492C-B029-48B04E9148A6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
 	EndProjectSection

@@ -93,7 +93,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          NewCells( "Command", "Parameter", "Description" );
          FieldInfo _method = typeof( ConsoleCommandAttribute ).GetField( "_methodInfo", BindingFlags.NonPublic | BindingFlags.Instance );
          foreach ( var cmd in Data.OfType<ConsoleCommandAttribute>() )
-            NewRow( cmd.Command, string.Join( ", ", ( _method.GetValue( cmd ) as MethodInfo ).GetParameters().Skip( 1 ).Select( e => e.ParameterType.Name ) ), cmd.Description );
+            NewRow( cmd.Command, string.Join( ", ", ( _method.GetValue( cmd ) as MethodInfo ).GetParameters()
+               .Skip( 1 ).Select( e => e.ParameterType.Name + " " + e.Name ) ), cmd.Description );
       }
    }
 }
