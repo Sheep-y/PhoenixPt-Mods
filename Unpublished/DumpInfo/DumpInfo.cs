@@ -43,11 +43,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       internal static string DumpDir;
       internal static string GameVersion;
 
-      private static IPatch DumpPatch;
-
       public void MainMod ( Func< string, object, object > api ) => GeoscapeOnShow( api );
 
       public void GeoscapeOnShow ( Func< string, object, object > api = null ) {
+         if ( HasApi ) return; // Run only once
          SetApi( api, out Config );
          if ( string.IsNullOrWhiteSpace( Config.Dump_Path ) ) {
             DumpDir = Api( "path" )?.ToString();
@@ -55,18 +54,17 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          } else
             DumpDir = Config.Dump_Path;
          GameVersion = Api( "version", "game" )?.ToString();
-         DumpPatch = Patch( typeof( GeoscapeView ), "ResetViewState", null, postfix: nameof( DumpData ) );
+         DumpData();
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogWeapons ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogAbilities ) );
          //Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: nameof( DumpResearches ) );
          //Patch( typeof( ItemManufacturing ), "AddAvailableItem", nameof( LogItem ) );
       }
 
-      private static Dictionary< string, List<object> > ExportData = new Dictionary< string, List<object> >();
-      private static Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
+      private static readonly Dictionary< string, List<object> > ExportData = new Dictionary< string, List<object> >();
+      private static readonly Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
 
       private static void DumpData () { try {
-         Unpatch( ref DumpPatch );
          Info( "Dumping data to {0}", DumpDir );
          Info( "Scanning text" );
          foreach ( var src in LocalizationManager.Sources ) {
