@@ -12,13 +12,13 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
    internal class ModConfig {
       public ushort Depth = 50;
-      public bool   Replace_Recur_With_Ref = true;
+      public bool   Skip_Dumped_Objects = true;
+      public bool   Skip_Dumped_Defs = true;
       public bool   Use_GZip = true;
       public bool   Multithread = true;
       public string Dump_Path = "";
       public bool   Dump_Settings = true;
-      public string[] Dump_Types = new string[]{ "AbilityDef", "AbilityTrackDef", "AchievementDef", "AlienMonsterClassDef", "BodyPartAspectDef", "DamageKeywordDef", "GameTagDef", "GeoActorDef", "GeoAlienBaseDef", "GeoFactionDef", "GeoHavenZoneDef", "GeoMistGeneratorDef", "GeoSiteSceneDef", "GeoscapeEventDef", "GroundVehicleItemDef", "PhoenixFacilityDef", "ResearchDef", "SpecializationDef", "TacMissionDef ", "TacUnitClassDef", "TacticalActorDef", "TacticalItemDef", "VehicleItemDef" };
-      public string[] Skip_Recur = new string[]{ "GameTagDef", "GeoFactionDef", "TacticalActorDef", "TacticalItemDef", "TacMissionDef" };
+      public string[] Dump_Types = new string[]{ "AbilityDef", "AbilityTrackDef", "AchievementDef", "BodyPartAspectDef", "ComponentSetDef", "DamageKeywordDef", "GameTagDef", "GeoActorDef", "GeoAlienBaseDef", "GeoFactionDef", "GeoHavenZoneDef", "GeoMistGeneratorDef", "GeoSiteSceneDef", "GeoscapeEventDef", "GroundVehicleItemDef", "PhoenixFacilityDef", "ResearchDef", "SpecializationDef", "TacMissionTypeDef", "TacUnitClassDef", "TacticalActorDef", "TacticalItemDef", "VehicleItemDef" };
       public uint   Config_Version = 20200612;
    }
 
@@ -51,7 +51,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private  static readonly Dictionary< string, List<object> > ExportData = new Dictionary< string, List<object> >();
       private  static readonly Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
-      internal static readonly List<Type> SkipRecur = new List<Type>();
+      internal static readonly List<Type> DumpedTypes = new List<Type>();
 
       private void BuildTypeMap () {
          Info( "Buiding type map" );
@@ -65,7 +65,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                type = type.BaseType;
             }
          }
-         SkipRecur.AddRange( StringToTypes( Config.Skip_Recur ) );
+         DumpedTypes.AddRange( StringToTypes( Config.Dump_Types ) );
          Verbo( "Mapped {0} types", ExportType.Count );
          if ( Config.Dump_Settings )
             ExportType.Add( "Settings", typeof( BaseDef ) );
@@ -88,7 +88,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                AddDataToExport( name, term.Value );
          }
          Info( "Scanning data" );
-         Type[] wanted = StringToTypes( Config.Dump_Types ).ToArray();
+         Type[] wanted = DumpedTypes.ToArray();
          foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs ) {
             foreach ( var type in wanted )
                if ( type.IsInstanceOfType( e ) )

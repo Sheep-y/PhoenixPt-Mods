@@ -29,14 +29,16 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
          var config = Mod.Config;
          Depth = config.Depth;
-         Replace_Recur_With_Ref = config.Replace_Recur_With_Ref;
+         Skip_Dumped_Objects = config.Skip_Dumped_Objects;
+         Skip_Dumped_Defs   = config.Skip_Dumped_Defs;
       }
 
       private StreamWriter Writer;
       private readonly Dictionary< object, int > RecurringObject = new Dictionary< object, int >();
 
-      private readonly ushort Depth = 50;
-      private readonly bool   Replace_Recur_With_Ref = true;
+      private readonly ushort Depth;
+      private readonly bool   Skip_Dumped_Objects;
+      private readonly bool   Skip_Dumped_Defs;
 
       private string DeleteOldDumps () {
          var path = Path.Combine( Mod.DumpDir, Filename + ".xml" );
@@ -108,8 +110,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             var bDef = val as BaseDef;
             if ( ! ( val is Array ) ) { // Simple objects
                if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
-               if ( bDef != null )
-                  foreach ( var simpleDef in Mod.SkipRecur )
+               if ( bDef != null && Skip_Dumped_Defs )
+                  foreach ( var simpleDef in Mod.DumpedTypes )
                      if ( DataType != simpleDef && simpleDef.IsAssignableFrom( val.GetType() ) ) {
                         SimpleBaseDef( name, bDef );
                         return;
@@ -125,7 +127,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             int id = -1;
             if ( level > 0 ) {
                if ( isRecur( name, val, out id ) ) return;
-            } else if ( Replace_Recur_With_Ref )
+            } else if ( Skip_Dumped_Objects )
                id = RecurringObject[ val ];
             if ( bDef != null )
                SimpleBaseDef( name, bDef, false );
@@ -144,7 +146,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private bool isRecur ( string name, object val, out int id ) {
          id = -1;
-         if ( ! Replace_Recur_With_Ref ) return false;
+         if ( ! Skip_Dumped_Objects ) return false;
          try {
             if ( RecurringObject.TryGetValue( val, out int link ) ) {
                if ( val is BaseDef bDef )
