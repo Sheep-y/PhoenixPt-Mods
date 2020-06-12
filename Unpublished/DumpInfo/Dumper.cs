@@ -110,6 +110,10 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             var bDef = val as BaseDef;
             if ( ! ( val is Array ) ) { // Simple objects
                if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
+               if ( val is AK.Wwise.Event wEvt && wEvt.WwiseObjectReference == null && wEvt.ObjectReference == null && wEvt.ID == 0 ) { // TODO: Replace with generic empty detection
+                  StartTag( name, true, "Name", wEvt.Name );
+                  return;
+               }
                if ( bDef != null && Skip_Dumped_Defs )
                   foreach ( var simpleDef in Mod.DumpedTypes )
                      if ( DataType != simpleDef && simpleDef.IsAssignableFrom( val.GetType() ) ) {
