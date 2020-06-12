@@ -1,11 +1,7 @@
 ({
-   /* Please make sure id is unique! Same id = only one survives. */
    Id : "Sheepy.SkipIntro",
-   // Version is read from Assembly Information.  But you can override it here if you want to.
-
-   /* Mod Declarations and Descriptions */
-   Lang : "-", // Language-independent
-   Duration : "temp", // Effects are temporary and does not affect saves
+   Lang : "-",
+   Duration : "temp",
    Name : {
       en : "Skip Intro",
       zh : "略過片頭" },
@@ -18,10 +14,8 @@
    },
 
    /* Disable pre-modnix version, which has filename-based id. */
-   Disables :
-      { Id: "PhoenixPt_SkipIntro", Max: "1.1.0.0" },
+   Disables : { Id: "PhoenixPt_SkipIntro", Max: "1.1.0.0" },
 
-   /* Config files will be created when user click "Reset". */
    ConfigType : "Sheepy.PhoenixPt.SkipIntro.ModConfig",
 
    /* Legacy config for Modnix 1.0 */
