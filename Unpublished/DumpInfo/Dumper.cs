@@ -23,7 +23,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       protected readonly string Filename;
       protected readonly Type DataType;
       protected readonly List<object> Data;
-      private const int MaxDepth = 50;
 
       internal Dumper ( string name, Type key, List<object> list ) {
          foreach ( var chr in Path.GetInvalidFileNameChars() )
@@ -46,27 +45,33 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             var buffer = new GZipStream( fstream, CompressionLevel.Optimal );
             using ( var writer = new StreamWriter( buffer ) ) {
                Writer = writer;
-               writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
-               var attr = new List<string>{ "count", Data.Count.ToString() };
-               if ( Mod.GameVersion != null ) attr.AddRange( new string[]{ "game", Mod.GameVersion } );
-               attr.AddRange( new string[]{ "dumpinfo", Assembly.GetExecutingAssembly().GetName().Version.ToString() } );
-               StartTag( DataType.Name, false, attr.ToArray() );
-               foreach ( var val in Data )
-                  ToXml( val );
-               EndTag( DataType.Name );
-               writer.Flush();
+               DumpToWriter();
             }
          }
-         //Info( "{0} dumped, {1} bytes", key.Name, new FileInfo( path ).Length );
+         ZyMod.Verbo( "Finished {0}, {1} bytes written", DataType.Name, new FileInfo( path ).Length );
          Data.Clear();
          RecurringObject.Clear();
       } }
+
+      private void DumpToWriter () {
+         Writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
+         var attr = new List<string>{ "count", Data.Count.ToString() };
+         if ( Mod.GameVersion != null ) attr.AddRange( new string[]{ "game", Mod.GameVersion } );
+         attr.AddRange( new string[]{ "dumpinfo", Assembly.GetExecutingAssembly().GetName().Version.ToString() } );
+         StartTag( DataType.Name, false, attr.ToArray() );
+         foreach ( var val in Data )
+            RecurringObject.Add( val, RecurringObject.Count );
+         foreach ( var val in Data )
+            ToXml( val );
+         EndTag( DataType.Name );
+         Writer.Flush();
+      }
 
       protected abstract void SortData();
 
       private void ToXml ( object subject ) {
          if ( subject == null ) return;
-         Mem2Xml( subject.GetType().Name, subject, MaxDepth );
+         Mem2Xml( subject.GetType().Name, subject, 0 );
          Writer.Write( '\n' );
       }
 
@@ -103,22 +108,16 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
                   { StartTag( name, true, "type", type.FullName ); return; }
             }
-            if ( level <= 0 ) { SimpleMem( name, "..." ); return; }
+            if ( level >= Mod.Config.Depth ) { SimpleMem( name, "..." ); return; }
             if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
-               DumpList( name, list, level - 1 );
+               DumpList( name, list, level + 1 );
                return;
             }
-            try {
-               if ( RecurringObject.TryGetValue( val, out int link ) ) {
-                  if ( bDef != null )
-                     SimpleBaseDef( name, bDef );
-                  else
-                     StartTag( name, true, "ref", link.ToString( "X" ) );
-                  return;
-               }
-            } catch ( Exception ex ) { StartTag( name, true, "err_H", ex.GetType().Name ); return; } // Hash error
-            var id = RecurringObject.Count;
-            RecurringObject.Add( val, id );
+            int id;
+            if ( level > 0 ) {
+               if ( isRecur( name, val, out id ) ) return;
+            } else
+               id = RecurringObject[ val ];
             if ( bDef != null )
                SimpleBaseDef( name, bDef, false );
             else
@@ -128,8 +127,24 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( val is Color color ) { WriteColour( name, color ); return; }
             StartTag( name ); // Other structs
          }
-         Obj2Xml( val, level - 1 ); // Either structs or non-enum objects
+         Obj2Xml( val, level + 2 ); // Either structs or non-enum objects
          EndTag( name );
+      }
+
+      private bool isRecur ( string name, object val, out int id ) {
+         id = -1;
+         try {
+            if ( RecurringObject.TryGetValue( val, out int link ) ) {
+               if ( val is BaseDef bDef )
+                  SimpleBaseDef( name, bDef );
+               else
+                  StartTag( name, true, "ref", link.ToString( "X" ) );
+               return true;
+            }
+         } catch ( Exception ex ) { StartTag( name, true, "err_H", ex.GetType().Name ); return true; } // Hash error
+         id = RecurringObject.Count;
+         RecurringObject.Add( val, id );
+         return false;
       }
 
       private void SimpleBaseDef ( string tag, BaseDef def, bool selfClose = true ) => StartTag( tag, selfClose, "name", def.name, "guid", def.Guid );
@@ -149,16 +164,16 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       private void Obj2Xml ( object subject, int level ) {
          var type = subject.GetType();
          if ( level == 0 ) { Writer.Write( type.Name, subject, 1 ); return; }
-         if ( level > MaxDepth ) { Writer.Write( "..." ); return; }
+         if ( level > Mod.Config.Depth ) { Writer.Write( "..." ); return; }
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
-            Mem2Xml( f.Name, f.GetValue( subject ), level - 1 );
+            Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
             StartTag( f.Name, true, "err_F", ex.GetType().Name ); // Field.GetValue error
          }
          if ( subject.GetType().IsClass ) {
             foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
                if ( f.GetCustomAttributes( typeof( ObsoleteAttribute ), false ).Any() ) continue;
-               Mem2Xml( f.Name, f.GetValue( subject ), level - 1 );
+               Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
             } catch ( ApplicationException ex ) {
                StartTag( f.Name, true, "err_P", ex.GetType().Name ); // Property.GetValue error
             }

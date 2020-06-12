@@ -26,8 +26,18 @@ using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
+   internal class ModConfig {
+      public ushort Depth = 50;
+      public bool   Replace_Recur_With_Ref = true;
+      public bool   Use_GZip = true;
+      public bool   Multithread = true;
+      public uint   Config_Version = 20200612;
+   }
+
    public class Mod : ZyMod {
-      public void Init () => new Mod().GeoscapeMod();
+      internal static ModConfig Config;
+
+      public static void Init () => new Mod().GeoscapeMod();
 
       internal static string ModDir;
       internal static string GameVersion;
@@ -37,7 +47,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public void MainMod ( Func< string, object, object > api ) => GeoscapeMod( api );
 
       public void GeoscapeMod ( Func< string, object, object > api = null ) {
-         SetApi( api );
+         SetApi( api, out Config );
          if ( api != null ) {
             ModDir = api( "path", null )?.ToString();
             ModDir = ModDir == null ? "." : Path.GetDirectoryName( ModDir );
