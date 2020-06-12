@@ -50,6 +50,15 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          writer.Flush();
       }
 
+      protected static Comparison<object> CompareDef < T, V > ( Func<T,V> mapper ) where T : class where V : IComparable<V> {
+         return ( left, right ) => {
+            V a = mapper( left as T ), b = mapper( right as T );
+            if ( a == null ) return b == null ? 0 : -1;
+            if ( b == null ) return 1;
+            return a.CompareTo( b );
+         };
+      }
+
       protected abstract string FileExtension();
       protected abstract void SortData();
       protected abstract void DoDump();

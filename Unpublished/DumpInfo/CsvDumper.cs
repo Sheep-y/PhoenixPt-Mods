@@ -1,15 +1,10 @@
-﻿using Base;
-using Base.Defs;
-
+﻿using Base.Defs;
 using I2.Loc;
-
 using PhoenixPoint.Common.UI;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace Sheepy.PhoenixPt.DumpInfo {
 
@@ -48,15 +43,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
    internal class GuidDumper : CsvDumper {
       internal GuidDumper ( string name, List<object> list ) : base( name, list ) { }
 
-      protected override void SortData() => Data.Sort( CompareDef );
-
-      private static int CompareDef ( object left, object right ) {
-         BaseDef a = left as BaseDef, b = right as BaseDef;
-         string aid = a?.Guid, bid = b?.Guid;
-         if ( aid == null ) return bid == null ? 0 : -1;
-         if ( bid == null ) return 1;
-         return aid.CompareTo( bid );
-      }
+      protected override void SortData() => Data.Sort( CompareDef< BaseDef, string >( e => e?.Guid ) );
 
       protected override string FileExtension () => "csv";
 
@@ -81,15 +68,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       protected override void SortData() {
          Codes = Data[ 0 ] as List<string>;
          Data.Remove( 0 );
-         Data.Sort( CompareDef );
-      }
-
-      private static int CompareDef ( object left, object right ) {
-         TermData a = left as TermData, b = right as TermData;
-         string aid = a?.Term, bid = b?.Term;
-         if ( aid == null ) return bid == null ? 0 : -1;
-         if ( bid == null ) return 1;
-         return aid.CompareTo( bid );
+         Data.Sort( CompareDef< TermData, string >( e => e?.Term ) );
       }
 
       protected override string FileExtension () => "csv";
