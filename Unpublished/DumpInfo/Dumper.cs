@@ -30,31 +30,46 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Filename = name.Trim();
          DataType = key;
          Data = list;
+
+         var config = Mod.Config;
+         Depth = config.Depth;
+         Replace_Recur_With_Ref = config.Replace_Recur_With_Ref;
       }
 
       private StreamWriter Writer;
-      private Dictionary< object, int > RecurringObject = new Dictionary< object, int >();
+      private readonly Dictionary< object, int > RecurringObject = new Dictionary< object, int >();
 
-      internal void DumpData () { lock ( Data ) {
+      private readonly ushort Depth = 50;
+      private readonly bool   Replace_Recur_With_Ref = true;
+
+      private string DeleteOldDumps () {
+         var path = Path.Combine( Mod.ModDir, Filename + ".xml" );
+         var gz = path + ".gz";
+         File.Delete( path );
+         File.Delete( gz );
+         return Mod.Config.Use_GZip ? gz : path;
+      }
+
+      internal void DumpData () { try { lock ( Data ) {
          ZyMod.Info( "Dumping {0} ({1})", DataType.Name, Data.Count );
          SortData();
-         var path = Path.Combine( Mod.ModDir, Filename + ".xml.gz" );
-         File.Delete( path );
+         var path = DeleteOldDumps();
          using ( var fstream = new FileStream( path, FileMode.Create ) ) {
-            //var buffer = new BufferedStream( fstream );
-            var buffer = new GZipStream( fstream, CompressionLevel.Optimal );
-            using ( var writer = new StreamWriter( buffer ) ) {
-               Writer = writer;
-               DumpToWriter();
+            if ( Mod.Config.Use_GZip ) {
+               var buffer = new GZipStream( fstream, CompressionLevel.Optimal );
+               using ( var writer = new StreamWriter( buffer ) ) DumpToWriter( writer );
+            } else {
+               using ( var writer = new StreamWriter( fstream ) ) DumpToWriter( writer );
             }
          }
          ZyMod.Verbo( "Finished {0}, {1} bytes written", DataType.Name, new FileInfo( path ).Length );
          Data.Clear();
          RecurringObject.Clear();
-      } }
+      } } catch ( Exception ex ) {  ZyMod.Error( ex ); } }
 
-      private void DumpToWriter () {
-         Writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
+      private void DumpToWriter ( StreamWriter writer ) {
+         Writer = writer;
+         writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
          var attr = new List<string>{ "count", Data.Count.ToString() };
          if ( Mod.GameVersion != null ) attr.AddRange( new string[]{ "game", Mod.GameVersion } );
          attr.AddRange( new string[]{ "dumpinfo", Assembly.GetExecutingAssembly().GetName().Version.ToString() } );
@@ -64,7 +79,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          foreach ( var val in Data )
             ToXml( val );
          EndTag( DataType.Name );
-         Writer.Flush();
+         writer.Flush();
       }
 
       protected abstract void SortData();
@@ -108,18 +123,20 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                if ( type.Namespace?.StartsWith( "UnityEngine", StringComparison.InvariantCulture ) == true )
                   { StartTag( name, true, "type", type.FullName ); return; }
             }
-            if ( level >= Mod.Config.Depth ) { SimpleMem( name, "..." ); return; }
+            if ( level >= Depth ) { SimpleMem( name, "..." ); return; }
             if ( val is IEnumerable list && ! ( val is AddonDef ) ) {
                DumpList( name, list, level + 1 );
                return;
             }
-            int id;
+            int id = -1;
             if ( level > 0 ) {
                if ( isRecur( name, val, out id ) ) return;
-            } else
+            } else if ( Replace_Recur_With_Ref )
                id = RecurringObject[ val ];
             if ( bDef != null )
                SimpleBaseDef( name, bDef, false );
+            else if ( id < 0 )
+               StartTag( name, false );
             else
                StartTag( name, false, "id", id.ToString( "X" ) );
          } else {
@@ -133,6 +150,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private bool isRecur ( string name, object val, out int id ) {
          id = -1;
+         if ( ! Replace_Recur_With_Ref ) return false;
          try {
             if ( RecurringObject.TryGetValue( val, out int link ) ) {
                if ( val is BaseDef bDef )

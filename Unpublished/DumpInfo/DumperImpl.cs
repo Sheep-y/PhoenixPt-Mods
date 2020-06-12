@@ -22,8 +22,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       }
    }
 
-   internal class TermDumper : Dumper {
-      internal TermDumper ( string name, Type key, List<object> list ) : base( name, key, list ) { }
+   internal class LangDumper : Dumper {
+      internal LangDumper ( string name, Type key, List<object> list ) : base( name, key, list ) { }
 
       protected override void SortData() => Data.Sort( CompareDef );
 

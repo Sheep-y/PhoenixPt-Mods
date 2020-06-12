@@ -100,16 +100,21 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          AddDataToExport( "BaseDef", typeof( BaseDef ), shared.DiplomacySettings );
          foreach ( var e in shared.DifficultyLevels ) AddDataToExport( "BaseDef", typeof( BaseDef ), e );
          var sum = ExportData.Values.Sum( e => e.Count );
-         var tasks = new List<Task>();
+         var multithread = Config.Multithread;
+         var tasks = multithread ? new List<Task>() : null;
          foreach ( var entry in ExportData ) { lock( entry.Value ) {
             var type = ExportType[ entry.Key ];
             var dump = type == typeof( TermData )
-                  ? (Dumper) new TermDumper( entry.Key, type, entry.Value )
+                  ? (Dumper) new LangDumper( entry.Key, type, entry.Value )
                   : new BaseDefDumper( "Data-" + entry.Key, type, entry.Value ) ;
-            var task = Task.Run( dump.DumpData );
-            tasks.Add( task );
+            if ( multithread ) {
+               var task = Task.Run( dump.DumpData );
+               tasks.Add( task );
+            } else
+               dump.DumpData();
          } }
-         Task.WaitAll( tasks.ToArray() );
+         if ( multithread )
+            Task.WaitAll( tasks.ToArray() );
          Info( "{0} entries dumped", sum );
          ExportData.Clear();
       } catch ( Exception ex ) { Error( ex ); } }
