@@ -18,6 +18,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public string Dump_Path = "";
       public bool   Dump_Settings = true;
       public string[] Dump_Types = new string[]{ "AbilityDef", "AbilityTrackDef", "AchievementDef", "AlienMonsterClassDef", "BodyPartAspectDef", "DamageKeywordDef", "GameTagDef", "GeoActorDef", "GeoAlienBaseDef", "GeoFactionDef", "GeoHavenZoneDef", "GeoMistGeneratorDef", "GeoSiteSceneDef", "GeoscapeEventDef", "GroundVehicleItemDef", "PhoenixFacilityDef", "ResearchDef", "SpecializationDef", "TacMissionDef ", "TacUnitClassDef", "TacticalActorDef", "TacticalItemDef", "VehicleItemDef" };
+      public string[] Skip_Recur = new string[]{ "GameTagDef", "GeoFactionDef", "TacticalActorDef", "TacticalItemDef", "TacMissionDef" };
       public uint   Config_Version = 20200612;
    }
 
@@ -48,8 +49,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          //Patch( typeof( ItemManufacturing ), "AddAvailableItem", nameof( LogItem ) );
       }
 
-      private static readonly Dictionary< string, List<object> > ExportData = new Dictionary< string, List<object> >();
-      private static readonly Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
+      private  static readonly Dictionary< string, List<object> > ExportData = new Dictionary< string, List<object> >();
+      private  static readonly Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
+      internal static readonly List<Type> SkipRecur = new List<Type>();
 
       private void BuildTypeMap () {
          Info( "Buiding type map" );
@@ -63,10 +65,14 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                type = type.BaseType;
             }
          }
+         SkipRecur.AddRange( StringToTypes( Config.Skip_Recur ) );
          Verbo( "Mapped {0} types", ExportType.Count );
          if ( Config.Dump_Settings )
             ExportType.Add( "Settings", typeof( BaseDef ) );
       }
+
+      private static IEnumerable<Type> StringToTypes ( string[] types ) =>
+         types?.Select( name => ExportType.TryGetValue( name, out Type type ) ? type : null ).Where( e => e != null ) ?? Enumerable.Empty<Type>();
 
       private static void DumpData () { try {
          Info( "Dumping data to {0}", DumpDir );
@@ -82,7 +88,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                AddDataToExport( name, term.Value );
          }
          Info( "Scanning data" );
-         Type[] wanted = Config.Dump_Types.Select( name => ExportType.TryGetValue( name, out Type type ) ? type : null ).Where( e => e != null ).ToArray();
+         Type[] wanted = StringToTypes( Config.Dump_Types ).ToArray();
          foreach ( var e in GameUtl.GameComponent<DefRepository>().DefRepositoryDef.AllDefs ) {
             foreach ( var type in wanted )
                if ( type.IsInstanceOfType( e ) )
@@ -123,6 +129,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             ExportData.Add( name, list = new List<object>() );
          list.Add( obj );
       }
+
       /*
       #region Manual dump code
       private static void DumpWeapons ( GeoLevelController __instance ) { try {

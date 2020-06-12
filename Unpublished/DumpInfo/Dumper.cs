@@ -1,10 +1,6 @@
 ﻿using Base.Defs;
 using Base.UI;
 using PhoenixPoint.Common.Entities.Addons;
-using PhoenixPoint.Common.Entities.GameTags;
-using PhoenixPoint.Geoscape.Levels;
-using PhoenixPoint.Tactical.Entities;
-using PhoenixPoint.Tactical.Entities.Equipments;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -90,8 +86,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Writer.Write( '\n' );
       }
 
-      private Type[] SimpleDefs = new Type[]{ typeof( GeoFactionDef ), typeof( TacticalActorDef ), typeof( TacticalItemDef ), typeof( GameTagDef ) };
-
       private void Mem2Xml ( string name, object val, int level ) {
          if ( val == null ) { NullMem( name ); return; }
          if ( val is string str ) { StartTag( name, true, "val", str ); return; }
@@ -115,7 +109,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             if ( ! ( val is Array ) ) { // Simple objects
                if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
                if ( bDef != null )
-                  foreach ( var simpleDef in SimpleDefs )
+                  foreach ( var simpleDef in Mod.SkipRecur )
                      if ( DataType != simpleDef && simpleDef.IsAssignableFrom( val.GetType() ) ) {
                         SimpleBaseDef( name, bDef );
                         return;
