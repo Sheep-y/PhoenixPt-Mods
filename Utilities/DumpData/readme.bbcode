@@ -1,18 +1,18 @@
-﻿Designed for [url=https://www.nexusmods.com/phoenixpoint/mods/43]Modnix 3[/url] with [url=https://www.nexusmods.com/phoenixpoint/mods/49]Scripting Library[/url].  Other mod loaders work but dump less data.
+﻿[code]﻿[/code]Designed for [url=https://www.nexusmods.com/phoenixpoint/mods/43]Modnix 3[/url] with [url=https://www.nexusmods.com/phoenixpoint/mods/49]Scripting Library[/url].  Other mod loaders may work but would dump less data.
 
 This mod will, when you first enter Geoscape after game launch, take the live data from game and export them.
 Modders of all skill levels should find the data useful when modding Phoenix Point.
 
-The data dumps are written to the mod's folder by default.
+The data dumps are saved to the mod's folder by default.
 In Modnix you can select a mod to see its path, and can click on it to open File Explorer.
 
 [b]Guid[/b]
 
-[code]Guid.csv[/code] lists the type, guid, name, and ViewElementDef text (if any) of all Defs in the game.
-You can use it to find the guid / name of every data.  If it is not on the list, it is not in [code]DefRepositoryDef[/code].
+[code]Guid.csv[/code] lists the type, guid, name, and current ViewElementDef text (if any) of all Defs in the game.
+You can use it to find the guid / name of every data.  If it is not on the list, it is not in [code]DefRepository[/code].
 
 Note that guid of some data types may not stay the same from patch to patch.
-Example includes but are not limited to various [code]RequirementDef[/code], [code]RewardDef[/code], and [code]CostDef[/code].
+Examples include but are not limited to various [code]RequirementDef[/code], [code]RewardDef[/code], and [code]CostDef[/code].
 
 [b]BaseDef[/b]
 
@@ -20,25 +20,25 @@ BaseDefs practically define all game data, such as AbilityDef, ResearchDef, or T
 They are exported to xml retaining full data structure.  To view them, extract and drag the xml files to any browser.
 
 XML is chosen for its separation of attribute and value, simple syntax, and mature tools.
-There is no plan to switch to json, but you are free to fork.
+There is no plan to switch to json, but you are free to fork and make a pull request.
 
-To keep the data file manageable, many tricks are employed.
-For example, most objects will have an "id".  Future occurrence of the object will use "ref" to refer to it.
+To keep the data file manageable, most objects will have an "id".
+Future occurrence of the same object instance will use "ref" to refer to it.
 
 [b]Translations[/b]
 
-All translatable text in the game are dumped in csv, grouped by their source.
+All translatable text in the game are dumped to csv, grouped by their source.
 While you can't import them back, UI mods can use them to find and reuse simple terms and phases to support all official languages.
 Once you got the term, use [code]new LocalizedTextBind( TERM ).Localize()[/code] to translate it into the game's current language.
 
-Excel is notoriously fickle when it come to csv.
+Excel is notoriously fickle when it comes to csv.
 Use a standard-compliance spreadsheet such as [url=https://www.openoffice.org/]OpenOffice[/url], [url=https://www.libreoffice.org/]LibreOffice[/url], or [url=https://www.google.com/sheets/about/]Google Sheets[/url] for best result.
 
-Research translations may be missing.  This should be a vanilla issue as research text is also unaffected by language switch.
+Research translations may be missing.  This should be a vanilla issue as in-game research text also ignore language switch.
 
 [b]Console Commands[/b]
 
-[code]ConsoleCommand.csv[/code] lists all registered console commands, which may varies depending on your mods.
+[code]ConsoleCommand.csv[/code] lists all registered console commands, including those from active mods if any.
 You can use [url=https://www.nexusmods.com/phoenixpoint/mods/7]Console Enabler[/url] or [url=https://www.nexusmods.com/phoenixpoint/mods/44/]Debug Console[/url] to enable the in-game console and use the commands.
 
 Note that even built-in commands are unsupported and may change from patch to patch.
@@ -47,7 +47,7 @@ So, use them at your own risk!
 
 [b]Other data[/b]
 
-Data not listed above can be added with the help of the Scripting Library mod.
+Data not listed above can be exported with the help of the Scripting Library mod.
 
 By default, several game variables such as game difficulties and tactical contribution weights are exported to [code]Data-GameSettings.xml[/code].
 
