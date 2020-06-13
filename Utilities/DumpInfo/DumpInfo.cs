@@ -22,8 +22,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
       public bool   Skip_Zeros = true;
       public string Dump_Path = "";
       public bool   Dump_Command_Csv = true;
-      public bool   Dump_Lang_Csv = true;
       public bool   Dump_Guid_Csv = true;
+      public bool   Dump_Lang_Csv = true;
       public string[] Dump_Defs = new string[]{ "VehicleItemDef", "TacticalItemDef", "TacticalActorDef", "TacUnitClassDef", "TacMissionTypeDef", "SpecializationDef", "ResearchDef", "PhoenixFacilityDef", "GroundVehicleItemDef", "GeoscapeEventDef", "GeoSiteSceneDef", "GeoMistGeneratorDef", "GeoHavenZoneDef", "GeoFactionDef", "GeoAlienBaseDef", "GeoActorDef", "GameTagDef", "DamageKeywordDef", "ComponentSetDef", "BodyPartAspectDef", "AchievementDef", "AbilityTrackDef", "AbilityDef" };
       public string[] Dump_Others = new string[] {
          "GameSettings", "SharedData.GetSharedDataFromGame().AISettingsDef",
@@ -89,7 +89,6 @@ namespace Sheepy.PhoenixPt.DumpInfo {
 
       private static void DumpData () { try {
          Info( "Dumping data to {0}", DumpDir );
-         if ( Config.Dump_Lang_Csv ) AddLangToDump();
          Info( "Scanning data" );
          Type[] wanted = DumpedTypes.ToArray();
          foreach ( var e in AllDefs ) {
@@ -97,8 +96,9 @@ namespace Sheepy.PhoenixPt.DumpInfo {
                if ( type.IsInstanceOfType( e ) )
                   AddDataToExport( type.Name, e );
          }
-         if ( Config.Dump_Guid_Csv ) AllDefs.ForEach( e => AddDataToExport( "Guid", e ) );
          if ( Config.Dump_Command_Csv ) ConsoleCommandAttribute.GetCommands().ForEach( e => AddDataToExport( "ConsoleCommand", e ) );
+         if ( Config.Dump_Guid_Csv ) AllDefs.ForEach( e => AddDataToExport( "Guid", e ) );
+         if ( Config.Dump_Lang_Csv ) AddLangToDump();
          AddOthersToDump();
          var sum = ExportData.Values.Sum( e => e.Count );
          Info( "{0} entries to dump", sum );
@@ -132,8 +132,8 @@ namespace Sheepy.PhoenixPt.DumpInfo {
             var name = "Text-" + ( string.IsNullOrEmpty( src.Google_SpreadsheetName ) ? src.Google_SpreadsheetKey : src.Google_SpreadsheetName );
             if ( name == null ) continue;
             if ( src.HasUnloadedLanguages() ) {
+               Verbo( "Loading {0}", name );
                src.LoadAllLanguages( true );
-               Info( "Loading {0}", name );
             }
             AddDataToExport( name, src.GetLanguages( false ) );
             if ( src.mDictionary != null )

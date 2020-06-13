@@ -64,23 +64,27 @@ namespace Sheepy.PhoenixPt.DumpInfo {
    }
 
    internal class LangDumper : CsvDumper {
-      private List<string> Codes;
+      private List<string> Langs;
+      private readonly HashSet<string> Exported = new HashSet<string>();
 
       internal LangDumper ( string name, List<object> list ) : base( name, list ) { }
 
       protected override void SortData() {
-         Codes = Data[ 0 ] as List<string>;
+         Langs = Data[ 0 ] as List<string>;
          Data.Remove( 0 );
          Data.Sort( Comparator< TermData, string >( e => e?.Term ) );
       }
 
       protected override void DoDump () {
          NewCells( "Type", "Term", "Key", "Flags", "Description" );
-         if ( Codes != null ) NewCells( Codes.ToArray() );
+         if ( Langs != null ) NewCells( Langs.ToArray() );
          foreach ( var term in Data.OfType<TermData>() ) { // Some keys has a trailing \r
+            if ( Exported.Contains( term.Term ) ) continue;
             NewRow( term.TermType.ToString(), term.Term, term.Key?.Trim(), Convert.ToBase64String( term.Flags ), term.Description );
             NewCells( term.Languages );
+            Exported.Add( term.Term );
          }
+         Exported.Clear();
       }
    }
 
