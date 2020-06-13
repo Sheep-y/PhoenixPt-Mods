@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
-namespace Sheepy.PhoenixPt.DumpInfo {
+namespace Sheepy.PhoenixPt.DumpData {
 
    internal abstract class BaseDumper {
       protected readonly string Filename;

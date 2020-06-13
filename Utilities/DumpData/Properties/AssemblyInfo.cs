@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle( "Dump Info" )]
-[assembly: AssemblyDescription( "Phoenix Point Mod - Dump selected game data" )]
+[assembly: AssemblyTitle( "Dump Data" )]
+[assembly: AssemblyDescription( "Phoenix Point Mod - Dump game data to xml and csv" )]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany( "Sheepy" )]
 [assembly: AssemblyProduct( "" )]

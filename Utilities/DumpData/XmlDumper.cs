@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using static System.Reflection.BindingFlags;
 
-namespace Sheepy.PhoenixPt.DumpInfo {
+namespace Sheepy.PhoenixPt.DumpData {
 
    internal abstract class XmlDumper : BaseDumper {
       protected override string FileExtension () => "xml";
@@ -41,7 +41,7 @@ namespace Sheepy.PhoenixPt.DumpInfo {
          Writer.Write( $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
          var attr = new List<string>{ "count", Data.Count.ToString() };
          if ( Mod.GameVersion != null ) attr.AddRange( new string[]{ "game", Mod.GameVersion } );
-         attr.AddRange( new string[]{ "dumpinfo", Assembly.GetExecutingAssembly().GetName().Version.ToString() } );
+         attr.AddRange( new string[]{ "DumpData", Assembly.GetExecutingAssembly().GetName().Version.ToString() } );
          StartTag( DataType.Name, false, attr.ToArray() );
          foreach ( var val in Data )
             RecurringObject.Add( val, RecurringObject.Count );

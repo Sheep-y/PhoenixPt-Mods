@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Sheepy.PhoenixPt.DumpInfo {
+namespace Sheepy.PhoenixPt.DumpData {
 
    internal class ModConfig {
       public bool   Multithread = true;

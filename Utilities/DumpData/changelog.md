@@ -1,4 +1,4 @@
-Changelog of Dump Info, a Phoenix Point Mod by Sheepy
+Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
 # Version 1, 2020-06-13
 

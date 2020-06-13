@@ -7,8 +7,8 @@
     <ProjectGuid>{9EB89B81-E091-492C-B029-48B04E9148A6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sheepy.PhoenixPt.DumpInfo</RootNamespace>
-    <AssemblyName>PhoenixPt_DumpInfo</AssemblyName>
+    <RootNamespace>Sheepy.PhoenixPt.DumpData</RootNamespace>
+    <AssemblyName>PhoenixPt_DumpData</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -63,7 +63,7 @@
     <Compile Include="BaseDumper.cs" />
     <Compile Include="CsvDumper.cs" />
     <Compile Include="XmlDumper.cs" />
-    <Compile Include="DumpInfo.cs" />
+    <Compile Include="DumpData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="mod_info.js" />
     <EmbeddedResource Include="changelog.md" />

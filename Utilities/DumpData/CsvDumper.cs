@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Sheepy.PhoenixPt.DumpInfo {
+namespace Sheepy.PhoenixPt.DumpData {
 
    internal abstract class CsvDumper : BaseDumper {
       protected override string FileExtension () => "csv";

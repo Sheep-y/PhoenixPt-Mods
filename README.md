@@ -20,6 +20,7 @@ Mods published on NexusMods.
 * [**Block Telemetry**](https://www.nexusmods.com/phoenixpoint/mods/48/) - Opt-out of and blocks telemetry.
 * [**Deaf the Dead**](https://www.nexusmods.com/phoenixpoint/mods/45/) - Prevent dead units from hearing enemy movements.
 * [**Debug Console**](https://www.nexusmods.com/phoenixpoint/mods/44/) - Enable console and direct unity log and game log to it.
+* [**Dump Data**](https://www.nexusmods.com/phoenixpoint/mods/50/) - Dump game text and data into xml and csv.
 * [**Full Body Augmentations**](https://www.nexusmods.com/phoenixpoint/mods/33) - Removes mutation and bionics cap.
 * [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centering.
 * [**Independent Gear**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlocks all independent gears.
@@ -36,7 +37,6 @@ Mods published on NexusMods.
 
 Unpublished mods.  Not guaranteed to work at all.
 
-* [**Dump Info**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/DumpInfo) - Dump game text and data into xml.
 * [**Flat Difficulty**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/FlatDifficulty) - Combat result no longer affect dynamic difficulty system.
 * [**Version Text**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/VersionText) - Hello World mod to demo modding.
 
