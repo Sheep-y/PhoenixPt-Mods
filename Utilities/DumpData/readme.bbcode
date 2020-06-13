@@ -19,10 +19,13 @@ Examples include but are not limited to various [code]RequirementDef[/code], [co
 BaseDefs practically define all game data, such as AbilityDef, ResearchDef, or TacticalItemDef.
 They are exported to xml retaining full data structure.  To view them, extract and drag the xml files to any browser.
 
+The most obvious application is to learn a data and modify it, whether with PPDefModifier, Scripting Library, or in your DLL mod.
+The data of Phoenix Point is flexible but complex.  These dumps provide another way to browser them, an alternative to Asset Studio and dnSpy.
+
 XML is chosen for its separation of attribute and value, simple syntax, and mature tools.
 There is no plan to switch to json, but you are free to fork and make a pull request.
 
-To keep the data file manageable, most objects will have an "id".
+To keep the data file manageable, zeros and empty list are omitted, and most objects have an "id".
 Future occurrence of the same object instance will use "ref" to refer to it.
 
 [b]Translations[/b]
