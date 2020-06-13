@@ -68,6 +68,7 @@
     <EmbeddedResource Include="mod_info.js" />
     <EmbeddedResource Include="changelog.md" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="readme.bbcode" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
