@@ -1,5 +1,9 @@
 Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
+# Version 1.1, 2020-06-21
+
+* Guid list now includes "Tags" field.
+
 # Version 1, 2020-06-13
 
 * Dump selected BaseDefs, TermData, a few game settings, plus guid list and console command list.
