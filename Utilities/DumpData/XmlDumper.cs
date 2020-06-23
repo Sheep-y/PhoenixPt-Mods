@@ -114,7 +114,7 @@ namespace Sheepy.PhoenixPt.DumpData {
                return;
             }
             if ( val is Color color ) { WriteColour( name, color ); return; }
-            if ( IsEmpty( val ) ) { StartTag( name, true, "empty", "true" ); return; }
+            if ( IsEmpty( val ) ) { StartTag( name, true, "empty", "1" ); return; }
             StartTag( name ); // Other structs
          }
          Obj2Xml( val, level + 2 ); // Either structs or non-enum objects
@@ -172,6 +172,7 @@ namespace Sheepy.PhoenixPt.DumpData {
       private bool IsEmptyValue ( object val ) {
          if ( val == null || val == default ) return true;
          if ( val is string txt ) return string.IsNullOrEmpty( txt );
+         if ( val is LocalizedTextBind l10n ) return string.IsNullOrEmpty( l10n.LocalizationKey );
          if ( val is IEnumerable it ) return ! it.GetEnumerator().MoveNext();
          return false;
       }
@@ -180,8 +181,10 @@ namespace Sheepy.PhoenixPt.DumpData {
          var type = subject.GetType();
          if ( level == 0 ) { Writer.Write( type.Name, subject, 1 ); return; }
          if ( level > Mod.Config.Depth ) { Writer.Write( "..." ); return; }
+         var isBaseDef = subject is BaseDef;
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             if ( IsObsolete( f ) ) continue;
+            if ( isBaseDef && ( f.Name == "name" || f.Name == "Guid" ) ) continue;
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
             StartTag( f.Name, true, "err_F", ex.GetType().Name ); // Field.GetValue error
