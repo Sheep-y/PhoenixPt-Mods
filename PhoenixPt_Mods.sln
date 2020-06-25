@@ -59,6 +59,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeafTheDead", "Tactical\Dea
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{345FC9DB-1B23-4388-A225-8B2DB5812A64}"
 	ProjectSection(SolutionItems) = preProject
+		Unpublished\HalfPriceBionics\HalfPriceBionics.js = Unpublished\HalfPriceBionics\HalfPriceBionics.js
 		Unpublished\LessRecruit\LessRecruit.js = Unpublished\LessRecruit\LessRecruit.js
 		Geoscape\OdiFactors\ODI_Factors.json = Geoscape\OdiFactors\ODI_Factors.json
 		README.md = README.md
