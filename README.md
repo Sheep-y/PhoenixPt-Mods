@@ -38,6 +38,7 @@ Mods published on NexusMods.
 Unpublished mods.  Not guaranteed to work at all.
 
 * [**Flat Difficulty**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/FlatDifficulty) - Combat result no longer affect dynamic difficulty system.
+* [**Less Recruit**] (https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/LessRecruit) - Remove an Assault from starting squads.
 * [**Version Text**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/VersionText) - Hello World mod to demo modding.
 
 Any other mods you find will be work-in-progress.

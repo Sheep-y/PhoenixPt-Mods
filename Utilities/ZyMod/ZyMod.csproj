@@ -67,8 +67,10 @@ cd distro
 del PhoenixPt_LaserOnFire.7z
 "c:\Program Files\7-Zip\7z.exe" a -bd -bb0 -t7z -mx=9 -mfb=258 "PhoenixPt_LaserOnFire.7z" "$(SolutionDir)/Tactical/LaserOnFire/LaserOnFire.js" "$(SolutionDir)/Tactical/LaserOnFire/changelog.md"
 
+del PhoenixPt_LessRecruit.7z
+"c:\Program Files\7-Zip\7z.exe" a -bd -bb0 -t7z -mx=9 -mfb=258 "PhoenixPt_LessRecruit.7z" "$(SolutionDir)/Unpublished/LessRecruit/LessRecruit.js"
+
 del "PPDefModifier\ODI_Factors.json"
-copy "$(SolutionDir)Geoscape\OdiFactors\ODI_Factors.json" PPDefModifier
-</PostBuildEvent>
+copy "$(SolutionDir)Geoscape\OdiFactors\ODI_Factors.json" PPDefModifier</PostBuildEvent>
   </PropertyGroup>
 </Project>
