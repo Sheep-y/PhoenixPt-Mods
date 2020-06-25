@@ -1,1 +1,1 @@
-﻿This file exists to make sure mods are installed to the correct folder on Modnix 2.2 and below.
+﻿This file exists to make sure mods are installed to the correct folder on Modnix 2.x and below.
