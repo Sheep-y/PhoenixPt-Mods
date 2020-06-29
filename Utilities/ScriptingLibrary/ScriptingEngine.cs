@@ -66,20 +66,26 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Verbo( "{0} namespaces found and added to scripts: {1}", usings.Length, (Func<string>) usingLog );
       } }
 
-      private static readonly Dictionary< string, object > Sessions = new Dictionary< string, object >();
+      private static readonly Dictionary< string, object > Sessions = new Dictionary< string, object >(); // string, ScriptState
+      private static readonly Dictionary< string, object > OptionStore = new Dictionary< string, object >(); // string, ScriptOptions
 
       public static object Eval ( string id, string code ) { try {
+         PrepareScript();
+         object state, options;
+         lock ( Sessions ) {
+            Sessions.TryGetValue( id, out state );
+            OptionStore.TryGetValue( id, out options );
+         }
+         var opt = ( options ?? Options ) as ScriptOptions;
+
          Task< ScriptState< object > > task;
-         object state;
-         lock ( Sessions ) Sessions.TryGetValue( id, out state );
-         var opt = Options as ScriptOptions;
          if ( ! ( state is ScriptState session ) ) {
-            PrepareScript();
             Verbo( "New eval shell for {0}", id );
             task = CSharpScript.RunAsync( code, opt );
          } else
             task = session.ContinueWithAsync( code, opt );
          task.Wait();
+
          if ( task.IsFaulted ) return new EvaluateException( "Eval error", task.Exception );
          lock ( Sessions ) {
             Sessions.Remove( id );
