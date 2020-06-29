@@ -78,6 +78,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          }
          var opt = ( options ?? Options ) as ScriptOptions;
 
+         // TODO: #r to add reference, using to add using
+
          Task< ScriptState< object > > task;
          if ( ! ( state is ScriptState session ) ) {
             Verbo( "New eval shell for {0}", id );
