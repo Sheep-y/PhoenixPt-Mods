@@ -1,5 +1,9 @@
 Changelog of Scripting Library (C#), a Phoenix Point Mod by Sheepy
 
+# Version Beta 2 ?
+
+* Mod API now run in the Eval context of the caller, inheriting its variables and .
+
 # Version Alpha 0.0.2020.0605
 
 * Mod id changed to "Zy.cSharp" which is shorter and more precise than "Zy.Scripting".

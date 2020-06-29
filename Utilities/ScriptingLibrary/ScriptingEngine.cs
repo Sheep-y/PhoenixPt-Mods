@@ -72,7 +72,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Task< ScriptState< object > > task;
          object state;
          lock ( Sessions ) Sessions.TryGetValue( id, out state );
-         ScriptOptions opt = Options as ScriptOptions;
+         var opt = Options as ScriptOptions;
          if ( ! ( state is ScriptState session ) ) {
             PrepareScript();
             Verbo( "New eval shell for {0}", id );

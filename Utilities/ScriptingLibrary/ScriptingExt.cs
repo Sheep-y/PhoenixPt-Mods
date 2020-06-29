@@ -1,5 +1,6 @@
 ﻿using Base.Utils.GameConsole;
 using System;
+using System.Linq;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
    using ModnixAPI = Func<string,object,object>;
@@ -16,7 +17,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          if ( string.IsNullOrWhiteSpace( code ) ) return new ArgumentNullException( nameof( param ) );
          if ( ScriptingLibrary.LoadLibraries() is Exception err ) return err;
          Info( "API> {0}", code );
-         return ScriptingEngine.Eval( "API", code );
+         var mod = ( Api( "api_stack mod" ) as string[] )?.FirstOrDefault( e => e != "Zy.cSharp" ) ?? "API";
+         return ScriptingEngine.Eval( mod, code );
       }
 
       [ ConsoleCommand( Command = "Eval", Description = "(code) - Evaluate C# code, or enter C# shell if no code" ) ]
