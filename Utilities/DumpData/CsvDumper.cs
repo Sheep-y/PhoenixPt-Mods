@@ -2,6 +2,7 @@
 using Base.Utils.GameConsole;
 using I2.Loc;
 using PhoenixPoint.Common.UI;
+using PhoenixPoint.Tactical.Entities.Statuses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -52,20 +53,20 @@ namespace Sheepy.PhoenixPt.DumpData {
       protected override string FileExtension () => "csv";
 
       protected override void DoDump () {
-         NewCells( "Type", "Guid", "name", "Tags", "Name", "DispayName1", "DisplayName2", "Description", "Category" );
+         NewCells( "Type", "Guid", "name", "Name", "DispayName1", "DisplayName2", "Description", "Category", "Tags" );
          foreach ( var e in Data.OfType<BaseDef>() ) {
             if ( e == null ) continue;
             var type = e.GetType();
             NewRow( type.Name, e.Guid, e.name );
-
-            var tags = ( type.GetField( "Tags" )?.GetValue( e ) as IEnumerable )?.OfType<BaseDef>();
-            NewCell( tags == null ? "" : String.Join( ", ", tags.Select( tag => tag.name ) ) );
 
             ViewElementDef v = null;
             if ( type.GetField( "ViewElementDef" ) is FieldInfo f ) v = f.GetValue( e ) as ViewElementDef;
             else if ( type.GetProperty( "ViewElementDef" ) is PropertyInfo p ) v = p.GetValue( e ) as ViewElementDef;
             if ( v != null )
                NewCells( v.Name, v.DisplayName1?.Localize(), v.DisplayName2?.Localize(), v.Description?.Localize(), v.Category?.Localize() );
+
+            var tags = ( type.GetField( "Tags" )?.GetValue( e ) as IEnumerable )?.OfType<BaseDef>();
+            if ( tags != null ) NewCell( String.Join( ", ", tags.Select( tag => tag.name ) ) );
          }
       }
    }

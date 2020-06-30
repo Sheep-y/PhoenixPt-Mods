@@ -184,7 +184,7 @@ namespace Sheepy.PhoenixPt.DumpData {
          var isBaseDef = subject is BaseDef;
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             if ( IsObsolete( f ) ) continue;
-            if ( isBaseDef && ( f.Name == "name" || f.Name == "Guid" ) ) continue;
+            if ( isBaseDef && f.Name == "Guid" ) continue;
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
          } catch ( ApplicationException ex ) {
             StartTag( f.Name, true, "err_F", ex.GetType().Name ); // Field.GetValue error
@@ -192,6 +192,7 @@ namespace Sheepy.PhoenixPt.DumpData {
          if ( ! subject.GetType().IsClass ) return;
          foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
                if ( IsObsolete( f ) ) continue;
+               if ( isBaseDef && f.Name == "name" ) continue;
                Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
             } catch ( ApplicationException ex ) {
             StartTag( f.Name, true, "err_P", ex.GetType().Name ); // Property.GetValue error
