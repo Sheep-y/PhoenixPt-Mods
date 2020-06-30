@@ -2,6 +2,7 @@ Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
 # Version 2, in development
 
+* "dump.xml" API to dump any object to xml.
 * Skip "name" and "Guid" of base defs because they are already included in open tag.
 * Recognise empty LocalizedTextBind.
 * Guid list now includes "Tags" field.

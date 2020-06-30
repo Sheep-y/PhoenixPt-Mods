@@ -12,7 +12,7 @@ using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.DumpData {
 
-   internal abstract class XmlDumper : BaseDumper {
+   internal class XmlDumper : BaseDumper {
       protected override string FileExtension () => "xml";
 
       protected readonly Type DataType;
@@ -267,6 +267,7 @@ namespace Sheepy.PhoenixPt.DumpData {
          return txt;
       }
       private static string EscXml ( string txt ) => SecurityElement.Escape( txt );
+      protected override void SortData () { }
    }
 
    internal class BaseDefDumper : XmlDumper {

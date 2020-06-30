@@ -64,6 +64,7 @@ namespace Sheepy.PhoenixPt.DumpData {
             DumpDir = Config.Dump_Path;
          GameVersion = Api( "version", "game" )?.ToString();
          BuildTypeMap();
+         Api( "api_add dump.xml", (Func<string,object,object>) ApiDumpXml );
       }
 
       public static void GeoscapeOnShow () {
@@ -136,6 +137,14 @@ namespace Sheepy.PhoenixPt.DumpData {
          Info( "{0} entries dumped", sum );
          ExportData.Clear();
       } catch ( Exception ex ) { Error( ex ); } }
+
+      private static object ApiDumpXml ( string file, object target ) {
+         if ( target == null ) return null;
+         if ( string.IsNullOrEmpty( file ) ) file = "API-" + target.GetType().Name;
+         Info( "Dump data API called.  Dumping to {0}", file );
+         new XmlDumper( file, target.GetType(), new object[]{ target }.ToList() ).DumpData();
+         return true;
+      }
 
       private static void AddLangToDump () {
          Info( "Scanning text" );
