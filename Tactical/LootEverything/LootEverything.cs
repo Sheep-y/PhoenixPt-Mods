@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities.GameTags;
-using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Tactical.Entities.Abilities;
 using PhoenixPoint.Tactical.Entities.Equipments;
@@ -20,72 +19,56 @@ namespace Sheepy.PhoenixPt.LootEverything {
    public class Mod : ZyMod {
       private static ModConfig Config;
 
-      public static void Init () => new Mod().TacticalMod();
+      public static void Init () => new Mod().MainMod();
 
-      public void MainMod ( Func< string, object, object > api ) => TacticalMod( api );
+      public void MainMod ( Func< string, object, object > api = null ) => TacticalMod( api );
 
-      public void TacticalMod ( Func< string, object, object > api = null ) {
+      public void TacticalMod ( Func< string, object, object > api ) {
          SetApi( api, out Config );
-         TryPatch( typeof( DieAbility ), "ShouldDestroyItem", postfix: nameof( AfterShouldDestroyItem_KeepItem ) );
+         if ( Config.Drop_All_Item )
+            TryPatch( typeof( DieAbility ), "ShouldDestroyItem", postfix: nameof( AfterShouldDestroyItem_KeepItem ) );
          if ( Config.Drop_All_Armour ) {
-            TryPatch( typeof( DieAbility ), "DropItems", postfix: nameof( AfterDropItems_DropArmour ) );
+            StartPatch();
             TryPatch( typeof( GeoMission ), "GetDeadSquadMembersArmour", nameof( OverrideGetDeadSquadMembersArmour_Disable ) );
+            TryPatch( typeof( DieAbility ), "DropItems", postfix: nameof( AfterDropItems_DropArmour ) );
+            CommitPatch();
          }
       }
 
-      public static void AfterShouldDestroyItem_KeepItem ( ref bool __result, TacticalItem item ) {
-         if ( ! __result ) return;
-         if ( Config.Drop_All_Item ) try {
-            __result = false;
-            Api( "log", $"Force dropping {item.TacticalItemDef.ViewElementDef.Name}" );
-         } catch ( Exception ) { }
-      }
+      private static void AfterShouldDestroyItem_KeepItem ( ref bool __result, TacticalItem item ) { try {
+         if ( ! __result || item == null ) return;
+         __result = false;
+         Verbo( "Force dropping {0}", item.TacticalItemDef?.ViewElementDef?.Name );
+      } catch ( Exception ex ) { Error( ex ); } }
 
-      public static bool OverrideGetDeadSquadMembersArmour_Disable ( ref IEnumerable<GeoItem> __result ) {
+      // Override self dead recover to not clone geosacpe armour copy.
+      private static bool OverrideGetDeadSquadMembersArmour_Disable ( ref IEnumerable<GeoItem> __result ) {
          __result = Enumerable.Empty<GeoItem>();
          return false;
       }
 
-      public static void AfterDropItems_DropArmour ( DieAbility __instance ) {
+      private static void AfterDropItems_DropArmour ( DieAbility __instance ) { try {
+         var actor = __instance.TacticalActor;
+         var items = actor?.BodyState?.GetArmourItems();
+         if ( items?.Any() != true ) return;
+
          var shared = SharedData.GetSharedDataFromGame();
          var gameTags = shared.SharedGameTags;
-         var actor = __instance.TacticalActor;
          GameTagDef armour = gameTags.ArmorTag, manu = gameTags.ManufacturableTag, mount = gameTags.MountedTag;
 
-         foreach ( var item in actor.BodyState.GetArmourItems() ) {
+         int count = 0;
+         foreach ( var item in items ) {
             var def = item.ItemDef as TacticalItemDef;
             var tags = def?.Tags;
             if ( tags == null || tags.Count == 0 || ! tags.Contains( manu ) || def.IsPermanentAugment ) continue;
             if ( tags.Contains( armour ) || tags.Contains( mount ) ) {
-               Api( "log", $"Force dropping {def.ViewElementDef.Name}" );
+               Verbo( "Force dropping {0}", def.ViewElementDef.Name );
                item.Drop( shared.FallDownItemContainerDef, actor );
+               count++;
             }
          }
-      }
-
-      /*
-      if ( Config.Stript_Survivors ) TryPatch( typeof( GeoMission ), "ManageGear", nameof( BeforeManageGear_StriptItems ) );
-      public static void BeforeManageGear_StriptItems ( GeoMission __instance, TacMissionResult result ) { try {
-         var shared = SharedData.GetSharedDataFromGame();
-         var pp = shared.PhoenixFactionDef;
-         var pvTag = __instance.Site.GeoLevel.AlienFaction.FactionDef.RaceTagDef;
-
-         var items = __instance.Reward.Items;
-         foreach ( var byFaction in result.FactionResults ) {
-            if ( byFaction.FactionDef == pp ) continue;
-            foreach ( var unit in byFaction.UnitResults ) {
-               var data = unit.Data as TacActorUnitResult;
-               if ( data == null ) continue;
-               if ( ! data.IsAlive ) continue;
-               if ( Config.Armour_Drop_Chance > 0 ) {
-                  foreach ( var armour in data.BodypartItems ) {
-                     // Copy check from GetItemsOnTheGround
-                     items.AddItem( new GeoItem( armour ) );
-                  }
-               }
-            }
-         }
-      } catch ( Exception ex ) { Api( "log e", ex ); } }
-      */
+         if ( count > 0 )
+            Info( "Force dropped {0} pieces from {1} of {2}", count, actor.ViewElementDef?.Name, actor.TacticalFaction?.Faction?.FactionDef?.GetName() );
+      } catch ( Exception ex ) { Error( ex ); } }
    }
 }
