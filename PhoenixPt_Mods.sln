@@ -107,6 +107,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndiGear", "Tactical\IndiGe
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "LaserOnFire", "Tactical\LaserOnFire\LaserOnFire.shproj", "{0B467FAB-7AA1-4FAC-B4A3-FEC5EC9DDBA6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LootEverything", "Tactical\LootEverything\LootEverything.csproj", "{BD455A75-FA78-4B2D-A6F8-6B7772706766}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Tactical\LaserOnFire\LaserOnFire.projitems*{0b467fab-7aa1-4fac-b4a3-fec5ec9ddba6}*SharedItemsImports = 13
@@ -196,6 +198,10 @@ Global
 		{4DF4CDE6-748D-4444-98DE-40E6368E3D6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DF4CDE6-748D-4444-98DE-40E6368E3D6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DF4CDE6-748D-4444-98DE-40E6368E3D6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD455A75-FA78-4B2D-A6F8-6B7772706766}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD455A75-FA78-4B2D-A6F8-6B7772706766}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD455A75-FA78-4B2D-A6F8-6B7772706766}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD455A75-FA78-4B2D-A6F8-6B7772706766}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
