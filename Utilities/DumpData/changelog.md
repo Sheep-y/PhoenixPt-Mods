@@ -4,9 +4,10 @@ Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
 * "dump.xml" API to dump any object to xml.
 * Skip "name" and "Guid" of base defs because they are already included in open tag.
+* Auto dump may be disabled.
 * Recognise empty LocalizedTextBind.
 * Guid list now includes "Tags" field.
-* Auto dump may be disabled.
+* Explain how to disable scripting library warning in Modnix 2.
 
 # Version 1, 2020-06-13
 

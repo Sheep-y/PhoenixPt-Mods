@@ -140,7 +140,8 @@ namespace Sheepy.PhoenixPt.DumpData {
 
       private static object ApiDumpXml ( string file, object target ) {
          if ( target == null ) return null;
-         if ( string.IsNullOrEmpty( file ) ) file = "API-" + target.GetType().Name;
+         if ( string.IsNullOrEmpty( file ) ) file = "API-" + target.GetType().Name + "." + DateTime.Now.ToString( "u" ).Replace( ':', '-' ).Replace( ' ', 'T' );
+         String.Join( "_", file.Split( Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries ) ).TrimEnd( '.' );
          Info( "Dump data API called.  Dumping to {0}", file );
          new XmlDumper( file, target.GetType(), new object[]{ target }.ToList() ).DumpData();
          return true;
@@ -168,9 +169,9 @@ namespace Sheepy.PhoenixPt.DumpData {
 
       private static void AddOthersToDump () {
          var list = Config.Dump_Others;
-         if ( list?.Length == 0 ) return;
+         if ( list == null || list.Length == 0 ) return;
          if ( Api( "api_info", "eval.cs" ) == null ) {
-            Warn( "'Dump_Others' requires Scripting Library or other mod that provides the 'eval.cs' api." );
+            Warn( "'Dump_Others' requires Scripting Library or other mod that provides the 'eval.cs' api.  Delete it from config to remove this warning." );
             return;
          }
          for ( var i = 0 ; i < list.Length-1 ; i += 2 ) {
