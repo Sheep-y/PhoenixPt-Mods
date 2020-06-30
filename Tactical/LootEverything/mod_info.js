@@ -8,4 +8,5 @@
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/33/",
       "GitHub" : "https://github.com/Sheep-y/PhoenixPt-Mods/",
    },
+   ConfigType : "Sheepy.PhoenixPt.LootEverything.ModConfig",
 })
