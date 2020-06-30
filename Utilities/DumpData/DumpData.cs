@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 namespace Sheepy.PhoenixPt.DumpData {
 
    internal class ModConfig {
+      public bool   Auto_Dump = true;
       public bool   Multithread = true;
       public bool   GZip = true;
       public ushort Depth = 50;
@@ -32,7 +33,11 @@ namespace Sheepy.PhoenixPt.DumpData {
          "GameSettings", "SharedData.GetSharedDataFromGame().DiplomacySettings",
          "GameSettings", "SharedData.GetSharedDataFromGame().DynamicDifficultySettings",
       };
-      public uint   Config_Version = 20200612;
+      public uint   Config_Version = 20200630;
+
+      internal void Upgrade () {
+         if ( Config_Version < 20200630 ) ZyMod.Api( "config save", this ); // Add Auto_Dump
+      }
    }
 
    public class Mod : ZyMod {
@@ -42,12 +47,16 @@ namespace Sheepy.PhoenixPt.DumpData {
 
       internal static string DumpDir;
       internal static string GameVersion;
+      private  static bool DidAutoDump;
 
-      public void MainMod ( Func< string, object, object > api ) => GeoscapeOnShow( api );
+      public void MainMod ( Func< string, object, object > api ) {
+         GameMod( api );
+         GeoscapeOnShow();
+      }
 
-      public void GeoscapeOnShow ( Func< string, object, object > api = null ) {
-         if ( HasApi ) return; // Run only once
+      public void GameMod ( Func< string, object, object > api = null ) {
          SetApi( api, out Config );
+         Config.Upgrade();
          if ( string.IsNullOrWhiteSpace( Config.Dump_Path ) ) {
             DumpDir = Api( "path" )?.ToString();
             DumpDir = DumpDir == null ? "." : Path.GetDirectoryName( DumpDir );
@@ -55,7 +64,12 @@ namespace Sheepy.PhoenixPt.DumpData {
             DumpDir = Config.Dump_Path;
          GameVersion = Api( "version", "game" )?.ToString();
          BuildTypeMap();
+      }
+
+      public void GeoscapeOnShow () {
+         if ( DidAutoDump || ! Config.Auto_Dump ) return; // Run only once
          DumpData();
+         DidAutoDump = true;
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogWeapons ) );
          //Patch( typeof( GeoLevelController ), "OnLevelStart", postfix: nameof( LogAbilities ) );
          //Patch( typeof( GeoPhoenixFaction ), "OnAfterFactionsLevelStart", postfix: nameof( DumpResearches ) );
@@ -121,8 +135,6 @@ namespace Sheepy.PhoenixPt.DumpData {
             Task.WaitAll( tasks.ToArray() );
          Info( "{0} entries dumped", sum );
          ExportData.Clear();
-         ExportType.Clear();
-         DumpedTypes.Clear();
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void AddLangToDump () {

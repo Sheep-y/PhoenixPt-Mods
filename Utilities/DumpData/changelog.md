@@ -1,10 +1,11 @@
 Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
-# Version 1.1, in development
+# Version 2, in development
 
 * Skip "name" and "Guid" of base defs because they are already included in open tag.
 * Recognise empty LocalizedTextBind.
 * Guid list now includes "Tags" field.
+* Auto dump may be disabled.
 
 # Version 1, 2020-06-13
 
