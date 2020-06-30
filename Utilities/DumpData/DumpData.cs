@@ -43,18 +43,18 @@ namespace Sheepy.PhoenixPt.DumpData {
    public class Mod : ZyMod {
       internal static ModConfig Config;
 
-      public static void Init () => new Mod().GeoscapeOnShow();
+      public static void Init () => MainMod();
 
       internal static string DumpDir;
       internal static string GameVersion;
       private  static bool DidAutoDump;
 
-      public void MainMod ( Func< string, object, object > api ) {
+      public static void MainMod ( Func< string, object, object > api = null ) {
          GameMod( api );
          GeoscapeOnShow();
       }
 
-      public void GameMod ( Func< string, object, object > api = null ) {
+      public static void GameMod ( Func< string, object, object > api ) {
          SetApi( api, out Config );
          Config.Upgrade();
          if ( string.IsNullOrWhiteSpace( Config.Dump_Path ) ) {
@@ -66,7 +66,7 @@ namespace Sheepy.PhoenixPt.DumpData {
          BuildTypeMap();
       }
 
-      public void GeoscapeOnShow () {
+      public static void GeoscapeOnShow () {
          if ( DidAutoDump || ! Config.Auto_Dump ) return; // Run only once
          DumpData();
          DidAutoDump = true;
@@ -81,7 +81,7 @@ namespace Sheepy.PhoenixPt.DumpData {
       private  static readonly Dictionary< string, Type >         ExportType = new Dictionary< string, Type >();
       internal static readonly List<Type> DumpedTypes = new List<Type>();
 
-      private void BuildTypeMap () {
+      private static void BuildTypeMap () {
          Info( "Buiding type map" );
          if ( Config.Dump_Lang_Csv )
             ExportType.Add( nameof( TermData ), typeof( TermData ) );
