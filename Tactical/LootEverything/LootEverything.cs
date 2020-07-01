@@ -15,7 +15,7 @@ namespace Sheepy.PhoenixPt.LootEverything {
       //public bool Loot_All_Missions = false; // GeoMission.ManageGear
       //public bool Loot_On_Loss = false; // GeoMission.ManageGear
       //public bool Stript_Survivors = true;
-      public int Config_Version = 20200630;
+      public uint Config_Version = 20200630;
    }
 
    public class Mod : ZyMod {

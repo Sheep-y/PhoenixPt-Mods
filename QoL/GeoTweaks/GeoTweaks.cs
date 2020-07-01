@@ -5,7 +5,7 @@ namespace Sheepy.PhoenixPt.GeoTweaks {
    internal class ModConfig {
       public bool Greyout_Unpowered_Facility = true;
       public string Equip_Weight_Replacement = "{encumbrance}, {speed_txt} {speed}, {accuracy_txt} {accuracy}, {perception_txt} {perception}, {stealth_txt} {stealth}";
-      public int Config_Version = 20200701;
+      public uint Config_Version = 20200701;
    }
 
    public class Mod : ZyMod {
