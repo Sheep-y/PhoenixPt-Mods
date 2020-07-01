@@ -4,6 +4,7 @@ Changelog of Geoscape Twekas, a Phoenix Point Mod by Sheepy
 
 * Support Modnix 3 lazy load and made configurable.
 * New: Show soldier's stat modifier on equipment screen.
+* Tested on Phoenix Point 1.0.58929.
 
 # Version 1, 2020-01-08
 
