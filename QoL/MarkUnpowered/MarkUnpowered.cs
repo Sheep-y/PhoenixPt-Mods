@@ -1,54 +1,26 @@
-﻿using System;
-using System.Reflection;
+﻿using I2.Loc;
+using PhoenixPoint.Geoscape.Entities.PhoenixBases;
+using PhoenixPoint.Geoscape.View.ViewControllers.PhoenixBase;
+using PhoenixPoint.Geoscape.View.ViewModules;
+using System;
+using System.Collections.Generic;
+using System.Timers;
+using UnityEngine;
 
-namespace Sheepy.PhoenixPt_MarkUnpowered {
-   using Harmony;
-   using I2.Loc;
-   using PhoenixPoint.Geoscape.Entities.PhoenixBases;
-   using PhoenixPoint.Geoscape.View.ViewControllers.PhoenixBase;
-   using PhoenixPoint.Geoscape.View.ViewModules;
-   using System.Collections.Generic;
-   using System.Timers;
-   using UnityEngine;
-   using static System.Reflection.BindingFlags;
+namespace Sheepy.PhoenixPt.GeoTweaks {
 
-   public class Mod {
-      //private static Logging.Logger Log = new Logging.Logger( "Mods/ZyMods.log" );
+   internal class MarkUnpowered : ZyMod {
 
-      private static HarmonyInstance harmony;
-      public static void Init () { try {
-         harmony = HarmonyInstance.Create( typeof( Mod ).Namespace );
-         Patch( harmony, typeof( PhoenixFacilityController ), "UpdatePowerState", null, "AfterUpdatePowerState_MarkPower" );
-         Patch( harmony, typeof( UIModuleBaseLayout ), "Init", "BeforeSwitchState_CreateSet", "AfterSwitchState_StartTimer" );
-      } catch ( Exception ex ) { LogError( ex ); } }
-
-      #region Modding helpers
-      private static void Patch ( HarmonyInstance harmony, Type target, string toPatch, string prefix, string postfix = null ) {
-         Patch( harmony, target.GetMethod( toPatch, Public | NonPublic | Instance | Static ), prefix, postfix );
+      internal void Init () {
+         Patch( typeof( PhoenixFacilityController ), "UpdatePowerState", postfix: nameof( AfterUpdatePowerState_MarkPower ) );
+         Patch( typeof( UIModuleBaseLayout ), "Init", nameof( BeforeSwitchState_StopTimer ), nameof( AfterSwitchState_StartTimer ) );
       }
 
-      private static void Patch ( HarmonyInstance harmony, MethodInfo toPatch, string prefix, string postfix = null ) {
-         harmony.Patch( toPatch, ToHarmonyMethod( prefix ), ToHarmonyMethod( postfix ) );
-      }
-
-      private static HarmonyMethod ToHarmonyMethod ( string name ) {
-         if ( name == null ) return null;
-         MethodInfo func = typeof( Mod ).GetMethod( name );
-         if ( func == null ) throw new NullReferenceException( name + " is null" );
-         return new HarmonyMethod( func );
-      }
-
-      private static bool LogError ( Exception ex ) {
-         //Log?.Error( ex );
-         return true;
-      }
-      #endregion
-
-      private static HashSet<PhoenixFacilityController> MarkFacilities;
+      private readonly static HashSet<PhoenixFacilityController> MarkFacilities = new HashSet<PhoenixFacilityController>();
       private static Timer MarkTimer;
       private static int LoopCount = 0;
 
-      public static void AfterUpdatePowerState_MarkPower ( PhoenixFacilityController __instance ) { try { lock( harmony ) {
+      private static void AfterUpdatePowerState_MarkPower ( PhoenixFacilityController __instance ) { try { lock( MarkFacilities ) {
          PhoenixFacilityController me = __instance;
          GeoPhoenixFacility facility = me.Facility;
          if ( facility == null || facility.IsWorking ) {
@@ -66,25 +38,24 @@ namespace Sheepy.PhoenixPt_MarkUnpowered {
             }
             MarkFacilities?.Add( me );
          }
-      } } catch ( Exception ex ) { LogError( ex ); } }
+      } } catch ( Exception ex ) { Error( ex ); } }
 
-      public static void BeforeSwitchState_CreateSet () { try { lock( harmony ) {
-         MarkFacilities = new HashSet<PhoenixFacilityController>();
+      private static void BeforeSwitchState_StopTimer () { try { lock( MarkFacilities ) {
          if ( MarkTimer != null ) {
             MarkTimer.Stop();
             MarkTimer = null;
          }
-      } } catch ( Exception ex ) { LogError( ex ); } }
+      } } catch ( Exception ex ) { Error( ex ); } }
 
       // Because text colour is not applied on first load, need a timer to kick them again
-      public static void AfterSwitchState_StartTimer () { try { lock( harmony ) {
+      private static void AfterSwitchState_StartTimer () { try { lock( MarkFacilities ) {
          LoopCount = 9;
          MarkTimer = new Timer( 10 ) { AutoReset = false };
          MarkTimer.Elapsed += RemarkTitle;
          MarkTimer.Enabled = true;
-      } } catch ( Exception ex ) { LogError( ex ); } }
+      } } catch ( Exception ex ) { Error( ex ); } }
 
-      public static void RemarkTitle ( object sender, ElapsedEventArgs e ) { try { lock( harmony ) {
+      private static void RemarkTitle ( object sender, ElapsedEventArgs e ) { try { lock( MarkFacilities ) {
          if ( MarkTimer == null ) return; // Interrupted by base switch
          foreach ( PhoenixFacilityController tile in MarkFacilities )
             AfterUpdatePowerState_MarkPower( tile );
@@ -92,10 +63,10 @@ namespace Sheepy.PhoenixPt_MarkUnpowered {
             MarkTimer.Interval += 10;
             MarkTimer.Start();
          } else {
-            MarkFacilities = null;
+            MarkFacilities.Clear();
             MarkTimer.Dispose();
             MarkTimer = null;
          }
-      } } catch ( Exception ex ) { LogError( ex ); } }
+      } } catch ( Exception ex ) { Error( ex ); } }
    }
 }
