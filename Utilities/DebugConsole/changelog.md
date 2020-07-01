@@ -1,7 +1,8 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version 5.1, in development
+# Version 6, 2020-07-01
 
+* Non-error game messages are no longer forwarded by default, to bring performance to expectations.
 * New: API command "console.write" to "stringify" an object and write to console.
 * Fix: Catch stringify error when renderig API return value, and fallback to type name.
 * Fix: Non-unity richtext tags are now preserved, e.g. C# code.
@@ -9,6 +10,7 @@ Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 * Return value is stringified to a max depth of 3.
 * Faster command scanning of new assemblies.
 * Skip console scanning of dynamic assemblies, scripting assemblies, and a few libraries.
+* Tested on Phoenix Point 1.0.58929.
 
 # Version 5.0.1, 2020-05-10
 
