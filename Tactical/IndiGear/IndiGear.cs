@@ -1,8 +1,10 @@
 ﻿using Base.Core;
 using Base.Defs;
+using Harmony;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Geoscape.Levels;
+using PhoenixPoint.Geoscape.Levels.Factions;
 using PhoenixPoint.Tactical.Entities.Equipments;
 using System;
 using System.Collections.Generic;
@@ -42,6 +44,7 @@ namespace Sheepy.PhoenixPt.IndiGear {
       public void MainMod ( Func<string, object, object> api = null ) {
          SetApi( api, out Config );
          Patch( typeof( GeoMissionScheduler ), "Init", postfix: nameof( AfterSetupResearch_UnlockItems ) );
+         TryPatch( typeof( GeoPhoenixFaction ), "OnNewManufacturableItemsAdded", prefix: nameof( BeforeOnNewManufacturableItemsAdded_Abort ) );
       }
 
       public static void GeoscapeOnShow ( Func<string, object, object> api = null ) {
@@ -49,13 +52,20 @@ namespace Sheepy.PhoenixPt.IndiGear {
          AfterSetupResearch_UnlockItems();
       }
 
+      private static bool Unlocking;
       private static int UnlockCount;
 
-      private static void AfterSetupResearch_UnlockItems () {
+      [ HarmonyPriority( Priority.Low ) ]
+      private static bool BeforeOnNewManufacturableItemsAdded_Abort () {
+         return ! Unlocking;
+      }
+
+      private static void AfterSetupResearch_UnlockItems () { try {
          if ( Config.Unlock == null ) {
             Warn( "Unlock list is null.  Nothing to unlock." );
             return;
          }
+         Unlocking = true;
          UnlockCount = 0;
          foreach ( var id in Config.Unlock ) {
             var def = Api( "\v pp.def", id ) as TacticalItemDef ?? FindTacItem( id );
@@ -65,12 +75,17 @@ namespace Sheepy.PhoenixPt.IndiGear {
                UnlockItem( def );
          }
          Info( "Unlocked {0} items", UnlockCount );
-      }
+      } catch ( Exception ex ) {
+         Error( ex );
+      } finally {
+         Unlocking = false;
+      } }
+
 
       private static void UnlockItem ( TacticalItemDef item ) {
          if ( Shared == null ) Shared = GameUtl.GameComponent<SharedData>();
          var manufacturableTag = Shared.SharedGameTags.ManufacturableTag;
-         if ( !item.Tags.Any( e => e == manufacturableTag ) )
+         if ( ! item.Tags.Any( e => e == manufacturableTag ) )
             item.Tags.Add( manufacturableTag );
          if ( Manufacture.ManufacturableItems.Contains( item ) ) {
             Verbo( "Already unlocked: {0}", item.name );
