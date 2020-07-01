@@ -9,7 +9,9 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
    public class ScriptingLibrary : ZyMod {
 
-      public static void SplashMod ( ModnixAPI api ) {
+      public static void Init () => SplashMod();
+
+      public static void SplashMod ( ModnixAPI api = null ) {
          SetApi( api );
          CopyLib();
          ScriptingExt.RegisterAPI();
