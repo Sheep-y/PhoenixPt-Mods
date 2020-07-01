@@ -65,6 +65,7 @@
       <Link>ZyMod.cs</Link>
     </Compile>
     <Compile Include="GeoTweaks.cs" />
+    <Compile Include="SoldierStats.cs" />
     <Compile Include="MarkUnpowered.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

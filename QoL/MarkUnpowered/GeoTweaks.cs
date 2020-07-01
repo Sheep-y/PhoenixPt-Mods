@@ -11,6 +11,7 @@ namespace Sheepy.PhoenixPt.GeoTweaks {
       public static void GeoscapeMod ( Func< string, object, object > api ) {
          SetApi( api );
          new MarkUnpowered().Init();
+         new SoldierStats().Init();
       }
    }
 }
