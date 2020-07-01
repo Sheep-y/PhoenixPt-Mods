@@ -51,7 +51,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       }
 
       public static DefRepository Repo;
-      private static Dictionary< Type, List< BaseDef > > ByType = new Dictionary< Type, List< BaseDef > >();
+      private static readonly Dictionary< Type, List< BaseDef > > ByType = new Dictionary< Type, List< BaseDef > >();
       private static SimpleCache ByName;
       private static SimpleCache ByPath;
 
