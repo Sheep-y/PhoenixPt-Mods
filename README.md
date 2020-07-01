@@ -30,6 +30,7 @@ Mods published on NexusMods.
 * [**Loot Everything**](https://www.nexusmods.com/phoenixpoint/mods/33) - Loot all items, optionally loot all armours and mounts.
 * [**Mitigate Shred**](https://www.nexusmods.com/phoenixpoint/mods/33) - Convert absorbed damage (by armour) to shred.
 * [**ODI Factors**](https://www.nexusmods.com/phoenixpoint/mods/33) - Adjust ODI scores and multipliers through PPDefModifier.
+* [**Rage Burst Cap**](https://www.nexusmods.com/phoenixpoint/mods/33) - Dynamic Rage Burst shots depending on weapon AP.
 * [**Recruit Info**](https://www.nexusmods.com/phoenixpoint/mods/28) - See recruit's skills, grafts, and equipments on haven screen.
 * [**Scrap Vehicle**](https://www.nexusmods.com/phoenixpoint/mods/26) - Make it possible to recycle vehicles and mutogs.
 * [**Scripting Library**](https://www.nexusmods.com/phoenixpoint/mods/49) - Support C# evaluations and Eval mod actions.
