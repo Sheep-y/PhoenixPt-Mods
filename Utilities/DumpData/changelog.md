@@ -1,6 +1,6 @@
 Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
-# Version 2, in development
+# Version 2, 2020-07-01
 
 * "dump.xml" API to dump any object to xml.
 * Skip "name" and "Guid" of base defs because they are already included in open tag.
