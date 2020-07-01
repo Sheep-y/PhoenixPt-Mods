@@ -9,6 +9,7 @@ Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 * Ignore KeyValuePair element type for IDicitonary.
 * Guid list now includes "Tags" field.
 * Explain how to disable "missing scripting library" warning in Modnix 2.
+* Tested on Phoenix Point 1.0.58929.
 
 # Version 1, 2020-06-13
 
