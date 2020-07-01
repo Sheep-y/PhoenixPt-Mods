@@ -22,12 +22,14 @@ Mods published on NexusMods.
 * [**Debug Console**](https://www.nexusmods.com/phoenixpoint/mods/44/) - Enable console and direct unity log and game log to it.
 * [**Dump Data**](https://www.nexusmods.com/phoenixpoint/mods/50/) - Dump game text and data into xml and csv.
 * [**Full Body Augmentations**](https://www.nexusmods.com/phoenixpoint/mods/33) - Removes mutation and bionics cap.
-* [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centering.
+* [**Geoscape Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape screens.
+* [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centring.
 * [**Independent Gear**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlocks all independent gears.
-* [**ODI Factors**](https://www.nexusmods.com/phoenixpoint/mods/33) - Adjust ODI scores and multipliers through PPDefModifier.
 * [**Laser on Fire**](https://www.nexusmods.com/phoenixpoint/mods/33) - Add fire to lasers and change Destiny III aiming to first person.
 * [**Limited War**](https://www.nexusmods.com/phoenixpoint/mods/24) - Tone down the scale and damage of faction war.
+* [**Loot Everything**](https://www.nexusmods.com/phoenixpoint/mods/33) - Loot all items, optionally loot all armours and mounts.
 * [**Mitigate Shred**](https://www.nexusmods.com/phoenixpoint/mods/33) - Convert absorbed damage (by armour) to shred.
+* [**ODI Factors**](https://www.nexusmods.com/phoenixpoint/mods/33) - Adjust ODI scores and multipliers through PPDefModifier.
 * [**Recruit Info**](https://www.nexusmods.com/phoenixpoint/mods/28) - See recruit's skills, grafts, and equipments on haven screen.
 * [**Scrap Vehicle**](https://www.nexusmods.com/phoenixpoint/mods/26) - Make it possible to recycle vehicles and mutogs.
 * [**Scripting Library**](https://www.nexusmods.com/phoenixpoint/mods/49) - Support C# evaluations and Eval mod actions.

@@ -40,7 +40,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LimitedWar", "Geoscape\Limi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZyMod", "Utilities\ZyMod\ZyMod.csproj", "{ADBE1F6F-B231-4891-BBB8-D774CA236329}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeoTweaks", "QoL\MarkUnpowered\GeoTweaks.csproj", "{964ECEDD-F829-431C-97D0-2430AC5D0EED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeoTweaks", "QoL\GeoTweaks\GeoTweaks.csproj", "{964ECEDD-F829-431C-97D0-2430AC5D0EED}"
 	ProjectSection(ProjectDependencies) = postProject
 		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
 	EndProjectSection
