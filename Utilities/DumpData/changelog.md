@@ -6,8 +6,9 @@ Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 * Skip "name" and "Guid" of base defs because they are already included in open tag.
 * Auto dump may be disabled.
 * Recognise empty LocalizedTextBind.
+* Ignore KeyValuePair element type for IDicitonary.
 * Guid list now includes "Tags" field.
-* Explain how to disable scripting library warning in Modnix 2.
+* Explain how to disable "missing scripting library" warning in Modnix 2.
 
 # Version 1, 2020-06-13
 

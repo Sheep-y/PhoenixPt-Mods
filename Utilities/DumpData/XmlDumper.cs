@@ -1,6 +1,7 @@
 ﻿using Base.Defs;
 using Base.UI;
 using PhoenixPoint.Common.Entities.Addons;
+using PhoenixPoint.Common.Entities.Items;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -146,8 +147,15 @@ namespace Sheepy.PhoenixPt.DumpData {
          foreach ( var e in list ) {
             if ( e == null )
                NullMem( "LI" );
-            else
-               Mem2Xml( e.GetType() == itemType ? "LI" : ( "LI." + e.GetType().Name ), e, level );
+            else {
+               var type = "";
+               if ( e.GetType() != itemType ) {
+                  type = "." + e.GetType().Name;
+                  if ( type.StartsWith( "KeyValuePair." ) && list is IDictionary )
+                     type = "";
+               }
+               Mem2Xml( "LI" + type, e, level );
+            }
          }
          EndTag( name );
       }
