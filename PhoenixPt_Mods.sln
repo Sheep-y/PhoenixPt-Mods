@@ -109,7 +109,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "LaserOnFire", "Tactical\Las
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LootEverything", "Tactical\LootEverything\LootEverything.csproj", "{BD455A75-FA78-4B2D-A6F8-6B7772706766}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RageBurstCap", "Tactical\RageBurstCap\RageBurstCap.csproj", "{D41ABAD7-0BE9-4B60-9995-1755C537611E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VariableRageBurst", "Tactical\RageBurstCap\VariableRageBurst.csproj", "{D41ABAD7-0BE9-4B60-9995-1755C537611E}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution

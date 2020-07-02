@@ -1,4 +1,10 @@
-Changelog of Rage Burst Cap, a Phoenix Point Mod by Sheepy
+Changelog of Variable Rage Burst, a Phoenix Point Mod by Sheepy
+
+# Version 2, in development
+
+* Re-implement to support latest game bulid, modnix 2 config, and modnix 3 lazy load.
+* Rename to Variable Rage Burst.
+* Tested on Phoenix Point 1.0.58929.
 
 # Version 1.2, 2020-01-14
 
