@@ -1,5 +1,10 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
+# Version 6.1, 2020-07-10
+
+* Fix: Handle TypeLoadException when scanning a class for command methods.
+* Tested on Phoenix Point 1.5.3.59629.
+
 # Version 6, 2020-07-01
 
 * Non-error game messages are no longer forwarded by default, to bring performance to expectations.

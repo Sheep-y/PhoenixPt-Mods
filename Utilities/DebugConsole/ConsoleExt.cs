@@ -95,27 +95,32 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             } catch ( ReflectionTypeLoadException rtlex ) {
                types = rtlex.Types;
             }
-            foreach ( var type in types ) {
-               foreach ( var func in type.GetMethods( BindingFlags.Static | BindingFlags.Public ) ) {
-                  var tag = func.GetCustomAttribute( typeof(ConsoleCommandAttribute) ) as ConsoleCommandAttribute;
-                  if ( tag == null ) continue;
-                  if ( tag.Command == null ) tag.Command = func.Name;
-                  if ( Commands.ContainsKey( tag.Command ) ) {
-                     Info( "Command exists, cannot register {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
-                     continue;
-                  }
-                  CmdMethod.SetValue( tag, func );
-                  var param = func.GetParameters();
-                  if ( param.Length > 0 && param[ param.Length - 1 ].ParameterType.FullName.Equals( "System.String[]" ) )
-                     CmdVarArg.SetValue( tag, true );
-                  Commands.Add( tag.Command, tag );
-                  Info( "Command registered: {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
-               }
-            }
+            foreach ( var type in types )
+               ScanTypeForCommands( type, asm );
             ScannedMods.Add( asm );
             if ( len == ScannedMods.Count ) return;
          }
       } catch ( Exception ex ) { Error( ex ); } }
+
+      internal static void ScanTypeForCommands ( Type type, Assembly asm ) { try {
+         foreach ( var func in type.GetMethods( BindingFlags.Static | BindingFlags.Public ) ) {
+            var tag = func.GetCustomAttribute( typeof(ConsoleCommandAttribute) ) as ConsoleCommandAttribute;
+            if ( tag == null ) continue;
+            if ( tag.Command == null ) tag.Command = func.Name;
+            if ( Commands.ContainsKey( tag.Command ) ) {
+               Info( "Command exists, cannot register {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
+               continue;
+            }
+            CmdMethod.SetValue( tag, func );
+            var param = func.GetParameters();
+            if ( param.Length > 0 && param[ param.Length - 1 ].ParameterType.FullName.Equals( "System.String[]" ) )
+               CmdVarArg.SetValue( tag, true );
+            Commands.Add( tag.Command, tag );
+            Info( "Command registered: {0} of {1} in {2}.", tag.Command, type.FullName, asm.FullName );
+         }
+      } catch ( TypeLoadException ex ) {
+         Info( ex );
+      } }
       #endregion
 
       #region Console commands
