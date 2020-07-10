@@ -1,8 +1,10 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
-# Version 6.1, in development
+# Version 6.1, 2020-07-10
 
+* Update vehicle movement pause for Danforth (1.5.2).  Should still work on Pre-Danforth installations.
 * Setting Hours_Format / Days_Format / Haven_Icons to null no longer throw NRE.
+* Tested on Phoenix Point 1.5.3.59629.
 
 # Version 6, 2020-06-03
 

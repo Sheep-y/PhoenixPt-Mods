@@ -2,6 +2,7 @@
 using Base.UI;
 using Harmony;
 using PhoenixPoint.Geoscape.Entities;
+using PhoenixPoint.Geoscape.Entities.Abilities;
 using PhoenixPoint.Geoscape.Levels;
 using PhoenixPoint.Geoscape.Levels.Factions;
 using PhoenixPoint.Geoscape.View;
@@ -20,9 +21,12 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public void DoPatches () {
          if ( Mod.Config.Auto_Unpause_Multiple || Mod.Config.Auto_Unpause_Single ) {
             ContextGetter = typeof( GeoscapeViewState ).GetProperty( "Context", NonPublic | Instance );
-            if ( ContextGetter != null )
-               TryPatch( typeof( UIStateVehicleSelected ), "AddTravelSite", nameof( BeforeAddTravelSite_GetPause ), nameof( AfterAddTravelSite_RestorePause ) );
-            else
+            if ( ContextGetter != null ) {
+               // All moves (<1.5.2) / Right-click move (>=1.5.2)
+               TryPatch( typeof( UIStateVehicleSelected ), "AddTravelSite", nameof( BeforeMove_GetPause ), nameof( AfterAddTravelSite_RestorePause ) );
+               // Menu move (>=1.5.2)
+               TryPatch( typeof( UIStateVehicleSelected ), "OnContextualItemSelected", nameof( BeforeMove_GetPause ), nameof( AfterContextMove_RestorePause ) );
+            } else
                Warn( "GeoscapeViewState.Context not found." );
          }
 
@@ -68,12 +72,19 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       private static GeoscapeViewContext getContext ( UIStateVehicleSelected __instance ) => (GeoscapeViewContext) ContextGetter.GetValue( __instance );
 
       [ HarmonyPriority( Priority.VeryHigh ) ]
-      private static void BeforeAddTravelSite_GetPause ( UIStateVehicleSelected __instance, ref bool __state ) { try {
+      private static void BeforeMove_GetPause ( UIStateVehicleSelected __instance, ref bool __state ) { try {
          __state = getContext( __instance ).Level.Timing.Paused;
+         //Verbo( "New travel site. Paused = {0}", __state );
+      } catch ( Exception ex ) { Error( ex ); } }
+
+      private static void AfterContextMove_RestorePause ( UIStateVehicleSelected __instance, GeoAbility ability, ref bool __state ) { try {
+         if ( ! ( ability is MoveVehicleAbility ) ) return;
+         AfterAddTravelSite_RestorePause( __instance, ref __state );
       } catch ( Exception ex ) { Error( ex ); } }
 
       private static void AfterAddTravelSite_RestorePause ( UIStateVehicleSelected __instance, ref bool __state ) { try {
          var craft_count = GameUtl.CurrentLevel().GetComponent<GeoLevelController>().ViewerFaction.Vehicles.Count();
+         //Verbo( "Craft count = {0}", craft_count );
          if ( ( craft_count <= 1 && Mod.Config.Auto_Unpause_Single ) || ( craft_count > 1 && Mod.Config.Auto_Unpause_Multiple ) ) return;
          Verbo( "New vehicle travel plan. Setting time to {0}.", __state ? "Paused" : "Running" );
          getContext( __instance ).Level.Timing.Paused = __state;

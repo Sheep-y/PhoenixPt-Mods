@@ -21,7 +21,6 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
             TryPatch( typeof( UIModuleSiteContextualMenu ), "SetMenuItems", postfix: nameof( AfterSetMenuItems_DisableDupScan ) );
       }
 
-
       private static void AfterSetMenuItems_CalcTime ( GeoSite site, List<SiteContextualMenuItem> ____menuItems ) {
          foreach ( var menu in ____menuItems ) try {
             var vehicle = menu.Ability?.GeoActor as GeoVehicle;
