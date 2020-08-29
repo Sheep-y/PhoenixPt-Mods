@@ -1,5 +1,11 @@
 Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
+# Version 2.1, 2020-08-29
+
+* Fix: Non-readble properties are now skipped.
+* Fix: Type objects (System) and Reflection objects are no longer dumped recursively.
+* Tested on Phoenix Point 1.7.61722.
+
 # Version 2, 2020-07-01
 
 * "dump.xml" API to dump any object to xml.
