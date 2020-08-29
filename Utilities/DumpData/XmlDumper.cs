@@ -1,7 +1,6 @@
 ﻿using Base.Defs;
 using Base.UI;
 using PhoenixPoint.Common.Entities.Addons;
-using PhoenixPoint.Common.Entities.Items;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -61,6 +60,8 @@ namespace Sheepy.PhoenixPt.DumpData {
       private void Mem2Xml ( string name, object val, int level ) {
          if ( val == null ) { NullMem( name ); return; }
          if ( val is string str ) { StartTag( name, true, "val", str ); return; }
+         //ZyMod.Verbo( "{0} {1} {2}", name, val.GetType(), level );
+         //ZyMod.Api( "log flush" );
          if ( val is LocalizedTextBind l10n ) {
             StartTag( name, false, "key", l10n.LocalizationKey );
             Writer.Write( EscXml( l10n.Localize() ) );
@@ -68,6 +69,7 @@ namespace Sheepy.PhoenixPt.DumpData {
             return;
          }
          if ( val is GameObject obj ) { StartTag( name, true, "name", obj.name ); return; }
+         if ( val is Type cls ) { StartTag( name, true, "type", cls.Name ); return; }
          if ( val is byte[] bary ) {
             if ( name == "NativeData" ) // MapParcelDef.NativeData
                StartTag( name, true, "length", bary.Length.ToString() );
@@ -187,8 +189,11 @@ namespace Sheepy.PhoenixPt.DumpData {
 
       private void Obj2Xml ( object subject, int level ) {
          var type = subject.GetType();
-         if ( level == 0 ) { Writer.Write( type.Name, subject, 1 ); return; }
+         if ( level == 0 ) { Writer.Write( type.Name ); return; }
          if ( level > Mod.Config.Depth ) { Writer.Write( "..." ); return; }
+         if ( type.Namespace?.StartsWith( "System.Reflection" ) == true ) { Writer.Write( subject.ToString() ); return; }
+         //ZyMod.Verbo( "Obj {0} {1}", type, level );
+         //ZyMod.Api( "log flush" );
          var isBaseDef = subject is BaseDef;
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) try {
             if ( IsObsolete( f ) ) continue;
@@ -199,7 +204,7 @@ namespace Sheepy.PhoenixPt.DumpData {
          }
          if ( ! subject.GetType().IsClass ) return;
          foreach ( var f in type.GetProperties( Public | NonPublic | Instance ) ) try {
-               if ( IsObsolete( f ) ) continue;
+               if ( IsObsolete( f ) || ! f.CanRead ) continue;
                if ( isBaseDef && f.Name == "name" ) continue;
                Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
             } catch ( ApplicationException ex ) {
