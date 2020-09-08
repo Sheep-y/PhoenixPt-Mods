@@ -3,6 +3,7 @@ using Base.Defs;
 using Base.UI.MessageBox;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities;
+using PhoenixPoint.Common.Entities.GameTags;
 using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Common.View.ViewControllers;
 using PhoenixPoint.Geoscape.Entities;
@@ -166,7 +167,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
             string scrapTxt = TitleCase( __instance.ScrapModeButton.GetComponentInChildren<Text>()?.text ?? "Scrap" );
             if ( scrapTxt == "Scrap Item" ) scrapTxt = "Scrap";
             string translation = scrapTxt + " " + unit.GetName() + "?";
-            ____confirmationBox.ShowModal(translation, MessageBoxIcon.Warning, MessageBoxButtons.YesNo,
+            ____confirmationBox.ShowSimplePrompt(translation, MessageBoxIcon.Warning, MessageBoxButtons.YesNo,
                answer => OnScrapConfirmation( __instance, answer, unit, ____context ),
                __instance, MessageBox.DialogMode.DialogBox);
             return false;
@@ -263,11 +264,14 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          public Sprite SmallIcon => ItemDef.GetSmallIcon();
          public Sprite DetailedImage => ItemDef.GetDetailedImage();
          public bool IsInstant => false;
+         public List<GameTagDef> RequiredTagDefs => new List<GameTagDef>();
          public ItemManufacturing.ManufactureFailureReason CanManufacture ( GeoFaction faction ) => ItemManufacturing.ManufactureFailureReason.NotManufacturable;
          public void OnManufacture ( GeoFaction faction ) => ZyMod.Warn( "Attempting to manufacture {0}", GetName() );
          public float GetCostInManufacturePoints ( GeoFaction faction ) => faction.Def.UseHavenManufacturing ? GetCostInManufacturePoints( faction ) : GetFactoryManufactureCost();
          protected abstract float GetFactoryManufactureCost();
          public abstract string GetName();
+         public ItemManufacturing.ManufactureFailureReason CanFinishManufacture ( GeoFaction faction ) => ItemManufacturing.ManufactureFailureReason.NotManufacturable;
+         public bool CanProgressManufacture ( GeoFaction faction ) => false;
       }
 
       private class GeoPlaneWrapper : GeoUnitWrapper {
