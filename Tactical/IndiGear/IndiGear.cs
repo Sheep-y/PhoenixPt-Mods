@@ -87,7 +87,7 @@ namespace Sheepy.PhoenixPt.IndiGear {
          var manufacturableTag = Shared.SharedGameTags.ManufacturableTag;
          if ( ! item.Tags.Any( e => e == manufacturableTag ) )
             item.Tags.Add( manufacturableTag );
-         if ( Manufacture.ManufacturableItems.Contains( item ) ) {
+         if ( Manufacture.ManufacturableItems.Any( e => e.RelatedItemDef == item ) ) {
             Verbo( "Already unlocked: {0}", item.name );
             return;
          } else
