@@ -266,6 +266,7 @@ namespace Sheepy.PhoenixPt.ScrapVehicle {
          public bool IsInstant => false;
          public List<GameTagDef> RequiredTagDefs => new List<GameTagDef>();
          public ItemManufacturing.ManufactureFailureReason CanManufacture ( GeoFaction faction ) => ItemManufacturing.ManufactureFailureReason.NotManufacturable;
+         public ItemManufacturing.ManufactureFailureReason CanFinishManufacture ( GeoFaction faction ) => CanManufacture( faction );
          public void OnManufacture ( GeoFaction faction ) => ZyMod.Warn( "Attempting to manufacture {0}", GetName() );
          public float GetCostInManufacturePoints ( GeoFaction faction ) => faction.Def.UseHavenManufacturing ? GetCostInManufacturePoints( faction ) : GetFactoryManufactureCost();
          protected abstract float GetFactoryManufactureCost();
