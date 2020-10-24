@@ -41,8 +41,8 @@ Mods published on NexusMods.
 Unpublished mods.  Not guaranteed to work at all.
 
 * [**Flat Difficulty**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/FlatDifficulty) - Combat result no longer affect dynamic difficulty system.
-* [**Half Price Bionics**] (https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/HalfPriceBionics) - Half the price of bionic augments.
-* [**Less Recruit**] (https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/LessRecruit) - Remove an Assault from starting squads.
+* [**Half Price Bionics**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/HalfPriceBionics) - Half the price of bionic augments.
+* [**Less Recruit**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/LessRecruit) - Remove an Assault from starting squads.
 * [**Version Text**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/VersionText) - Hello World mod to demo modding.
 
 Any other mods you find will be work-in-progress.
@@ -70,7 +70,7 @@ Steps to build your own dlls from the source code.
 
 1. Make sure the game is installed in `C:\Program Files\Epic Games\PhoenixPoint`.  The mods need to reference its dlls.
 2. Download Visual Studio 2019, select ".Net Desktop Development" in the Installer.
-3. Download the [https://github.com/Sheep-y/PhoenixPt-Mods/archive/master.zip whole repo] and extract to a folder.
+3. Download the [whole repo](https://github.com/Sheep-y/PhoenixPt-Mods/archive/master.zip) and extract to a folder.
 4. Double click `PhoenixPt_Mods.sln`.  This should open all the mods in Visual Studio.
 5. Switch to "Release" build.  Debug will not build.
 6. In Build menu, click "Build Solution".  For the first build you need to be online, and it may take a while.
