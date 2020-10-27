@@ -28,7 +28,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
       private static void AfterAwake_DisableFov ( GeoSiteVisualsController __instance ) { try {
          var conf = Mod.Config.Haven_Icons;
-         if ( conf.Always_Show_Action ) DisableFov( __instance.RecruitAvailableIcon .transform.parent, "RecruitAvailableIcon"  );
+         if ( conf.Always_Show_Action  ) DisableFov( __instance.RecruitAvailableIcon .transform.parent, "RecruitAvailableIcon"  );
          if ( conf.Always_Show_Soldier ) DisableFov( __instance.SoldiersAvailableIcon.transform.parent, "SoldiersAvailableIcon" );
          // Supply FOV is same as recruit
          // if ( conf.Always_Show_Trade   ) DisableFov( __instance.SuppliesResourcesIcon.transform.parent, "SuppliesResourcesIcon" );
@@ -54,7 +54,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          __instance.RecruitAvailableText.text = OriginalRecruitText + " (" + GetClassName( recruit ) + ')';
       } catch ( Exception ex ) { Error( ex ); } }
 
-      private static string GetClassName ( GeoCharacter recruit ) => recruit.ClassViewElementDefs.First().DisplayName1.Localize();
+      private static string GetClassName ( GeoUnitDescriptor recruit ) => recruit.Progression.MainSpecDef.ViewElementDef.DisplayName1.Localize();
 
       private static void AfterSetHaven_ShowResourceStock ( UIModuleSelectionInfoBox __instance, GeoSite ____site ) { try {
          var res = ____site.GetComponent<GeoHaven>()?.GetResourceTrading();
