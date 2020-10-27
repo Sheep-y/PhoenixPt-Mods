@@ -6,7 +6,6 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
    internal class ModConfig {
       public bool Show_Airplane_Action_Time = true;
-      public uint  Same_Site_Scan_Cooldown_Min = 60;
       public string Hours_Format = " ({1}:{2:D2})";
       public string Days_Format = " ({3:F0}:{2:D2})";
       public bool Base_Centre_On_Heal = true;
