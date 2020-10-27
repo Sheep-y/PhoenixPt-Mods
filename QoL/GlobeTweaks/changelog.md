@@ -1,5 +1,12 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
+# Version 7, 2020-10-27
+
+* Update recruit info to support Phoenix Point 1.7.  Not backward compatible with older game versions.
+* Config Haven_Icons.Always_Show_Soldier merged with Always_Show_Action, fine control is lost due to fov architecture change.
+* Remove code and config related to scanner, because active scanning is removed since Phoenix Point 1.6.
+* Tested on Phoenix Point 1.7.3.62880.
+
 # Version 6.1, 2020-07-10
 
 * Update vehicle movement pause for Danforth (1.5.2).  Should still work on Pre-Danforth installations.
