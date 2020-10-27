@@ -17,8 +17,6 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          var config = Mod.Config;
          if ( config.Show_Airplane_Action_Time )
             TryPatch( typeof( UIModuleSiteContextualMenu ), "SetMenuItems", postfix: nameof( AfterSetMenuItems_CalcTime ) );
-         if ( config.Same_Site_Scan_Cooldown_Min != 0 )
-            TryPatch( typeof( UIModuleSiteContextualMenu ), "SetMenuItems", postfix: nameof( AfterSetMenuItems_DisableDupScan ) );
       }
 
       private static void AfterSetMenuItems_CalcTime ( GeoSite site, List<SiteContextualMenuItem> ____menuItems ) {
@@ -32,35 +30,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
                var hours = GetVehicleTimeLeft( vehicle, (float) site.ExplorationTime.TimeSpan.TotalHours );
                menu.ItemText.text += HoursToText( hours );
 
-            } else if ( menu.Ability is ScanAbility scan ) {
-               var scanner = GetScanner( site, scan, out float hours, true );
-               if ( scanner != null ) menu.ItemText.text += HoursToText( hours );
-            } // LaunchMissionAbility, HavenTradeAbility, HavenDetailsAbility
+            } // ScanAbility, LaunchMissionAbility, HavenTradeAbility, HavenDetailsAbility
          } catch ( Exception ex ) { Error( ex ); }
-      }
-
-      private static void AfterSetMenuItems_DisableDupScan ( GeoSite site, List<SiteContextualMenuItem> ____menuItems ) { try {
-         foreach ( var menu in ____menuItems ) {
-            if ( ! ( menu.Ability is ScanAbility scan ) ) continue;
-            if ( ! menu.Button.IsInteractable() ) return;
-            var scanner = GetScanner( site, scan, out float hours, false );
-            if ( scanner == null ) return;
-            var duration = scanner.ScannerDef.ExpansionTimeHours - hours;
-            var cooldown = Mod.Config.Same_Site_Scan_Cooldown_Min / 60f;
-            if ( cooldown == 0 || ( cooldown > 0 && duration > cooldown ) ) return;
-            Verbo( "Preventing duplicate scan.  Last scan {0}hr, threshold {1}hr.", duration, cooldown );
-            menu.Button.SetInteractable( false );
-            break;
-         }
-      } catch ( Exception ex ) { Error( ex ); } }
-
-      private static GeoScanner GetScanner ( GeoSite site, GeoAbility ability, out float remainingHours, bool GetFirst ) {
-         remainingHours = 0;
-         var scanners = ( ability.GeoActor as GeoVehicle )?.Owner?.Scanners?.Where( e => e.Location == site );
-         if ( scanners == null || ! scanners.Any() ) return null;
-         var scanner = GetFirst ? scanners.First() : scanners.Last();
-         remainingHours = (float) ( ( scanner.SerializationData as GeoScanner.GeoScannerInstanceData ).ExpansionEndDate - scanner.Timing.Now ).TimeSpan.TotalHours;
-         return scanner;
       }
 
       private static float GetVehicleTimeLeft ( GeoVehicle vehicle, float def ) { try {
