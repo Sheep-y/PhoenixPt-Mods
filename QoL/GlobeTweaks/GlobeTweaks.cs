@@ -19,15 +19,17 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public bool Vehicle_Centre_On_Heal = true;
       public bool Vehicle_Pause_On_Heal = true;
       public HavenIconConfig Haven_Icons = new HavenIconConfig();
-      public uint  Config_Version = 20200603;
+      public uint  Config_Version = 20201027;
 
       public bool? No_Auto_Unpause { internal get; set; } // Replaced by Auto_Unpause_Multiple on ver 20200603
 
       internal void Upgrade () {
-         if ( Config_Version < 20200603 ) {
-            Config_Version = 202000603;
-            if ( No_Auto_Unpause == false )
+         if ( Config_Version < 20200603 && No_Auto_Unpause == false )
                Auto_Unpause_Multiple = true;
+         if ( Config_Version < 20201027 ) {
+            Config_Version = 20201027;
+            if ( Haven_Icons?.Always_Show_Soldier == true )
+               Haven_Icons.Always_Show_Action = true;
             ZyMod.Api( "config save", this );
          }
          if ( Haven_Icons == null ) Haven_Icons = new HavenIconConfig();
@@ -36,12 +38,13 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
    internal class HavenIconConfig {
       public bool Always_Show_Action = true;
-      public bool Always_Show_Soldier = true;
       public bool Hide_Recruit_Stickman = true;
       public bool Popup_Show_Recruit_Class = true;
       public bool Popup_Show_Trade = true;
       public string In_Stock_Line = "<size=28>{0} {1} > {2} {3} ({4})</size>\n";
       public string Out_Of_Stock_Line = "<color=red><size=28>{0} {1} > {2} {3} ({4})</size></color>\n";
+
+      public bool? Always_Show_Soldier { internal get; set; } // Merged with Always_Show_Action on ver 20201027
    }
 
    public class Mod : ZyMod {
