@@ -14,8 +14,8 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
 
       public void DoPatches () {
          var conf = Mod.Config.Haven_Icons;
-         if ( conf.Always_Show_Action || conf.Always_Show_Soldier )
-            FovPatch = TryPatch( typeof( GeoSiteVisualsController ), "Awake", postfix: nameof( AfterAwake_DisableFov ) );
+         if ( conf.Always_Show_Action )
+            FovPatch = TryPatch( typeof( GeoSite ), "Initialize", postfix: nameof( AfterInit_DisableFov ) );
          if ( conf.Popup_Show_Recruit_Class )
             TryPatch( typeof( UIModuleSelectionInfoBox ), "SetHaven", postfix: nameof( AfterSetHaven_ShowRecruitClass ) );
          if ( conf.Popup_Show_Trade )
@@ -26,23 +26,10 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          }
       }
 
-      private static void AfterAwake_DisableFov ( GeoSiteVisualsController __instance ) { try {
-         var conf = Mod.Config.Haven_Icons;
-         if ( conf.Always_Show_Action  ) DisableFov( __instance.RecruitAvailableIcon .transform.parent, "RecruitAvailableIcon"  );
-         if ( conf.Always_Show_Soldier ) DisableFov( __instance.SoldiersAvailableIcon.transform.parent, "SoldiersAvailableIcon" );
-         // Supply FOV is same as recruit
-         // if ( conf.Always_Show_Trade   ) DisableFov( __instance.SuppliesResourcesIcon.transform.parent, "SuppliesResourcesIcon" );
-         //Api( "zy.ui.dump", __instance.RecruitAvailableIcon.transform.parent.parent ); // Dump gui tree with debug console
+      private static void AfterInit_DisableFov ( GeoSiteVisualsController ____visuals ) { try {
+         ____visuals.FovController.ControllingDef.InvisibleOverFov = -1;
          Unpatch( ref FovPatch );
       } catch ( Exception ex ) { Error( ex ); } }
-
-      private static void DisableFov ( Transform t, string type ) {
-         var fov = t.gameObject.GetComponent<FovControllableBehavior>();
-         if ( fov?.ControllingDef?.InvisibleOverFov > 0 )
-            fov.ControllingDef.InvisibleOverFov = -1;
-         else
-            Warn( "Fov not found, cannot set always visible: {0}", type );
-      }
 
       private static string OriginalRecruitText;
 
