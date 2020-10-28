@@ -1,7 +1,8 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
-# Version 7, 2020-10-27
+# Version 7, 2020-10-28
 
+* Fix: Setting both Auto_Unpause_Single and Auto_Unpause_Multiple to false is now working.  Previously one of them need to be true.
 * Update recruit info to support Phoenix Point 1.7.  Not backward compatible with older game versions.
 * Config Haven_Icons.Always_Show_Soldier merged with Always_Show_Action, fine control is lost due to fov architecture change.
 * Remove code and config related to scanner, because active scanning is removed since Phoenix Point 1.6.

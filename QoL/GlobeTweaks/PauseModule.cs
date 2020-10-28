@@ -19,7 +19,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       private static PropertyInfo ContextGetter;
 
       public void DoPatches () {
-         if ( Mod.Config.Auto_Unpause_Multiple || Mod.Config.Auto_Unpause_Single ) {
+         if ( ! ( Mod.Config.Auto_Unpause_Multiple && Mod.Config.Auto_Unpause_Single ) ) {
             ContextGetter = typeof( GeoscapeViewState ).GetProperty( "Context", NonPublic | Instance );
             if ( ContextGetter != null ) {
                // All moves (<1.5.2) / Right-click move (>=1.5.2)
