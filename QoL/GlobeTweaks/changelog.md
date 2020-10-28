@@ -6,6 +6,7 @@ Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 * Config Haven_Icons.Always_Show_Soldier merged with Always_Show_Action; fine control is lost due to fov architecture change.
 * Fix: Unpause settings were not registered properly when both were enabled.
 * Remove code and config related to scanner, because active scanning is removed since Phoenix Point 1.6.
+* Remove code and config related to new base, because bases are now activated instantly.
 * Tested on Phoenix Point 1.7.3.62880.
 
 # Version 6.1, 2020-07-10

@@ -30,11 +30,6 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
                Warn( "GeoscapeViewState.Context not found." );
          }
 
-         if ( Mod.Config.Center_On_New_Base ) {
-            TryPatch( typeof( GeoPhoenixFaction ), "ActivatePhoenixBase", postfix: nameof( AfterActivatePhoenixBase_Center ) );
-            TryPatch( typeof( GeoFaction ), "OnVehicleSiteExplored", postfix: nameof( AfterExplore_Center ) );
-         }
-
          if ( Mod.Config.Base_Centre_On_Heal )
             TryPatch( typeof( GeoscapeLog ), "ProcessQueuedEvents", nameof( BeforeQueuedEvents_CentreBase ) );
          if ( Mod.Config.Base_Pause_On_Heal )
@@ -54,19 +49,6 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
             } );
          }
       }
-
-      #region CenterOnNewBase
-      private static void AfterActivatePhoenixBase_Center ( GeoSite site, GeoLevelController ____level ) { try {
-         Info( "New base {0} activated, centering.", site.Name );
-         ____level.View.ChaseTarget( site, false );
-      } catch ( Exception ex ) { Error( ex ); } }
-
-      private static void AfterExplore_Center ( GeoFaction __instance, GeoVehicle vehicle, GeoLevelController ____level ) { try {
-         if ( __instance != ____level.ViewerFaction ) return;
-         Info( "New base {0} discovered, centering.", vehicle.CurrentSite.Name );
-         ____level.View.ChaseTarget( vehicle.CurrentSite, false );
-      } catch ( Exception ex ) { Error( ex ); } }
-      #endregion
 
       #region NoAutoUnpause
       private static GeoscapeViewContext getContext ( UIStateVehicleSelected __instance ) => (GeoscapeViewContext) ContextGetter.GetValue( __instance );

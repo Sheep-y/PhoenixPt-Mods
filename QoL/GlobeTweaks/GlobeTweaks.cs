@@ -10,7 +10,6 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
       public string Days_Format = " ({3:F0}:{2:D2})";
       public bool Base_Centre_On_Heal = true;
       public bool Base_Pause_On_Heal = true;
-      public bool Center_On_New_Base = true;
       public bool Auto_Unpause_Single = true;
       public bool Auto_Unpause_Multiple = false;
       public bool Notice_On_HP_Only_Heal = false;
