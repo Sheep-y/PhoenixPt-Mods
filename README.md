@@ -27,7 +27,6 @@ Mods published on NexusMods, and tested on Phoenix Point 1.7.3.
 
 Mods published on NexusMods, but only tested up to 1.5.x.
 
-* [**Deaf the Dead**](https://www.nexusmods.com/phoenixpoint/mods/45/) - Prevent dead units from hearing enemy movements.
 * [**Full Body Augmentations**](https://www.nexusmods.com/phoenixpoint/mods/33) - Removes mutation and bionics cap.
 * [**Independent Gear**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlocks all independent gears.
 * [**Laser on Fire**](https://www.nexusmods.com/phoenixpoint/mods/33) - Add fire to lasers and change Destiny III aiming to first person.
@@ -40,8 +39,9 @@ Mods published on NexusMods, but only tested up to 1.5.x.
 * [**Tech Progression**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlock more things as you research.
 * [**Variable Rage Burst**](https://www.nexusmods.com/phoenixpoint/mods/33) - Dynamic Rage Burst shots depending on weapon AP.
 
-Old mods that will not be updated for new Phoenix Point:
+Legacy mods that will not be updated for new Phoenix Point:
 
+* [**Deaf the Dead**](https://www.nexusmods.com/phoenixpoint/mods/45/) - Prevent dead units from hearing enemy movements.
 * [**ODI Factors**](https://www.nexusmods.com/phoenixpoint/mods/33) - Adjust ODI scores and multipliers through PPDefModifier.
 
 Unpublished mods.  Not guaranteed to work at all.
