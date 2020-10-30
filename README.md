@@ -23,13 +23,13 @@ Mods published on NexusMods, and tested on Phoenix Point 1.7.3.
 * [**Full Body Augmentations**](https://www.nexusmods.com/phoenixpoint/mods/33) - Removes mutation and bionics cap.
 * [**Geoscape Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape screens.
 * [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centring.
+* [**Independent Gear**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlocks all independent gears.
 * [**No Ambush & No Nothing Found**](https://www.nexusmods.com/phoenixpoint/mods/12/) - Removes ambushes and/or found nothing random event.
 * [**Skip Intro**](https://www.nexusmods.com/phoenixpoint/mods/17) - Skip logos, openings, and landings.
 * [**Traditional Chinese**](https://www.nexusmods.com/phoenixpoint/mods/47) - Convert Simplified Chinese to Traditional Chinese.
 
 Mods published on NexusMods, but only tested up to 1.5.x.
 
-* [**Independent Gear**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlocks all independent gears.
 * [**Laser on Fire**](https://www.nexusmods.com/phoenixpoint/mods/33) - Add fire to lasers and change Destiny III aiming to first person.
 * [**Limited War**](https://www.nexusmods.com/phoenixpoint/mods/24) - Tone down the scale and damage of faction war.
 * [**Loot Everything**](https://www.nexusmods.com/phoenixpoint/mods/33) - Loot all items, optionally loot all armours and mounts.
