@@ -44,7 +44,6 @@ namespace Sheepy.PhoenixPt.IndiGear {
       public void MainMod ( Func<string, object, object> api = null ) {
          SetApi( api, out Config );
          Patch( typeof( GeoMissionScheduler ), "Init", postfix: nameof( AfterSetupResearch_UnlockItems ) );
-         TryPatch( typeof( GeoPhoenixFaction ), "OnNewManufacturableItemsAdded", prefix: nameof( BeforeOnNewManufacturableItemsAdded_Abort ) );
       }
 
       public static void GeoscapeOnShow ( Func<string, object, object> api = null ) {
@@ -52,20 +51,13 @@ namespace Sheepy.PhoenixPt.IndiGear {
          AfterSetupResearch_UnlockItems();
       }
 
-      private static bool Unlocking;
       private static int UnlockCount;
-
-      [ HarmonyPriority( Priority.Low ) ]
-      private static bool BeforeOnNewManufacturableItemsAdded_Abort () {
-         return ! Unlocking;
-      }
 
       private static void AfterSetupResearch_UnlockItems () { try {
          if ( Config.Unlock == null ) {
             Warn( "Unlock list is null.  Nothing to unlock." );
             return;
          }
-         Unlocking = true;
          UnlockCount = 0;
          foreach ( var id in Config.Unlock ) {
             var def = Api( "\v pp.def", id ) as TacticalItemDef ?? FindTacItem( id );
@@ -77,10 +69,7 @@ namespace Sheepy.PhoenixPt.IndiGear {
          Info( "Unlocked {0} items", UnlockCount );
       } catch ( Exception ex ) {
          Error( ex );
-      } finally {
-         Unlocking = false;
       } }
-
 
       private static void UnlockItem ( TacticalItemDef item ) {
          if ( Shared == null ) Shared = GameUtl.GameComponent<SharedData>();
