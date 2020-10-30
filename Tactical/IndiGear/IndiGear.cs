@@ -99,10 +99,12 @@ namespace Sheepy.PhoenixPt.IndiGear {
       private static void AddItem ( TacticalItemDef item ) {
          Verbo( "Unlock item: {0}", item.name );
          Manufacture.AddAvailableItem( item );
+         PhoenixFaction.NewEntityKnowledge?[ "item" ]?.Remove( item.Guid );
          UnlockCount++;
       }
 
-      private static ItemManufacturing Manufacture => GameUtl.CurrentLevel().GetComponent<GeoLevelController>().PhoenixFaction.Manufacture;
+      private static GeoPhoenixFaction PhoenixFaction => GameUtl.CurrentLevel().GetComponent<GeoLevelController>().PhoenixFaction;
+      private static ItemManufacturing Manufacture => PhoenixFaction.Manufacture;
 
       private static DefRepository Repo;
       private static SharedData Shared;

@@ -1,5 +1,9 @@
 Changelog of Independent Gear, a Phoenix Point Mod by Sheepy
 
+# Version 2.2, 2020-10-30
+* Rebuild for Phoenix Point 1.7.3 due to method signature change.
+* Prevent Phoenix Point from regarding the gears as new when loaded by Modnix 3.
+
 # Version 2.1, 2020-07-02
 
 * Prevent Phoenix Point from regarding the gears as new.
