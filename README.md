@@ -25,6 +25,7 @@ Mods published on NexusMods, and tested on Phoenix Point 1.7.3.
 * [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centring.
 * [**Independent Gear**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlocks all independent gears.
 * [**No Ambush & No Nothing Found**](https://www.nexusmods.com/phoenixpoint/mods/12/) - Removes ambushes and/or found nothing random event.
+* [**Scripting Library**](https://www.nexusmods.com/phoenixpoint/mods/49) - Support C# evaluations and Eval mod actions.
 * [**Skip Intro**](https://www.nexusmods.com/phoenixpoint/mods/17) - Skip logos, openings, and landings.
 * [**Traditional Chinese**](https://www.nexusmods.com/phoenixpoint/mods/47) - Convert Simplified Chinese to Traditional Chinese.
 
@@ -36,7 +37,6 @@ Mods published on NexusMods, but only tested up to 1.5.x.
 * [**Mitigate Shred**](https://www.nexusmods.com/phoenixpoint/mods/33) - Convert absorbed damage (by armour) to shred.
 * [**Recruit Info**](https://www.nexusmods.com/phoenixpoint/mods/28) - See recruit's skills, grafts, and equipments on haven screen.
 * [**Scrap Vehicle**](https://www.nexusmods.com/phoenixpoint/mods/26) - Make it possible to recycle vehicles and mutogs.
-* [**Scripting Library**](https://www.nexusmods.com/phoenixpoint/mods/49) - Support C# evaluations and Eval mod actions.
 * [**Tech Progression**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlock more things as you research.
 * [**Variable Rage Burst**](https://www.nexusmods.com/phoenixpoint/mods/33) - Dynamic Rage Burst shots depending on weapon AP.
 
@@ -49,7 +49,7 @@ Unpublished mods.  Not guaranteed to work at all.
 
 * [**Flat Difficulty**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/FlatDifficulty) - Combat result no longer affect dynamic difficulty system.
 * [**Half Price Bionics**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/HalfPriceBionics) - Half the price of bionic augments.
-* [**Less Recruit**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/LessRecruit) - Remove an Assault from starting squads.
+* [**Less Recruit**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/LessRecruit) - Remove an Assault from starting squads, last tested on 1.7.3.
 * [**Version Text**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/VersionText) - Hello World mod to demo modding.
 
 Any other mods you find will be work-in-progress.
