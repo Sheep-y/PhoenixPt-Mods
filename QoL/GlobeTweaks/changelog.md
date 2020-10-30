@@ -1,5 +1,9 @@
 Changelog of Globe Tweaks, a Phoenix Point Mod by Sheepy
 
+# Version 7.0.1, 2020-10-30
+
+* Disabled a development code that drowns the mod log with Geoscape input events.
+
 # Version 7, 2020-10-28
 
 * Update recruit info to support Phoenix Point 1.7.  Not backward compatible with older game versions.

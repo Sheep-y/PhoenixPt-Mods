@@ -58,7 +58,7 @@ namespace Sheepy.PhoenixPt.GlobeTweaks {
          new TimeModule().DoPatches();
          new PauseModule().DoPatches();
          new GlyphModule().DoPatches();
-         Patch( typeof( GeoscapeViewState ), "OnInputEvent", postfix: nameof( Test ) );
+         //Patch( typeof( GeoscapeViewState ), "OnInputEvent", postfix: nameof( Test ) );
       }
 
       private static void Test ( object __instance, InputEvent ev ) {
