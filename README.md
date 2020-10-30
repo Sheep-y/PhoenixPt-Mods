@@ -23,6 +23,7 @@ Mods published on NexusMods, and tested on Phoenix Point 1.7.3.
 * [**Full Body Augmentations**](https://www.nexusmods.com/phoenixpoint/mods/33) - Removes mutation and bionics cap.
 * [**Geoscape Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape screens.
 * [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centring.
+* [**No Ambush & No Nothing Found**](https://www.nexusmods.com/phoenixpoint/mods/12/) - Removes ambushes and/or found nothing random event.
 * [**Skip Intro**](https://www.nexusmods.com/phoenixpoint/mods/17) - Skip logos, openings, and landings.
 * [**Traditional Chinese**](https://www.nexusmods.com/phoenixpoint/mods/47) - Convert Simplified Chinese to Traditional Chinese.
 
