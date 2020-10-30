@@ -20,6 +20,7 @@ Mods published on NexusMods, and tested on Phoenix Point 1.7.3.
 * [**Block Telemetry**](https://www.nexusmods.com/phoenixpoint/mods/48/) - Opt-out of and blocks telemetry.
 * [**Debug Console**](https://www.nexusmods.com/phoenixpoint/mods/44/) - Enable console and direct unity log and game log to it.
 * [**Dump Data**](https://www.nexusmods.com/phoenixpoint/mods/50/) - Dump game text and data into xml and csv.
+* [**Full Body Augmentations**](https://www.nexusmods.com/phoenixpoint/mods/33) - Removes mutation and bionics cap.
 * [**Geoscape Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape screens.
 * [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centring.
 * [**Skip Intro**](https://www.nexusmods.com/phoenixpoint/mods/17) - Skip logos, openings, and landings.
@@ -27,7 +28,6 @@ Mods published on NexusMods, and tested on Phoenix Point 1.7.3.
 
 Mods published on NexusMods, but only tested up to 1.5.x.
 
-* [**Full Body Augmentations**](https://www.nexusmods.com/phoenixpoint/mods/33) - Removes mutation and bionics cap.
 * [**Independent Gear**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlocks all independent gears.
 * [**Laser on Fire**](https://www.nexusmods.com/phoenixpoint/mods/33) - Add fire to lasers and change Destiny III aiming to first person.
 * [**Limited War**](https://www.nexusmods.com/phoenixpoint/mods/24) - Tone down the scale and damage of faction war.
