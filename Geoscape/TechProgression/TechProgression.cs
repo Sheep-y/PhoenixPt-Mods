@@ -1,9 +1,6 @@
 ﻿using Base;
 using Base.Core;
 using Base.Defs;
-
-using Newtonsoft.Json;
-
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Geoscape.Entities.Research;
