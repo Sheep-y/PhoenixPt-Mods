@@ -8,6 +8,7 @@ using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Common.UI;
 using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.View.ViewControllers.HavenDetails;
+using PhoenixPoint.Tactical.Entities.Equipments;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -99,7 +100,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       private static void AfterSetRecruitment_ListPerks ( HavenFacilityItemController __instance, GeoHaven ____haven ) { try {
          var recruit = ____haven?.AvailableRecruit;
          if ( recruit == null ) return;
-         Info( "Showing info of {0}", recruit.DisplayName );
+         Info( "Showing info of {0}", recruit.GetName() );
          if ( Config.Skills.Enabled )
             ShowRecruitInfo( __instance, "PersonalSkills", new PersonalSkillInfo( recruit ) );
          if ( Config.Augments.Enabled )
@@ -131,9 +132,9 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
    }
 
    internal abstract class RecruitInfo {
-      protected readonly GeoCharacter recruit;
+      protected readonly GeoUnitDescriptor recruit;
 
-      protected RecruitInfo ( GeoCharacter recruit ) {
+      protected RecruitInfo ( GeoUnitDescriptor recruit ) {
          this.recruit = recruit;
          NameTags = new string[] { Prefix( Config.Name ), Postfix( Config.Name ) };
       }
@@ -179,8 +180,7 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          return new KeyValuePair<string, string>( title, desc );
       }
 
-      protected IEnumerable< ViewElementDef > Map ( IEnumerable< GeoItem > items, Func< ItemDef, bool > filter = null ) {
-         var defs = items.Select( e => e.ItemDef );
+      protected IEnumerable< ViewElementDef > Map ( IEnumerable< TacticalItemDef > defs, Func< TacticalItemDef, bool > filter = null ) {
          if ( filter != null ) defs = defs.Where( filter );
          return defs.Select( e => e.ViewElementDef ).Where( e => e != null );
       }
@@ -198,13 +198,12 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
    internal class PersonalSkillInfo : RecruitInfo {
 
-      internal PersonalSkillInfo ( GeoCharacter recruit ) : base( recruit ) { }
+      internal PersonalSkillInfo ( GeoUnitDescriptor recruit ) : base( recruit ) { }
 
       private ViewElementDef MainClass => recruit.Progression.MainSpecDef.ViewElementDef;
 
       protected override IEnumerable< ViewElementDef > Items =>
-         recruit.Progression?.AbilityTracks?.Where( e => e?.Source == AbilityTrackSource.Personal )
-         ?.SelectMany( e => e.AbilitiesByLevel?.Select( a => a?.Ability?.ViewElementDef ) ).Where( e => e != null );
+         recruit.GetPersonalAbilityTrack().AbilitiesByLevel?.Select( a => a?.Ability?.ViewElementDef ).Where( e => e != null );
 
       protected internal override ListConfig Config => Mod.Config.Skills;
 
@@ -221,20 +220,20 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       internal static GameTagDef AnuMutation, BioAugTag;
 
-      internal AugInfo ( GeoCharacter recruit ) : base( recruit ) { }
+      internal AugInfo ( GeoUnitDescriptor recruit ) : base( recruit ) { }
 
       protected internal override ListConfig Config => Mod.Config.Augments;
 
       protected internal override string Count_Label => "Blood Titanium/KEY_AUGMENT"; // "Augmentation"
 
-      protected override IEnumerable< ViewElementDef > Items => Map( recruit.ArmourItems, IsAugment );
+      protected override IEnumerable< ViewElementDef > Items => Map( recruit.ArmorItems, IsAugment );
 
       internal static bool IsAugment ( ItemDef def ) => def.Tags.Any( tag => tag == AnuMutation || tag == BioAugTag );
    }
 
    internal class EquipmentInfo : RecruitInfo {
 
-      internal EquipmentInfo ( GeoCharacter recruit ) : base( recruit ) { }
+      internal EquipmentInfo ( GeoUnitDescriptor recruit ) : base( recruit ) { }
 
       protected internal override ListConfig Config => Mod.Config.Equipments;
 
@@ -242,9 +241,9 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       protected override IEnumerable< ViewElementDef > Items => Equipments.Concat( Armours );
 
-      private IEnumerable< ViewElementDef > Equipments => Map( recruit.EquipmentItems.Concat( recruit.InventoryItems ) );
+      private IEnumerable< ViewElementDef > Equipments => Map( recruit.Equipment.Concat( recruit.Inventory ) );
 
-      private IEnumerable< ViewElementDef > Armours => Map( recruit.ArmourItems, Mod.Config.Augments.Enabled ?
+      private IEnumerable< ViewElementDef > Armours => Map( recruit.ArmorItems, Mod.Config.Augments.Enabled ?
          ( Func< ItemDef, bool > ) ( e => ! AugInfo.IsAugment( e ) ) : null );
 
       internal override IEnumerable<KeyValuePair<string, string>> GetDesc () {

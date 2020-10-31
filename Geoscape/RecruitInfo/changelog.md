@@ -1,5 +1,9 @@
 Changelog of Recruit Info, a Phoenix Point Mod by Sheepy
 
+# Version 4, in development
+
+* Update to work with Phoenix Point 1.7.3.  Mod is not backward compatible with pre-1.7 game versions.
+
 # Version 3, 2020-06-04
 
 * New: Show equipment count instead of full list, by default.  Game has button to show class and equipments since 1.0.57335.
