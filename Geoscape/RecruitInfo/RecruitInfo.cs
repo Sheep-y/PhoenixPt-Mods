@@ -19,16 +19,18 @@ using UnityEngine;
 namespace Sheepy.PhoenixPt.RecruitInfo {
 
    internal class ModConfig {
+      public bool Disable_Zone_Tooltip = true;
       public ListConfig Skills = new ListConfig();
       public ListConfig Grafts { internal get; set; }
       public ListConfig Augments = new ListConfig();
       public ListConfig Equipments = new ListConfig{ Name = "<size=36>...</size>", List_Names = false };
-      public uint Config_Version = 20200604;
+      public uint Config_Version = 20201102;
 
       internal void Upgrade () {
-         if ( Config_Version < 20200604 ) {
+         if ( Config_Version < 20200604 )
             if ( Grafts != null ) Augments = Grafts;
-            Config_Version = 20200604;
+         if ( Config_Version < 20201102 ) {
+            Config_Version = 20201102;
             ZyMod.Api( "config save", this );
          }
          if ( Skills == null ) Skills = new ListConfig{ Enabled = false };
@@ -100,7 +102,11 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       private static void AfterSetRecruitment_ListPerks ( HavenFacilityItemController __instance, GeoHaven ____haven ) { try {
          var recruit = ____haven?.AvailableRecruit;
+         if ( Config.Disable_Zone_Tooltip )
+            __instance.ZoneTooltip.Enabled = recruit == null;
          if ( recruit == null ) return;
+         //Api( "ui.dump", __instance );
+
          Info( "Showing info of {0}", recruit.GetName() );
          if ( Config.Skills.Enabled )
             ShowRecruitInfo( __instance, "PersonalSkills", new PersonalSkillInfo( recruit ) );
