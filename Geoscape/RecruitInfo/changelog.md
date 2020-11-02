@@ -3,7 +3,7 @@ Changelog of Recruit Info, a Phoenix Point Mod by Sheepy
 # Version 4, 2020-11-02
 
 * Update to Phoenix Point 1.7.  Mod is not backward compatible with pre-1.7 game installations.
-* New: Training Center's tips are now hidden by default, to not cover perks and equipment details
+* New: Training Center's tips are now hidden by default, to not cover perks and equipment details.
 * Fix: Medkit numbers are now properly interpolated in the description.
 * Fix: Class description now explains what the class does, rather than just repeat its name.
 * Tested on Phoenix Point 1.7.3.62880.

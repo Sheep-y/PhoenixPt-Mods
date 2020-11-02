@@ -25,6 +25,7 @@ Mods published on NexusMods, and tested on Phoenix Point 1.7.3.
 * [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centring.
 * [**Independent Gear**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlocks all independent gears.
 * [**No Ambush & No Nothing Found**](https://www.nexusmods.com/phoenixpoint/mods/12/) - Removes ambushes and/or found nothing random event.
+* [**Recruit Info**](https://www.nexusmods.com/phoenixpoint/mods/28) - See recruit's skills, grafts, and equipments on haven screen.
 * [**Scripting Library**](https://www.nexusmods.com/phoenixpoint/mods/49) - Support C# evaluations and Eval mod actions.
 * [**Skip Intro**](https://www.nexusmods.com/phoenixpoint/mods/17) - Skip logos, openings, and landings.
 * [**Tech Progression**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlock more things as you research.
@@ -36,7 +37,6 @@ Mods published on NexusMods, but only tested up to 1.5.x.
 * [**Limited War**](https://www.nexusmods.com/phoenixpoint/mods/24) - Tone down the scale and damage of faction war.
 * [**Loot Everything**](https://www.nexusmods.com/phoenixpoint/mods/33) - Loot all items, optionally loot all armours and mounts.
 * [**Mitigate Shred**](https://www.nexusmods.com/phoenixpoint/mods/33) - Convert absorbed damage (by armour) to shred.
-* [**Recruit Info**](https://www.nexusmods.com/phoenixpoint/mods/28) - See recruit's skills, grafts, and equipments on haven screen.
 * [**Scrap Vehicle**](https://www.nexusmods.com/phoenixpoint/mods/26) - Make it possible to recycle vehicles and mutogs.
 * [**Variable Rage Burst**](https://www.nexusmods.com/phoenixpoint/mods/33) - Dynamic Rage Burst shots depending on weapon AP.
 
