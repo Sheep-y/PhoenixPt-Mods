@@ -1,6 +1,7 @@
 ﻿using Base.Core;
 using Base.UI;
 using Base.Utils;
+using Epic.OnlineServices.Presence;
 using Harmony;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Common.Entities.GameTags;
@@ -219,7 +220,9 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       internal override IEnumerable<KeyValuePair<string, string>> GetDesc () => ClassDesc().Concat( base.GetDesc() );
 
-      private IEnumerable<KeyValuePair<string, string>> ClassDesc () { yield return Stringify( MainClass ); }
+      private IEnumerable<KeyValuePair<string, string>> ClassDesc () {
+         yield return new KeyValuePair<string, string>( MainClass.DisplayName1.Localize(), MainClass.DisplayName2.Localize() );
+      }
    }
 
    internal abstract class ItemInfo : RecruitInfo {
