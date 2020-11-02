@@ -8,6 +8,7 @@ using PhoenixPoint.Common.Entities.Items;
 using PhoenixPoint.Common.UI;
 using PhoenixPoint.Geoscape.Entities;
 using PhoenixPoint.Geoscape.View.ViewControllers.HavenDetails;
+using PhoenixPoint.Tactical.Entities.Abilities;
 using PhoenixPoint.Tactical.Entities.Equipments;
 using System;
 using System.Collections.Generic;
@@ -170,6 +171,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
 
       protected KeyValuePair< string, string > Stringify ( ViewElementDef view ) {
          string title = view.DisplayName1.Localize(), desc = view.Description.Localize(), key = view.DisplayName1.LocalizationKey;
+         if ( desc.Contains( "{" ) && desc.Contains( "}" ) && FindInterpol( view ) is IInterpolatableObject ipol )
+            desc = view.GetInterpolatedDescription( ipol );
          if ( view is MutationViewElementDef mut ) { // Mutations
             title = view.DisplayName2.Localize();
             desc = mut.MutationDescription.Localize();
@@ -180,6 +183,8 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
          return new KeyValuePair<string, string>( title, desc );
       }
       #endregion
+
+      protected virtual IInterpolatableObject FindInterpol ( ViewElementDef view ) => null;
 
       protected abstract IEnumerable< ViewElementDef > Views { get; }
 
@@ -217,6 +222,9 @@ namespace Sheepy.PhoenixPt.RecruitInfo {
       protected abstract IEnumerable< TacticalItemDef > Items { get; }
 
       protected override IEnumerable< ViewElementDef > Views => Items.Select( e => e.ViewElementDef ).Where( e => e != null );
+
+      protected override IInterpolatableObject FindInterpol ( ViewElementDef view ) =>
+         Items.First( e => e.ViewElementDef == view )?.Abilities?.OfType<TacticalAbilityDef>().First();
    }
 
    internal class AugInfo : ItemInfo {
