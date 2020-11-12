@@ -1,0 +1,50 @@
+// Double the reputation hit of all raiding missions
+[{
+   comment : "DiploNJNegative6MissionOutcomeDef",
+   guid : "55cf7cf8-c611-3614-9ae9-d200699c6ada",
+   modletlist : [{
+      field : "DiplomacyToFaction.Min",
+      value : -12, // Default -6
+   },{
+      field : "DiplomacyToFaction.Max",
+      value : -12, // Default -6
+   },{
+      field : "DiplomacyToFactionLeader.Min",
+      value : -30, // Default -15
+   },{
+      field : "DiplomacyToFactionLeader.Max",
+      value : -30, // Default -15
+   }]
+},{
+   comment : "DiploSYNegative6MissionOutcomeDef",
+   guid : "c20a07a8-ee6a-2ae4-d8b8-925e107d7993",
+   modletlist : [{
+      field : "DiplomacyToFaction.Min",
+      value : -12, // Default -6
+   },{
+      field : "DiplomacyToFaction.Max",
+      value : -12, // Default -6
+   },{
+      field : "DiplomacyToFactionLeader.Min",
+      value : -30, // Default -15
+   },{
+      field : "DiplomacyToFactionLeader.Max",
+      value : -30, // Default -15
+   }]
+},{
+   comment : "DiploANNegative6MissionOutcomeDef",
+   guid : "dc446e6a-78a3-cc24-8810-1fab56241f7f",
+   modletlist : [{
+      field : "DiplomacyToFaction.Min",
+      value : -12, // Default -6
+   },{
+      field : "DiplomacyToFaction.Max",
+      value : -12, // Default -6
+   },{
+      field : "DiplomacyToFactionLeader.Min",
+      value : -30, // Default -15
+   },{
+      field : "DiplomacyToFactionLeader.Max",
+      value : -30, // Default -15
+   }]
+}]
