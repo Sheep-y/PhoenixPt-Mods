@@ -28,6 +28,7 @@ Mods published on NexusMods, and tested on Phoenix Point 1.8.64176.
 * [**Recruit Info**](https://www.nexusmods.com/phoenixpoint/mods/28) - See recruit's skills, grafts, and equipments on haven screen.
 * [**Scripting Library**](https://www.nexusmods.com/phoenixpoint/mods/49) - Support C# evaluations and Eval mod actions.
 * [**Skip Intro**](https://www.nexusmods.com/phoenixpoint/mods/17) - Skip logos, openings, and landings.
+* [**Tech Progression**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlock more things as you research.
 * [**Traditional Chinese**](https://www.nexusmods.com/phoenixpoint/mods/47) - Convert Simplified Chinese to Traditional Chinese.
 
 Mods published on NexusMods, and tested up to 1.5.x.
@@ -37,7 +38,6 @@ Mods published on NexusMods, and tested up to 1.5.x.
 * [**Loot Everything**](https://www.nexusmods.com/phoenixpoint/mods/33) - Loot all items, optionally loot all armours and mounts.
 * [**Mitigate Shred**](https://www.nexusmods.com/phoenixpoint/mods/33) - Convert absorbed damage (by armour) to shred.
 * [**Scrap Vehicle**](https://www.nexusmods.com/phoenixpoint/mods/26) - Make it possible to recycle vehicles and mutogs.
-* [**Tech Progression**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlock more things as you research.
 * [**Variable Rage Burst**](https://www.nexusmods.com/phoenixpoint/mods/33) - Dynamic Rage Burst shots depending on weapon AP.
 
 Legacy mods that are deprecated due to Phoenix Point updates:
@@ -45,12 +45,13 @@ Legacy mods that are deprecated due to Phoenix Point updates:
 * [**Deaf the Dead**](https://www.nexusmods.com/phoenixpoint/mods/45/) - Prevent dead units from hearing enemy movements.
 * [**ODI Factors**](https://www.nexusmods.com/phoenixpoint/mods/33) - Adjust ODI scores and multipliers through PPDefModifier.
 
-Unpublished mods.  Not guaranteed to work at all.
+Unpublished mods.  No warrenty at all.
 
 * [**Flat Difficulty**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/FlatDifficulty) - Combat result no longer affect dynamic difficulty system.
 * [**Half Price Bionics**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/HalfPriceBionics) - Half the price of bionic augments.
 * [**Less Recruit**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/LessRecruit) - Remove an Assault from starting squads, last tested on 1.8.
 * [**Stealing Is Bad**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/StealingIsBad) - Doubles the penalty for raiding.
+* [**Strong Means Tough**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/StrongMeansTough) - Increase HP per Strength for all human soldiers, last tested on 1.8.
 * [**Version Text**](https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/Unpublished/VersionText) - Hello World mod to demo modding.
 
 Any other mods you find will be work-in-progress.

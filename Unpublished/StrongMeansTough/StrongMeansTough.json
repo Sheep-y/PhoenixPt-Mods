@@ -1,0 +1,9 @@
+// Make human soldiers gain more Health per Strength.
+[{
+   comment : "DiploNJNegative6MissionOutcomeDef",
+   guid : "958fa60e-4ee3-5d74-b90d-9acd1fab332d",
+   modletlist : [{
+      field : "EnduranceToHealthMultiplier",
+      value : 15, // Default 10
+   }]
+}]
