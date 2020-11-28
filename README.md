@@ -83,8 +83,8 @@ Steps to build your own dlls from the source code.
 4. Double click `PhoenixPt_Mods.sln`.  This should open all the mods in Visual Studio.
 5. Switch to "Release" build.  Debug will not build.
 6. In Build menu, click "Build Solution".  For the first build you need to be online, and it may take a while.
-7. Repeat once or twice if build fail.  Clear NuGet cache, Restore NuGet packages, close and delete .vs etc.
-8. If everything is fine, you can find the mods in the `distro` folder.
+7. Not all mods can be built with the latest Phoenix Point.  Legacy mods may need old dlls to build.
+8. Project build script will move successfully built dlls to the `distro` folder.
 
 If things are not fine, well, you need programming skill to solve it.
 We need modders. Come join us!
