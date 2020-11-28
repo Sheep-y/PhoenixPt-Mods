@@ -1,5 +1,9 @@
 Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
+# Version 2.1.1, in development
+
+* New: Split EntitlementDef to a separate dump file by default.
+
 # Version 2.1, 2020-08-29
 
 * Fix: Non-readble properties are now skipped.

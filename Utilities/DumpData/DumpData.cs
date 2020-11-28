@@ -25,7 +25,7 @@ namespace Sheepy.PhoenixPt.DumpData {
       public bool   Dump_Command_Csv = true;
       public bool   Dump_Guid_Csv = true;
       public bool   Dump_Lang_Csv = true;
-      public string[] Dump_Defs = new string[]{ "VehicleItemDef", "TacticalItemDef", "TacticalActorDef", "TacUnitClassDef", "TacMissionTypeDef", "SpecializationDef", "ResearchDef", "PhoenixFacilityDef", "GroundVehicleItemDef", "GeoscapeEventDef", "GeoSiteSceneDef", "GeoMistGeneratorDef", "GeoHavenZoneDef", "GeoFactionDef", "GeoAlienBaseDef", "GeoActorDef", "GameTagDef", "DamageKeywordDef", "ComponentSetDef", "BodyPartAspectDef", "AchievementDef", "AbilityTrackDef", "AbilityDef" };
+      public string[] Dump_Defs = new string[]{ "EntitlementDef", "VehicleItemDef", "TacticalItemDef", "TacticalActorDef", "TacUnitClassDef", "TacMissionTypeDef", "SpecializationDef", "ResearchDef", "PhoenixFacilityDef", "GroundVehicleItemDef", "GeoscapeEventDef", "GeoSiteSceneDef", "GeoMistGeneratorDef", "GeoHavenZoneDef", "GeoFactionDef", "GeoAlienBaseDef", "GeoActorDef", "GameTagDef", "DamageKeywordDef", "ComponentSetDef", "BodyPartAspectDef", "AchievementDef", "AbilityTrackDef", "AbilityDef" };
       public string[] Dump_Others = new string[] {
          "GameSettings", "SharedData.GetSharedDataFromGame().AISettingsDef",
          "GameSettings", "SharedData.GetSharedDataFromGame().ContributionSettings",
@@ -33,10 +33,16 @@ namespace Sheepy.PhoenixPt.DumpData {
          "GameSettings", "SharedData.GetSharedDataFromGame().DiplomacySettings",
          "GameSettings", "SharedData.GetSharedDataFromGame().DynamicDifficultySettings",
       };
-      public uint   Config_Version = 20200630;
+      public uint   Config_Version = 20201128;
 
       internal void Upgrade () {
-         if ( Config_Version < 20200630 ) ZyMod.Api( "config save", this ); // Add Auto_Dump
+         if ( Config_Version >= 20201128 ) return;
+
+         if ( Config_Version < 20200630 ) ; // Do nothing; Added Auto_Dump field
+         if ( Config_Version < 20201128 )
+            if ( Dump_Defs?.Length == 23 && Dump_Defs[0] == "VehicleItemDef" && Dump_Defs[22] == "AbilityDef" )
+               Dump_Defs = new ModConfig().Dump_Defs; // Add EntitlementDef
+         ZyMod.Api( "config save", this ); // Add Auto_Dump
       }
    }
 
