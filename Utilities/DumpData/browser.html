@@ -83,10 +83,8 @@ function render () {
    if ( ! byType.has( 'ResearchDef' ) )
       return main.textContent = 'No research data found';
    const namePairs = [];
-   for ( let def of byType.get( 'ResearchDef' ) ) {
-      const name = getName( def, 1 );
-      namePairs.push( [ name, def ] );
-   }
+   for ( let def of byType.get( 'ResearchDef' ) )
+      namePairs.push( [ def?.ppn( 1 ), def ] );
    namePairs.sort( (a,b) => ( a[0] > b[0] ? 1 : ( a[0] === b[0] ? 0 : -1 ) ) );
    add( main, ce( 'h2', 'Research' ) );
    for ( let [ name, def ] of namePairs ) {
@@ -140,14 +138,14 @@ function ce ( tag, content, prop = {} ) {
    return open + '>' + content + '</' + tag + '>';
 }
 
-function getDef ( guid, path ) {
-   if ( path ) guid = xps( guid, path + '/@guid' );
-   else if ( guid.hasAttribute && guid.hasAttribute( 'guid' ) ) guid = guid.getAttribute( 'guid' );
-   return defs.get( guid );
-}
 
-function getName ( def, name = 0 ) {
-   let ele = typeof( def ) === 'string' ? defs.get( def ) : def, id = ele.getAttribute( 'name' );
+Element.prototype.ppd = function pp_getDef ( path = '' ) {
+   const guid = path ? xps( this, path + '/@guid' ) : this.getAttribute( 'guid' );
+   return guid ? defs.get( guid ) : null;
+};
+
+Element.prototype.ppn = function pp_getName ( name = 0 ) {
+   let ele = this, id = ele.getAttribute( 'name' );
    if ( ele.getAttribute( 'null' ) ) return '';
    else if ( ! ele.childElementCount ) ele = defs.get( ele.getAttribute( 'guid' ) );
    if ( ! ele ) debugger;
@@ -183,25 +181,37 @@ function reward2Txt ( ele, pre = true ) {
    }
    switch ( ele.tagName.substr( 3 ) ) {
       case 'AircraftBuffResearchRewardDef' :
-         return ( getName( xpn( ele, 'VehicleDef' ), 2 ) || 'Aircrafts' ) + ' '
+         return ( xpn( ele, 'VehicleDef' ).ppn( 2 ) || 'Aircrafts' ) + ' '
             + xpa( ele, 'ModData/*' ).map( e => e.tagName + ' x' + e.getAttribute( 'val' ) ).join( ' & ' );
       case 'AlienBaseTypeResearchRewardDef' :
-         return uncap( xps( getDef( ele, 'BaseType' ), 'Name/text()' ) );
+         return uncap( xps( ele.ppd( 'BaseType' ), 'Name/text()' ) );
       case 'CharacterStatResearchRewardDef' :
-         return 'Unit ' + xpa( getDef( ele, 'PassiveModifierAbilityDef' ), 'StatModifications/*' ).map( buff2Txt ).join( ' & ' );
+         return 'Unit ' + xpa( ele.ppd( 'PassiveModifierAbilityDef' ), 'StatModifications/*' ).map( buff2Txt ).join( ' & ' );
       case 'ClassResearchRewardDef' :
-         return 'Class ' + getName( getDef( ele, 'SpecializationDef' ), 1 );
+         return 'Class ' + ele.ppd( 'SpecializationDef' ).ppn( 1 );
       case 'EncounterVarResearchRewardDef' :
          return 'Flag ' + xps( ele, 'VariableName/@val' )
             + ( xps( ele, 'IsSetOperation/@val' ) === 'True' ? '=' : '+' ) + xps( ele, 'VariableValue/@val' );
       case 'FacilityResearchRewardDef' :
-         return xpa( ele, 'Facilities/*' ).map( e => getName( getDef( e ), 1 ) ).join( ', ' );
+         return xpa( ele, 'Facilities/*' ).map( e => e.ppd().ppn( 1 ) ).join( ', ' );
       case 'ManufactureResearchRewardDef' :
-         return xpa( ele, 'Items/*' ).map( e => getName( getDef( e ), 3 ).replace( ' {0}', '' ) ).join( ', ' );
+         return xpa( ele, 'Items/*' ).map( e => e.ppd().ppn( 3 ).replace( ' {0}', '' ) ).join( ', ' );
       case 'UnitTemplateResearchRewardDef' :
-         return 'New ' + xps( getDef( ele, 'Template' ), 'SpawnCommandId/@val' ) + ' Variation';
+         return 'New ' + xps( ele.ppd( 'Template' ), 'SpawnCommandId/@val' ) + ' Variation';
       case 'UnlockFunctionalityResearchRewardDef' :
-         return 'New Function';
+         switch ( xps( ele, 'Tag/@name' ) ) {
+            case 'Mist_FactionFunctionalityTagDef' : return 'Reveal Mist Coverage';
+            case 'HarvestingFood_FactionFunctionalityTagDef' : return 'Enable Alien Harvest';
+            case 'HavenRecruitment_FactionFunctionalityTagDef' : return 'Enable Haven Recruit';
+            case 'HavenTrade_FactionFunctionalityTagDef' : return 'Enable Haven Trade';
+            case 'SDI_FactionFunctionalityTagDef' : return 'Reveal Population Meter';
+            case 'HarvestingMutagens_FactionFunctionalityTagDef' : return 'Enable Mutagen Harvest';
+            case 'AlienContainment_FactionFunctionalityTagDef' : return 'Enable Containment Tab';
+            case 'ScavengingUnlockLairUnits_FunctionalityTag' : return 'Upgrade Scavenge Site Pandorians';
+            default:
+               console.log( xps( ele, 'Tag/@name' ) );
+               return 'New Function ' + xps( ele, 'Tag/@name' );
+         }
       case 'FacilityBuffResearchRewardDef' :
       case 'FactionModifierResearchRewardDef' :
       case 'HavenZoneResearchRewardDef' :
