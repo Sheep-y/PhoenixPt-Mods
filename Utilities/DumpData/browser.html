@@ -4,6 +4,8 @@
 * { box-sizing: border-box; }
 div, p, span, ul, ol, li, h1, h2, h3, h4, h5, h6 { margin: 0; padding: 0; }
 nav { display: none; }
+h3 { margin-top: 1ex; }
+   h3 > span { padding-left: 1em; font-size: 90%; font-weight: normal; }
 </style>
 </head><body>
    <nav>
@@ -73,22 +75,33 @@ function render () {
       return main.textContent = 'No research data found';
    const namePairs = [];
    for ( let def of byType.get( 'ResearchDef' ) ) {
-      const name = uncap( def.querySelector( 'ViewElementDef>DisplayName1' ).textContent );
+      const name = uncap( xps( def, './ViewElementDef/DisplayName1/text()' ) );
       namePairs.push( [ name, def ] );
    }
    namePairs.sort( (a,b) => ( a[0] > b[0] ? 1 : ( a[0] === b[0] ? 0 : -1 ) ) );
    add( main, ce( 'h2', 'Research' ) );
    for ( let [ name, def ] of namePairs ) {
-      const cost = xps( def, './ResearchCost/@val' );
-      const title = name + ( cost ? ` (${cost})` : '' );
-      add( main, ce( 'div', ce( 'h3', esc( title ) ) ) );
+      const view = xp( def, './ViewElementDef' ).iterateNext();
+
+      const cost = xps( def, './ResearchCost/@val' ), faction = factionAbbr( xps( def, './Faction/@guid' ) );
+      let subtitle = '', body = '';
+      if ( faction ) subtitle += faction + ' ';
+      subtitle += ( cost ? cost : '--' ) + ' ';
+      subtitle += def.getAttribute( 'guid' );
+      title = ce( 'h3', esc( name ) + ce( 'span', esc( subtitle ) ) );
+
+      const preText = xps( view, './UnlockText/text()' ), postText = xps( view, './CompleteText/text()' );
+      if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += '< ' + esc( preText ) + '<br>';
+      if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += '> ' + esc( postText ) + '<br>';
+
+      add( main, ce( 'div', title + ce( 'p', body ) ) );
    }
 }
 
-function uncap ( text ) { return text.split( / +/g ).map( e => e[0] + e.substr( 1 ).toLowerCase() ).join( ' ' ); }
+function uncap ( text ) { return text?.split( / +/g ).map( e => e[0] + e.substr( 1 ).toLowerCase() ).join( ' ' ); }
 function camel2words ( text ) { return [ ... text.matchAll( /[A-Z]+[a-z]*/g ) ].map( e => e[0] ).join( ' ' ); }
-function esc ( text ) { return text.replaceAll( /[&<>"']/g, e => '&'+({"&":'amp',"<":'lt',">":'gt',"\"":'quot',"'":'#039'})[e]+';' ); }
-function xp ( ele, path, type = XPathResult.ANY_TYPE ) { return ele.ownerDocument.evaluate( path, ele, null, type, null ); }
+function esc ( text ) { return text?.replaceAll( /[&<>"']/g, e => '&'+({"&":'amp',"<":'lt',">":'gt',"\"":'quot',"'":'#039'})[e]+';' ); }
+function xp ( ele, path, type = XPathResult.ANY_TYPE ) { return ele?.ownerDocument.evaluate( path, ele, null, type, null ); }
 function xps ( ele, path ) { return xp( ele, path, XPathResult.STRING_TYPE )?.stringValue; }
 
 function add ( ele, html, pos = 'beforeend' ) { return ele.insertAdjacentHTML( pos, html ); }
@@ -98,6 +111,18 @@ function ce ( tag, content, prop = {} ) {
       for ( let p in prop )
          open += ' ' + p + '="' + esc( prop[p] ) + '"';
    return open + '>' + content + '</' + tag + '>';
+}
+
+function factionAbbr ( fac ) {
+   if ( fac.getAttribute ) fac = fac.getAttribute( 'guid' );
+   switch ( fac ) {
+      case '8be7e872-0ad2-a2a4-7bee-c980ed304a8a' : return 'PX';
+      case 'cf8eea9a-f47a-79c4-cb3b-7a484831dede' : return 'ALN';
+      case 'edc6783a-be00-1a84-2b97-2fe1e0fc5448' : return 'ANU';
+      case 'd31c78b9-ff0e-8b94-ab96-9672da73da54' : return 'NJ';
+      case '0e6dc218-e157-5954-c9ab-1a0606e0d914' : return 'SYN';
+      default: return fac;
+   }
 }
 
 window.getPPDef = ( guid = '' ) => guid ? defs.get( guid ) : defs;
