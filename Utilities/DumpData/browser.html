@@ -118,6 +118,7 @@ function render () {
 function uncap ( text ) { return text ? text.split( / +/g ).map( e => e[0] + e.substr( 1 ).toLowerCase() ).join( ' ' ) : text; }
 function camel2words ( text ) { return [ ... text.matchAll( /[A-Z]+[a-z]*/g ) ].map( e => e[0] ).join( ' ' ); }
 function esc ( text ) { return text?.replaceAll( /[&<>"']/g, e => '&'+({"&":'amp',"<":'lt',">":'gt',"\"":'quot',"'":'#039'})[e]+';' ); }
+function sign ( val ) { return String( val )[0] === '-' ? val : `+${val}`; }
 
 Element.prototype.xpa = function xpath_array ( path ) {
    let it = this.ownerDocument.evaluate( './' + path, this, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null ), result = [], e;
@@ -186,7 +187,7 @@ function reward2Txt ( ele, pre = true ) {
    switch ( ele.tagName.substr( 3 ) ) {
       case 'AircraftBuffResearchRewardDef' :
          return ( ele.xpn( 'VehicleDef' ).ppn( 2 ) || 'Aircrafts' ) + ' '
-            + ele.xpa( 'ModData/*' ).map( e => e.tagName + ' x' + e.getAttribute( 'val' ) ).join( ' & ' );
+            + ele.xpa( 'ModData/*' ).map( e => e.tagName + ' Buff x' + e.getAttribute( 'val' ) ).join( ' & ' );
       case 'AlienBaseTypeResearchRewardDef' :
          return uncap( ele.ppd( 'BaseType' ).xps( 'Name/text()' ) );
       case 'CharacterStatResearchRewardDef' :
@@ -196,28 +197,46 @@ function reward2Txt ( ele, pre = true ) {
       case 'EncounterVarResearchRewardDef' :
          return 'Flag ' + ele.xps( 'VariableName/@val' )
             + ( ele.xps( 'IsSetOperation/@val' ) === 'True' ? '=' : '+' ) + ele.xps( 'VariableValue/@val' );
+      case 'FactionModifierResearchRewardDef' :
+         return ele.xpa( '*' ).map( e => {
+            const val = e.getAttribute( 'val' );
+            switch ( e.tagName ) {
+               case 'BreachPointModifier' : return 'Breach Point ' + sign( val );
+               case 'ExperienceAfterMissionModifier' : return 'Combat Experience ' + sign( val );
+               case 'HavenAttackerStrengthModifier' : return 'Attacker Strength ' + sign( val );
+               case 'HavenDefenseModifier' : return 'Defender Stength ' + sign( val );
+               case 'HavenDefensePrepTimeHours' : return 'Defense Prep Hours ' + sign( val );
+               case 'RecruitmentModifier' : return 'Recruit Cost ' + sign( val );
+               case 'ScannerCanRevealAlienBases' : return val === 'True' ? 'Reveal Colony with Scan' : '';
+               case 'ScannerRangeModifier' : return 'Scanner Range ' + sign( val );
+               case 'hideFlags' : case 'ResourcePath' : return '';
+            }
+            console.warn( e );
+            return e.tagName;
+         } ).filter( e => e ).join( ', ' );
+      case 'FacilityBuffResearchRewardDef' :
+         return ( ele.ppd( 'Facility' )?.ppn( 1 ) || 'All Facilities' ) + ' Output Buff ' + mod2Txt( ele, 'ModificationType' ) + ele.xps( 'Increase/@val' );
       case 'FacilityResearchRewardDef' :
-         return ele.xpa( 'Facilities/*' ).map( e => e.ppd().ppn( 1 ) ).join( ', ' );
+         return ele.xpa( 'Facilities/*' ).map( e => e.ppd().ppn( 1 ) ).join( ' Facility, ' ) + ' Facility';
       case 'ManufactureResearchRewardDef' :
-         return ele.xpa( 'Items/*' ).map( e => e.ppd().ppn( 3 ).replace( ' {0}', '' ) ).join( ', ' );
+         return ele.xpa( 'Items/*' ).map( e => e.ppd().ppn( 3 ).replace( ' {0}', '' ) ).join( ' Production, ' ) + ' Production';
       case 'UnitTemplateResearchRewardDef' :
-         return 'New ' + ele.ppd( 'Template' ).xps( 'SpawnCommandId/@val' ) + ' Variation';
+         return ele.ppd( 'Template' ).xps( 'SpawnCommandId/@val' ) + ' Template';
       case 'UnlockFunctionalityResearchRewardDef' :
          switch ( ele.xps( 'Tag/@name' ) ) {
-            case 'Mist_FactionFunctionalityTagDef' : return 'Reveal Mist Coverage';
+            case 'AlienContainment_FactionFunctionalityTagDef' : return 'Enable Containment Tab';
             case 'HarvestingFood_FactionFunctionalityTagDef' : return 'Enable Alien Harvest';
+            case 'HarvestingMutagens_FactionFunctionalityTagDef' : return 'Enable Mutagen Harvest';
             case 'HavenRecruitment_FactionFunctionalityTagDef' : return 'Enable Haven Recruit';
             case 'HavenTrade_FactionFunctionalityTagDef' : return 'Enable Haven Trade';
-            case 'SDI_FactionFunctionalityTagDef' : return 'Reveal Population Meter';
-            case 'HarvestingMutagens_FactionFunctionalityTagDef' : return 'Enable Mutagen Harvest';
-            case 'AlienContainment_FactionFunctionalityTagDef' : return 'Enable Containment Tab';
+            case 'Mist_FactionFunctionalityTagDef' : return 'Reveal Mist Coverage';
             case 'ScavengingUnlockLairUnits_FunctionalityTag' : return 'Upgrade Scavenge Site Pandorians';
+            case 'SDI_FactionFunctionalityTagDef' : return 'Reveal Population Meter';
+            case 'PhoenixBases_FactionFunctionalityTagDef' : return 'Reveal Phoenix Point Bases';
             default:
-               console.log( ele.xps( 'Tag/@name' ) );
+               console.warn( ele.xps( 'Tag/@name' ) );
                return 'New Function ' + ele.xps( 'Tag/@name' );
          }
-      case 'FacilityBuffResearchRewardDef' :
-      case 'FactionModifierResearchRewardDef' :
       case 'HavenZoneResearchRewardDef' :
       case 'HavenZoneBuffResearchRewardDef' :
       case 'ResearchBonusResearchRewardDef' :
@@ -228,11 +247,16 @@ function reward2Txt ( ele, pre = true ) {
 }
 
 function buff2Txt ( ele ) {
-   let op = ele.xps( 'Modification/@val' );
-   switch ( op ) {
-      case 'Add' : op = '+'; break;
+   return ele.xps( 'TargetStat/@val' ) + ' ' + mod2Txt( ele, 'Modification' ) + ele.xps( 'Value/@val' );
+}
+
+function mod2Txt ( mod, path ) {
+   if ( path ) mod = mod.xps( path + '/@val' );
+   switch ( mod ) {
+      case 'Add' : return '+';
+      case 'Multiply' : return 'x';
    }
-   return ele.xps( 'TargetStat/@val' ) + ' ' + op + ele.xps( 'Value/@val' );
+   return mod;
 }
 
 window.getPPDef = ( guid = '' ) => guid ? defs.get( guid ) : defs;
