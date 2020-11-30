@@ -7,7 +7,7 @@ div, p, span, ul, ol, li, h1, h2, h3, h4, h5, h6 { margin: 0; padding: 0; }
 nav { display: none; }
 h2 { margin-bottom: 1ex; }
 h3 { margin-top: 1em; }
-   h3 > span { color: #888; font-size: 90%; font-weight: normal; padding-left: 1em; }
+   h3 > span { color: #999; font-size: 90%; font-weight: normal; padding-left: 1em; }
    data { font-family: monospace; padding: 0 1ex; text-transform: uppercase; }
 main > div > p { margin-top: 5px; }
    main > div:hover { outline: 1px solid green; }
@@ -124,7 +124,7 @@ function renderEntry ( name, ele, options ) {
    const initFac = ele.xpa( 'InitialStates//State[not(@val="Hidden")]' );
    if ( initFac ) body += ce( 'p', 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) );
 
-   const view = ele.xpa( 'ViewElementDef' )[0];
+   const view = ele.xpn( 'ViewElementDef' );
    if ( options.desc && view ) {
       const preText = view.xps( 'UnlockText/text()' ), postText = view.xps( 'CompleteText/text()' );
       if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += ce( 'p', '&lt; ' + esc( preText ) );
@@ -141,6 +141,9 @@ function renderEntry ( name, ele, options ) {
    const invalid = ele.xpa( 'InvalidatedBy/LI/@val' );
    if ( invalid ) body += ce( 'p', 'Invalidated By: ' + invalid.map( e => e.nodeValue )
       .map( e => byType.get( 'ResearchDef' ).find( def => def.getAttribute( 'name' ) === e )?.ppn( 1 ) || e ).join( ', ' ) );
+
+   const video = ele.xpn( 'TriggerCutscene[not(@null)]' );
+   if ( video ) body += ce( 'p', 'Cutscene: ' + video.ppd().xps( 'ResourcePath/@val' ) );
 
    return ce( 'div', title + ce( 'p', body ) );
 }
