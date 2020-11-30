@@ -153,11 +153,13 @@ function getName ( def, name = 0 ) {
    if ( ! ele ) debugger;
    switch ( name ) {
       case 0 :
-         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/Name/text()" ) ) || id;
+         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/Name/@val" ) ) || id;
       case 1 :
          return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/DisplayName1/text()" ) ) || id;
       case 2 :
          return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/DisplayName2/text()" ) ) || id;
+      case 3 :
+         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/DisplayName2/text()" ) || xps( ele , "*[starts-with(local-name(),'ViewElement')]/DisplayName1/text()" ) ) || id;
    }
    return id;
 }
@@ -184,13 +186,16 @@ function reward2Txt ( ele ) {
       case 'CharacterStatResearchRewardDef' :
          return 'Unit ' + xpa( getDef( ele, 'PassiveModifierAbilityDef' ), 'StatModifications/*' ).map( buff2Txt ).join( ' & ' );
       case 'ClassResearchRewardDef' :
-         return 'New Class';
+         return 'Class ' + getName( getDef( ele, 'SpecializationDef' ), 1 );
       case 'EncounterVarResearchRewardDef' :
-         return 'Game Flag';
+         let fac = xpa( ele, 'ValidForFactions/*' ), varOp = 'Flag ' + xps( ele, 'VariableName/@val' )
+            + ( xps( ele, 'IsSetOperation/@val' ) === 'True' ? '=' : '+' ) + xps( ele, 'VariableValue/@val' );
+         if ( fac.length ) return fac.map( e => factionAbbr( e ) ).join( ' & ' ) + ' ' + varOp;
+         return varOp;
       case 'FacilityResearchRewardDef' :
-         return 'New Facility';
+         return xpa( ele, 'Facilities/*' ).map( e => getName( getDef( e ), 1 ) ).join( ', ' );
       case 'ManufactureResearchRewardDef' :
-         return 'New Item';
+         return xpa( ele, 'Items/*' ).map( e => getName( getDef( e ), 3 ) ).join( ', ' );
       case 'UnitTemplateResearchRewardDef' :
          return 'New Enemy';
       case 'UnlockFunctionalityResearchRewardDef' :
