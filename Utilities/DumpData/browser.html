@@ -21,6 +21,7 @@ body.dark { background-color: black; color: #EFE; }
    <nav>
       <h2>Phoenix Point Research Browser</h2>
       <label>Data XML: <input type='file' multiple accept=".xml"/></label> <button id='btnLoad'>Reload</button>
+      <label><input type='checkbox' id='chkMeta'>Meta</label>
       <label><input type='checkbox' id='chkDesc'>Descriptions</label>
       <label><input type='checkbox' id='chkHuman'>Human Templates</label>
       <label><input type='checkbox' id='chkDark' checked>Dark Mode</label>
@@ -95,13 +96,17 @@ function recurAddDef ( element ) {
 function render () {
    const startTime = performance.now();
    const options = {
+      meta: qs( 'input#chkMeta' ).checked,
       desc: qs( 'input#chkDesc' ).checked,
       human: qs( 'input#chkHuman' ).checked,
    };
    const main = qs( 'main' );
+   if ( ! byType.has( 'ResearchDef' ) ) {
+      if ( qs( 'input[type=file]' ).files.length )
+         main.textContent = 'No research data found';
+      return;
+   }
    main.textContent = '';
-   if ( ! byType.has( 'ResearchDef' ) )
-      return main.textContent = 'No research data found';
    const namePairs = [];
    for ( let def of byType.get( 'ResearchDef' ) )
       namePairs.push( [ def?.ppn( 1 ), def ] );
@@ -115,16 +120,29 @@ function renderEntry ( name, ele, options ) {
    const cost = ele.xps( 'ResearchCost/@val' ), faction = factionAbbr( ele.xps( 'Faction/@guid' ) );
    let subtitle = '', body = '';
    if ( cost ) subtitle += cost + ' ';
-   if ( faction ) subtitle += faction + ' ';
-   subtitle += ce( 'data', ele.getAttribute( 'guid' ) ) + ' ' + ele.xps( '@name' );
+   if ( options.meta ) {
+      if ( faction ) subtitle += faction + ' ';
+      subtitle += ce( 'data', ele.getAttribute( 'guid' ) ) + ' ' + ele.xps( '@name' );
+   }
    title = ce( 'h3', esc( name ) + ce( 'span', subtitle ) );
 
    const DLC = ele.xpn( 'DLC[not(@null)]' );
    if ( DLC )
       body += ce( 'p', 'DLC: ' + uncap( DLC.ppd().xps( 'Name' ) ) );
 
-   const initFac = ele.xpa( 'InitialStates//State[not(@val="Hidden")]' );
-   if ( initFac ) body += ce( 'p', 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) );
+   if ( options.meta ) {
+      const initFac = ele.xpa( 'InitialStates//State[not(@val="Hidden")]' );
+      if ( initFac ) body += ce( 'p', 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) );
+
+      const priority = ele.xps( 'Priority/@val' );
+      if ( priority ) body += ce( 'p', 'Priorities: ' + priority + ', ' + ele.xps( 'SecodaryPriority/@val' ) )
+      }
+
+   let reveals = ele.xpa( 'RevealRequirements/Container/LI' );
+   if ( reveals ) {
+      reveals = req2Txt( reveals, ele.xps( 'RevealRequirements/Operation/@val' ) );
+      body += ce( 'p', 'Revealed By: ' + reveals );
+   }
 
    const view = ele.xpn( 'ViewElementDef' );
    if ( options.desc && view ) {
@@ -140,9 +158,11 @@ function renderEntry ( name, ele, options ) {
    if ( unlocks.length )
       body += ce( 'p', 'Unlocks: ' + unlocks.filter( e => e ).join( ', ' ) );
 
-   const invalid = ele.xpa( 'InvalidatedBy/LI/@val' );
-   if ( invalid ) body += ce( 'p', 'Invalidated By: ' + invalid.map( e => e.nodeValue )
-      .map( e => byType.get( 'ResearchDef' ).find( def => def.getAttribute( 'name' ) === e )?.ppn( 1 ) || e ).join( ', ' ) );
+   if ( options.meta ) {
+      const invalid = ele.xpa( 'InvalidatedBy/LI/@val' );
+      if ( invalid ) body += ce( 'p', 'Invalidated By: ' + invalid.map( e => e.nodeValue )
+         .map( e => byType.get( 'ResearchDef' ).find( def => def.getAttribute( 'name' ) === e )?.ppn( 1 ) || e ).join( ', ' ) );
+   }
 
    const video = ele.xpn( 'TriggerCutscene[not(@null)]' );
    if ( video ) body += ce( 'p', 'Cutscene: ' + video.ppd().xps( 'ResourcePath/@val' ) );
@@ -179,13 +199,10 @@ function ce ( tag, content, prop = {} ) {
          open += ' ' + p + '="' + esc( prop[p] ) + '"';
    return open + '>' + content + '</' + tag + '>';
 }
-
-
 Element.prototype.ppd = function pp_getDef ( path = '' ) {
    const guid = path ? this.xps( path + '/@guid' ) : this.getAttribute( 'guid' );
    return guid ? defs.get( guid.toLowerCase() ) : null;
 };
-
 Element.prototype.ppn = function pp_getName ( name = 0 ) {
    let ele = this, id = ele.getAttribute( 'name' ), param, result;
    if ( ele.getAttribute( 'null' ) ) return '';
@@ -217,6 +234,19 @@ function factionAbbr ( fac ) {
       case '0e6dc218-e157-5954-c9ab-1a0606e0d914' : return 'SYN';
    }
    return fac;
+}
+
+function req2Txt ( ele, op ) {
+   if ( ! ele ) return '';
+   if ( op ) {
+      if ( ! ele.length ) return;
+      const parts = ele.map( e => req2Txt( e ) );
+      if ( parts.length === 1 ) return parts[0];
+      return '( ' + parts.join( op === 'AND' ? ' AND ' : ' OR ' ) + ' )';
+   }
+   op = ele.xps( 'Operation/@val' );
+   if ( op ) return req2Txt( ele.xpa( 'Requirements/*' ), op );
+   return ele.tagName.substr( 3 );
 }
 
 function reward2Txt ( ele, options, pre = true ) {
