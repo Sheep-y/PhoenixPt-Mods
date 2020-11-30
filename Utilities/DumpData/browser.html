@@ -102,33 +102,40 @@ function render () {
    for ( let def of byType.get( 'ResearchDef' ) )
       namePairs.push( [ def?.ppn( 1 ), def ] );
    namePairs.sort( (a,b) => ( a[0] > b[0] ? 1 : ( a[0] === b[0] ? 0 : -1 ) ) );
-   for ( let [ name, def ] of namePairs ) {
-      const cost = def.xps( 'ResearchCost/@val' ), faction = factionAbbr( def.xps( 'Faction/@guid' ) );
-      let subtitle = '', body = '';
-      if ( cost ) subtitle += cost + ' ';
-      if ( faction ) subtitle += faction + ' ';
-      subtitle += ce( 'data', def.getAttribute( 'guid' ) );
-      title = ce( 'h3', esc( name ) + ce( 'span', subtitle ) );
+   for ( let [ name, def ] of namePairs )
+      main.iah( renderEntry( name, def, options ) );
+}
 
-      const initFac = def.xpa( 'InitialStates//State[not(@val="Hidden")]' );
-      if ( initFac ) body += '<p>Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) + '</p>';
+function renderEntry ( name, ele, options ) {
+   const cost = ele.xps( 'ResearchCost/@val' ), faction = factionAbbr( ele.xps( 'Faction/@guid' ) );
+   let subtitle = '', body = '';
+   if ( cost ) subtitle += cost + ' ';
+   if ( faction ) subtitle += faction + ' ';
+   subtitle += ce( 'data', ele.getAttribute( 'guid' ) );
+   title = ce( 'h3', esc( name ) + ce( 'span', subtitle ) );
 
-      const view = def.xpa( 'ViewElementDef' )[0];
-      if ( options.desc && view ) {
-         const preText = view.xps( 'UnlockText/text()' ), postText = view.xps( 'CompleteText/text()' );
-         if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += '<p>&lt; ' + esc( preText ) + '</p>';
-         if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += '<p>&gt; ' + esc( postText ) + '</p>';
-      }
+   const DLC = ele.xpn( 'DLC[not(@null)]' );
+   if ( DLC )
+      body += ce( 'p', 'DLC: ' + uncap( DLC.ppd().xps( 'Name/text()' ) ) );
 
-      let unlocks = [];
-      def.xpa( 'Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
-      def.xpa( 'Unlocks/*' )?.forEach( e => unlocks.push( esc( reward2Txt( e, options ) ) ) );
-      if ( unlocks.length ) unlocks = unlocks.filter( e => e );
-      if ( unlocks.length )
-         body += '<p>Unlocks: ' + unlocks.filter( e => e ).join( ', ' ) + '</p>';
+   const initFac = ele.xpa( 'InitialStates//State[not(@val="Hidden")]' );
+   if ( initFac ) body += ce( 'p', 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) );
 
-      main.iah( ce( 'div', title + ce( 'p', body ) ) );
+   const view = ele.xpa( 'ViewElementDef' )[0];
+   if ( options.desc && view ) {
+      const preText = view.xps( 'UnlockText/text()' ), postText = view.xps( 'CompleteText/text()' );
+      if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += ce( 'p', '&lt; ' + esc( preText ) );
+      if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += ce( 'p', '&gt; ' + esc( postText ) );
    }
+
+   let unlocks = [];
+   ele.xpa( 'Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
+   ele.xpa( 'Unlocks/*' )?.forEach( e => unlocks.push( esc( reward2Txt( e, options ) ) ) );
+   if ( unlocks.length ) unlocks = unlocks.filter( e => e );
+   if ( unlocks.length )
+      body += ce( 'p', 'Unlocks: ' + unlocks.filter( e => e ).join( ', ' ) );
+
+   return ce( 'div', title + ce( 'p', body ) );
 }
 
 function uncap ( text ) { return text ? text.split( / +/g ).map( e => e[0] + e.substr( 1 ).toLowerCase() ).join( ' ' ) : text; }
