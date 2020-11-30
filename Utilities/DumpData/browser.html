@@ -118,7 +118,7 @@ function render () {
    }
 }
 
-function uncap ( text ) { return text?.split( / +/g ).map( e => e[0] + e.substr( 1 ).toLowerCase() ).join( ' ' ); }
+function uncap ( text ) { return text ? text.split( / +/g ).map( e => e[0] + e.substr( 1 ).toLowerCase() ).join( ' ' ) : text; }
 function camel2words ( text ) { return [ ... text.matchAll( /[A-Z]+[a-z]*/g ) ].map( e => e[0] ).join( ' ' ); }
 function esc ( text ) { return text?.replaceAll( /[&<>"']/g, e => '&'+({"&":'amp',"<":'lt',">":'gt',"\"":'quot',"'":'#039'})[e]+';' ); }
 function xpa ( ele, path ) {
@@ -153,7 +153,7 @@ function getName ( def, name = 0 ) {
    if ( ! ele ) debugger;
    switch ( name ) {
       case 0 :
-         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/Name/@val" ) ) || id;
+         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/Name/@val|/Name/@val" ) ) || id;
       case 1 :
          return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/DisplayName1/text()" ) ) || id;
       case 2 :
@@ -176,7 +176,11 @@ function factionAbbr ( fac ) {
    }
 }
 
-function reward2Txt ( ele ) {
+function reward2Txt ( ele, pre = true ) {
+   if ( pre ) {
+      let fac = xpa( ele, 'ValidForFactions/*' );
+      if ( fac?.length ) return '[' + fac.map( e => factionAbbr( e ) ).join( ' & ' ) + '] ' + reward2Txt( ele, false );
+   }
    switch ( ele.tagName.substr( 3 ) ) {
       case 'AircraftBuffResearchRewardDef' :
          return ( getName( xpn( ele, 'VehicleDef' ), 2 ) || 'Aircrafts' ) + ' '
@@ -188,16 +192,14 @@ function reward2Txt ( ele ) {
       case 'ClassResearchRewardDef' :
          return 'Class ' + getName( getDef( ele, 'SpecializationDef' ), 1 );
       case 'EncounterVarResearchRewardDef' :
-         let fac = xpa( ele, 'ValidForFactions/*' ), varOp = 'Flag ' + xps( ele, 'VariableName/@val' )
+         return 'Flag ' + xps( ele, 'VariableName/@val' )
             + ( xps( ele, 'IsSetOperation/@val' ) === 'True' ? '=' : '+' ) + xps( ele, 'VariableValue/@val' );
-         if ( fac.length ) return fac.map( e => factionAbbr( e ) ).join( ' & ' ) + ' ' + varOp;
-         return varOp;
       case 'FacilityResearchRewardDef' :
          return xpa( ele, 'Facilities/*' ).map( e => getName( getDef( e ), 1 ) ).join( ', ' );
       case 'ManufactureResearchRewardDef' :
-         return xpa( ele, 'Items/*' ).map( e => getName( getDef( e ), 3 ) ).join( ', ' );
+         return xpa( ele, 'Items/*' ).map( e => getName( getDef( e ), 3 ).replace( ' {0}', '' ) ).join( ', ' );
       case 'UnitTemplateResearchRewardDef' :
-         return 'New Enemy';
+         return 'New ' + xps( getDef( ele, 'Template' ), 'SpawnCommandId/@val' ) + ' Variation';
       case 'UnlockFunctionalityResearchRewardDef' :
          return 'New Function';
       case 'FacilityBuffResearchRewardDef' :
