@@ -88,27 +88,26 @@ function render () {
    namePairs.sort( (a,b) => ( a[0] > b[0] ? 1 : ( a[0] === b[0] ? 0 : -1 ) ) );
    add( main, ce( 'h2', 'Research' ) );
    for ( let [ name, def ] of namePairs ) {
-      const view = xpa( def, 'ViewElementDef' )[0];
-
-      const cost = xps( def, 'ResearchCost/@val' ), faction = factionAbbr( xps( def, 'Faction/@guid' ) );
+      const cost = def.xps( 'ResearchCost/@val' ), faction = factionAbbr( def.xps( 'Faction/@guid' ) );
       let subtitle = '', body = '';
       if ( cost ) subtitle += cost + ' ';
       if ( faction ) subtitle += faction + ' ';
       subtitle += def.getAttribute( 'guid' );
       title = ce( 'h3', esc( name ) + ce( 'span', esc( subtitle ) ) );
 
-      const initFac = xpa( def, 'InitialStates//State[not(@val="Hidden")]' );
+      const initFac = def.xpa( 'InitialStates//State[not(@val="Hidden")]' );
       if ( initFac ) body += 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) + '<br>';
 
-      if ( showDesc ) {
-         const preText = xps( view, 'UnlockText/text()' ), postText = xps( view, 'CompleteText/text()' );
+      const view = def.xpa( 'ViewElementDef' )[0];
+      if ( showDesc && view ) {
+         const preText = view.xps( 'UnlockText/text()' ), postText = view.xps( 'CompleteText/text()' );
          if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += '< ' + esc( preText ) + '<br>';
          if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += '> ' + esc( postText ) + '<br>';
       }
 
       const unlocks = [];
-      xpa( def, 'Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
-      xpa( def, 'Unlocks/*' )?.forEach( e => unlocks.push( reward2Txt( e ) ) );
+      def.xpa( 'Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
+      def.xpa( 'Unlocks/*' )?.forEach( e => unlocks.push( reward2Txt( e ) ) );
       if ( unlocks.length )
          body += 'Unlocks: ' + unlocks.join( ', ' );
 
@@ -119,13 +118,18 @@ function render () {
 function uncap ( text ) { return text ? text.split( / +/g ).map( e => e[0] + e.substr( 1 ).toLowerCase() ).join( ' ' ) : text; }
 function camel2words ( text ) { return [ ... text.matchAll( /[A-Z]+[a-z]*/g ) ].map( e => e[0] ).join( ' ' ); }
 function esc ( text ) { return text?.replaceAll( /[&<>"']/g, e => '&'+({"&":'amp',"<":'lt',">":'gt',"\"":'quot',"'":'#039'})[e]+';' ); }
-function xpa ( ele, path ) {
-   let it = ele?.ownerDocument.evaluate( './' + path, ele, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null ), result = [], e;
+
+Element.prototype.xpa = function xpath_array ( path ) {
+   let it = this.ownerDocument.evaluate( './' + path, this, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null ), result = [], e;
    while ( ( e = it?.iterateNext() ) !== null ) result.push( e );
    return result.length ? result : null;
-}
-function xpn ( ele, path ) { return ele?.ownerDocument.evaluate( './' + path, ele, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null )?.singleNodeValue; }
-function xps ( ele, path ) { return ele?.ownerDocument.evaluate( './' + path, ele, null, XPathResult.STRING_TYPE, null )?.stringValue; }
+};
+Element.prototype.xpn = function xpath_node ( path ) {
+   return this.ownerDocument.evaluate( './' + path, this, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null )?.singleNodeValue;
+};
+Element.prototype.xps = function xpath_string ( path ) {
+   return this.ownerDocument.evaluate( './' + path, this, null, XPathResult.STRING_TYPE, null )?.stringValue;
+};
 
 function qs ( root, selector = null ) { if ( ! selector ) [ root, selector ] = [ document, root ]; return root.querySelector( selector ); }
 function qsa ( root, selector = null ) { if ( ! selector ) [ root, selector ] = [ document, root ]; return root.querySelectorAll( selector ); }
@@ -140,7 +144,7 @@ function ce ( tag, content, prop = {} ) {
 
 
 Element.prototype.ppd = function pp_getDef ( path = '' ) {
-   const guid = path ? xps( this, path + '/@guid' ) : this.getAttribute( 'guid' );
+   const guid = path ? this.xps( path + '/@guid' ) : this.getAttribute( 'guid' );
    return guid ? defs.get( guid ) : null;
 };
 
@@ -151,13 +155,13 @@ Element.prototype.ppn = function pp_getName ( name = 0 ) {
    if ( ! ele ) debugger;
    switch ( name ) {
       case 0 :
-         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/Name/@val|/Name/@val" ) ) || id;
+         return uncap( ele.xps( "*[starts-with(local-name(),'ViewElement')]/Name/@val|/Name/@val" ) ) || id;
       case 1 :
-         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/DisplayName1/text()" ) ) || id;
+         return uncap( ele.xps( "*[starts-with(local-name(),'ViewElement')]/DisplayName1/text()" ) ) || id;
       case 2 :
-         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/DisplayName2/text()" ) ) || id;
+         return uncap( ele.xps( "*[starts-with(local-name(),'ViewElement')]/DisplayName2/text()" ) ) || id;
       case 3 :
-         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/DisplayName2/text()" ) || xps( ele , "*[starts-with(local-name(),'ViewElement')]/DisplayName1/text()" ) ) || id;
+         return uncap( ele.xps( "*[starts-with(local-name(),'ViewElement')]/DisplayName2/text()" ) || ele.xps( "*[starts-with(local-name(),'ViewElement')]/DisplayName1/text()" ) ) || id;
    }
    return id;
 }
@@ -176,30 +180,30 @@ function factionAbbr ( fac ) {
 
 function reward2Txt ( ele, pre = true ) {
    if ( pre ) {
-      let fac = xpa( ele, 'ValidForFactions/*' );
+      let fac = ele.xpa( 'ValidForFactions/*' );
       if ( fac?.length ) return '[' + fac.map( e => factionAbbr( e ) ).join( ' & ' ) + '] ' + reward2Txt( ele, false );
    }
    switch ( ele.tagName.substr( 3 ) ) {
       case 'AircraftBuffResearchRewardDef' :
-         return ( xpn( ele, 'VehicleDef' ).ppn( 2 ) || 'Aircrafts' ) + ' '
-            + xpa( ele, 'ModData/*' ).map( e => e.tagName + ' x' + e.getAttribute( 'val' ) ).join( ' & ' );
+         return ( ele.xpn( 'VehicleDef' ).ppn( 2 ) || 'Aircrafts' ) + ' '
+            + ele.xpa( 'ModData/*' ).map( e => e.tagName + ' x' + e.getAttribute( 'val' ) ).join( ' & ' );
       case 'AlienBaseTypeResearchRewardDef' :
-         return uncap( xps( ele.ppd( 'BaseType' ), 'Name/text()' ) );
+         return uncap( ele.ppd( 'BaseType' ).xps( 'Name/text()' ) );
       case 'CharacterStatResearchRewardDef' :
-         return 'Unit ' + xpa( ele.ppd( 'PassiveModifierAbilityDef' ), 'StatModifications/*' ).map( buff2Txt ).join( ' & ' );
+         return 'Unit ' + ele.ppd( 'PassiveModifierAbilityDef' ).xpa( 'StatModifications/*' ).map( buff2Txt ).join( ' & ' );
       case 'ClassResearchRewardDef' :
          return 'Class ' + ele.ppd( 'SpecializationDef' ).ppn( 1 );
       case 'EncounterVarResearchRewardDef' :
-         return 'Flag ' + xps( ele, 'VariableName/@val' )
-            + ( xps( ele, 'IsSetOperation/@val' ) === 'True' ? '=' : '+' ) + xps( ele, 'VariableValue/@val' );
+         return 'Flag ' + ele.xps( 'VariableName/@val' )
+            + ( ele.xps( 'IsSetOperation/@val' ) === 'True' ? '=' : '+' ) + ele.xps( 'VariableValue/@val' );
       case 'FacilityResearchRewardDef' :
-         return xpa( ele, 'Facilities/*' ).map( e => e.ppd().ppn( 1 ) ).join( ', ' );
+         return ele.xpa( 'Facilities/*' ).map( e => e.ppd().ppn( 1 ) ).join( ', ' );
       case 'ManufactureResearchRewardDef' :
-         return xpa( ele, 'Items/*' ).map( e => e.ppd().ppn( 3 ).replace( ' {0}', '' ) ).join( ', ' );
+         return ele.xpa( 'Items/*' ).map( e => e.ppd().ppn( 3 ).replace( ' {0}', '' ) ).join( ', ' );
       case 'UnitTemplateResearchRewardDef' :
-         return 'New ' + xps( ele.ppd( 'Template' ), 'SpawnCommandId/@val' ) + ' Variation';
+         return 'New ' + ele.ppd( 'Template' ).xps( 'SpawnCommandId/@val' ) + ' Variation';
       case 'UnlockFunctionalityResearchRewardDef' :
-         switch ( xps( ele, 'Tag/@name' ) ) {
+         switch ( ele.xps( 'Tag/@name' ) ) {
             case 'Mist_FactionFunctionalityTagDef' : return 'Reveal Mist Coverage';
             case 'HarvestingFood_FactionFunctionalityTagDef' : return 'Enable Alien Harvest';
             case 'HavenRecruitment_FactionFunctionalityTagDef' : return 'Enable Haven Recruit';
@@ -209,8 +213,8 @@ function reward2Txt ( ele, pre = true ) {
             case 'AlienContainment_FactionFunctionalityTagDef' : return 'Enable Containment Tab';
             case 'ScavengingUnlockLairUnits_FunctionalityTag' : return 'Upgrade Scavenge Site Pandorians';
             default:
-               console.log( xps( ele, 'Tag/@name' ) );
-               return 'New Function ' + xps( ele, 'Tag/@name' );
+               console.log( ele.xps( 'Tag/@name' ) );
+               return 'New Function ' + ele.xps( 'Tag/@name' );
          }
       case 'FacilityBuffResearchRewardDef' :
       case 'FactionModifierResearchRewardDef' :
@@ -224,11 +228,11 @@ function reward2Txt ( ele, pre = true ) {
 }
 
 function buff2Txt ( ele ) {
-   let op = xps( ele, 'Modification/@val' );
+   let op = ele.xps( 'Modification/@val' );
    switch ( op ) {
       case 'Add' : op = '+'; break;
    }
-   return xps( ele, 'TargetStat/@val' ) + ' ' + op + xps( ele, 'Value/@val' );
+   return ele.xps( 'TargetStat/@val' ) + ' ' + op + ele.xps( 'Value/@val' );
 }
 
 window.getPPDef = ( guid = '' ) => guid ? defs.get( guid ) : defs;
