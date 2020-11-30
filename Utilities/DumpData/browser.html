@@ -8,7 +8,7 @@ nav { display: none; }
 h2 { margin-bottom: 1ex; }
 h3 { margin-top: 1em; }
    h3 > span { color: #888; font-size: 90%; font-weight: normal; padding-left: 1em; }
-   data { font-family: monospace; padding-left: 1ex; text-transform: uppercase; }
+   data { font-family: monospace; padding: 0 1ex; text-transform: uppercase; }
 main > div > p { margin-top: 5px; }
    main > div:hover { outline: 1px solid green; }
    main > div > p:hover { background-color: #DFD; }
@@ -31,7 +31,7 @@ body.dark { background-color: black; color: #EFE; }
 qs( 'nav' ).style.display = 'block';
 qs( '#btnLoad' ).addEventListener( 'click', () => loadFiles( true ) );
 qs( '#chkDark' ).addEventListener( 'change', () => document.body.classList.toggle( 'dark' ) );
-[ ... qsa( '#chkDesc, #chkHuman' ) ].forEach( e => e.addEventListener( 'change', render ) );
+[ ... qsa( '#chkMeta, #chkDesc, #chkHuman' ) ].forEach( e => e.addEventListener( 'change', render ) );
 qs( 'input[type=file]' ).addEventListener( 'input', () => loadFiles( false ) );
 if ( qs( 'input[type=file]' ).files.length ) loadFiles( false );
 
@@ -93,7 +93,10 @@ function recurAddDef ( element ) {
 }
 
 function render () {
-   const options = { desc: qs( 'input#chkDesc' ).checked, human: qs( 'input#chkHuman' ).checked };
+   const options = {
+      desc: qs( 'input#chkDesc' ).checked,
+      human: qs( 'input#chkHuman' ).checked,
+   };
    const main = qs( 'main' );
    main.textContent = '';
    if ( ! byType.has( 'ResearchDef' ) )
@@ -111,7 +114,7 @@ function renderEntry ( name, ele, options ) {
    let subtitle = '', body = '';
    if ( cost ) subtitle += cost + ' ';
    if ( faction ) subtitle += faction + ' ';
-   subtitle += ce( 'data', ele.getAttribute( 'guid' ) );
+   subtitle += ce( 'data', ele.getAttribute( 'guid' ) ) + ' ' + ele.xps( '@name' );
    title = ce( 'h3', esc( name ) + ce( 'span', subtitle ) );
 
    const DLC = ele.xpn( 'DLC[not(@null)]' );
@@ -134,6 +137,10 @@ function renderEntry ( name, ele, options ) {
    if ( unlocks.length ) unlocks = unlocks.filter( e => e );
    if ( unlocks.length )
       body += ce( 'p', 'Unlocks: ' + unlocks.filter( e => e ).join( ', ' ) );
+
+   const invalid = ele.xpa( 'InvalidatedBy/LI/@val' );
+   if ( invalid ) body += ce( 'p', 'Invalidated By: ' + invalid.map( e => e.nodeValue )
+      .map( e => byType.get( 'ResearchDef' ).find( def => def.getAttribute( 'name' ) === e )?.ppn( 1 ) || e ).join( ', ' ) );
 
    return ce( 'div', title + ce( 'p', body ) );
 }
@@ -177,7 +184,7 @@ Element.prototype.ppd = function pp_getDef ( path = '' ) {
 Element.prototype.ppn = function pp_getName ( name = 0 ) {
    let ele = this, id = ele.getAttribute( 'name' ), param, result;
    if ( ele.getAttribute( 'null' ) ) return '';
-   else if ( ! ele.childElementCount ) ele = ele.ppd();
+   else if ( ! ele.firstElementChild ) ele = ele.ppd();
    const view = ele?.xpn( "ViewElementDef" ) || ele?.xpn( "ViewElement" );
    if ( ! view ) debugger;
    switch ( name ) {
