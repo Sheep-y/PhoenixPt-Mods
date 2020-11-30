@@ -7,7 +7,8 @@ div, p, span, ul, ol, li, h1, h2, h3, h4, h5, h6 { margin: 0; padding: 0; }
 nav { display: none; }
 h2 { margin-bottom: 1ex; }
 h3 { margin-top: 1em; }
-   h3 > span { padding-left: 1em; font-size: 90%; font-weight: normal; }
+   h3 > span { font-size: 90%; font-weight: normal; padding-left: 1em; }
+   data { font-family: monospace; padding-left: 1ex; text-transform: uppercase; }
 
 body.dark { background-color: black; color: #EFE; }
    body.dark a { color: white; }
@@ -66,7 +67,7 @@ function addToDef ( element, types = [] ) {
    if ( ! element.firstElementChild ) return; // Not interested in empty data
    for ( let e of element.children )
       recurAddDef( e );
-   const guid = element.getAttribute( 'guid' );
+   const guid = element.getAttribute( 'guid' ).toLowerCase();
    if ( ! defs.has( guid ) ) {
       defs.set( guid, element );
       for ( let t of types ) {
@@ -102,8 +103,8 @@ function render () {
       let subtitle = '', body = '';
       if ( cost ) subtitle += cost + ' ';
       if ( faction ) subtitle += faction + ' ';
-      subtitle += def.getAttribute( 'guid' );
-      title = ce( 'h3', esc( name ) + ce( 'span', esc( subtitle ) ) );
+      subtitle += ce( 'data', def.getAttribute( 'guid' ) );
+      title = ce( 'h3', esc( name ) + ce( 'span', subtitle ) );
 
       const initFac = def.xpa( 'InitialStates//State[not(@val="Hidden")]' );
       if ( initFac ) body += 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) + '<br>';
@@ -159,13 +160,13 @@ function ce ( tag, content, prop = {} ) {
 
 Element.prototype.ppd = function pp_getDef ( path = '' ) {
    const guid = path ? this.xps( path + '/@guid' ) : this.getAttribute( 'guid' );
-   return guid ? defs.get( guid ) : null;
+   return guid ? defs.get( guid.toLowerCase() ) : null;
 };
 
 Element.prototype.ppn = function pp_getName ( name = 0 ) {
    let ele = this, id = ele.getAttribute( 'name' ), param, result;
    if ( ele.getAttribute( 'null' ) ) return '';
-   else if ( ! ele.childElementCount ) ele = defs.get( ele.getAttribute( 'guid' ) );
+   else if ( ! ele.childElementCount ) ele = ele.ppd();
    const view = ele?.xpn( "ViewElementDef" ) || ele?.xpn( "ViewElement" );
    if ( ! view ) debugger;
    switch ( name ) {
@@ -297,7 +298,7 @@ function mod2Txt ( mod, path ) {
    return mod;
 }
 
-window.getPPDef = ( guid = '' ) => guid ? defs.get( guid ) : defs;
+window.getPPDef = ( guid = '' ) => guid ? defs.get( guid.toLowerCase() ) : defs;
 window.getPPType = ( type = '' ) => type ? byType.get( type ) : byType;
 
 })()</script><noscript>
