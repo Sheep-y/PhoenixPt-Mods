@@ -2,28 +2,38 @@
    <title>Phoenix Point research browser</title>
 <style>
 * { box-sizing: border-box; }
+body { padding: 1em; }
 div, p, span, ul, ol, li, h1, h2, h3, h4, h5, h6 { margin: 0; padding: 0; }
 nav { display: none; }
-h3 { margin-top: 1ex; }
+h2 { margin-bottom: 1ex; }
+h3 { margin-top: 1em; }
    h3 > span { padding-left: 1em; font-size: 90%; font-weight: normal; }
+
+body.dark { background-color: black; color: #EFE; }
+   body.dark a { color: white; }
 </style>
-</head><body>
+</head><body class='dark'>
    <nav>
+      <h2>Phoenix Point Research Browser</h2>
       <label>Data XML: <input type='file' multiple accept=".xml"/></label> <button id='btnLoad'>Refresh</button>
       <label><input type='checkbox' id='chkDesc'>Descriptions</label>
       <label><input type='checkbox' id='chkHuman'>Human Templates</label>
+      <label><input type='checkbox' id='chkDark' checked>Dark Mode</label>
+      <br><hr>
    </nav>
-   <main><br>Please select the xml files dumped by the <a href='https://www.nexusmods.com/phoenixpoint/mods/50'>Dump Data</a> mod, all 20+ of them.<br><br>All data will be processed locally; nothing will be uploaded.</main>
+   <main>Please select the xml files dumped by the <a href='https://www.nexusmods.com/phoenixpoint/mods/50'>Dump Data</a> mod, all 20+ of them.<br><br>All data will be processed locally; nothing will be uploaded.</main>
 <script>(()=>{
 qs( 'nav' ).style.display = 'block';
 qs( '#btnLoad' ).addEventListener( 'click', () => loadFiles( true ) );
-[ ... qsa( 'nav input[type=checkbox]' ) ].forEach( e => e.addEventListener( 'change', () => loadFiles( false ) ) );
+qs( '#chkDark' ).addEventListener( 'change', () => document.body.classList.toggle( 'dark' ) );
+[ ... qsa( '#chkDesc, #chkHuman' ) ].forEach( e => e.addEventListener( 'change', () => loadFiles( false ) ) );
 qs( 'input[type=file]' ).addEventListener( 'input', () => loadFiles( false ) );
 if ( qs( 'input[type=file]' ).files.length ) loadFiles( false );
 
 const defs = new Map(), byType = new Map();
 
 async function loadFiles ( forceLoad ) {
+   const startTime = performance.now();
    [ ... qsa( 'nav input, nav button' ) ].forEach( e => e.disabled = true );
    try {
       const files = qs( 'input[type=file]' ).files;
@@ -46,6 +56,7 @@ async function loadFiles ( forceLoad ) {
          }
       }
       render();
+      console.info( `${files.length} files, ${defs.size} definitions, ${+(performance.now()-startTime)} ms` );
    } catch ( err ) {
       console.error( err );
    } finally {
@@ -87,7 +98,6 @@ function render () {
    for ( let def of byType.get( 'ResearchDef' ) )
       namePairs.push( [ def?.ppn( 1 ), def ] );
    namePairs.sort( (a,b) => ( a[0] > b[0] ? 1 : ( a[0] === b[0] ? 0 : -1 ) ) );
-   main.iah( ce( 'h2', 'Research' ) );
    for ( let [ name, def ] of namePairs ) {
       const cost = def.xps( 'ResearchCost/@val' ), faction = factionAbbr( def.xps( 'Faction/@guid' ) );
       let subtitle = '', body = '';
