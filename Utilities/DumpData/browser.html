@@ -154,21 +154,28 @@ Element.prototype.ppd = function pp_getDef ( path = '' ) {
 };
 
 Element.prototype.ppn = function pp_getName ( name = 0 ) {
-   let ele = this, id = ele.getAttribute( 'name' );
+   let ele = this, id = ele.getAttribute( 'name' ), param, result;
    if ( ele.getAttribute( 'null' ) ) return '';
    else if ( ! ele.childElementCount ) ele = defs.get( ele.getAttribute( 'guid' ) );
-   if ( ! ele ) debugger;
+   const view = ele?.xpn( "ViewElementDef" ) || ele?.xpn( "ViewElement" );
+   if ( ! view ) debugger;
    switch ( name ) {
       case 0 :
-         return uncap( ele.xps( "*[starts-with(local-name(),'ViewElement')]/Name/@val|/Name/@val" ) ) || id;
+         result = uncap( view.xps( "Name/@val|/Name/@val" ) );
+         break;
       case 1 :
-         return uncap( ele.xps( "*[starts-with(local-name(),'ViewElement')]/DisplayName1/text()" ) ) || id;
+         result = uncap( view.xps( "DisplayName1/text()" ) );
+         break;
       case 2 :
-         return uncap( ele.xps( "*[starts-with(local-name(),'ViewElement')]/DisplayName2/text()" ) ) || id;
+         result = uncap( view.xps( "DisplayName2/text()" ) );
+         break;
       case 3 :
-         return uncap( ele.xps( "*[starts-with(local-name(),'ViewElement')]/DisplayName2/text()" ) || ele.xps( "*[starts-with(local-name(),'ViewElement')]/DisplayName1/text()" ) ) || id;
+         result = uncap( view.xps( "DisplayName2/text()" ) || ele.xps( "DisplayName1/text()" ) );
+         break;
    }
-   return id;
+   if ( result?.includes( '{0}' ) === true && ( param = view.xps( 'TitleLocalizationParams/LI/text()' ) ) )
+      return result.replace( /\{0\}/g, param );
+   return result || id;
 }
 
 function factionAbbr ( fac ) {
