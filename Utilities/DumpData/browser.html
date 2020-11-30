@@ -15,7 +15,7 @@ body.dark { background-color: black; color: #EFE; }
 </head><body class='dark'>
    <nav>
       <h2>Phoenix Point Research Browser</h2>
-      <label>Data XML: <input type='file' multiple accept=".xml"/></label> <button id='btnLoad'>Refresh</button>
+      <label>Data XML: <input type='file' multiple accept=".xml"/></label> <button id='btnLoad'>Reload</button>
       <label><input type='checkbox' id='chkDesc'>Descriptions</label>
       <label><input type='checkbox' id='chkHuman'>Human Templates</label>
       <label><input type='checkbox' id='chkDark' checked>Dark Mode</label>
@@ -26,7 +26,7 @@ body.dark { background-color: black; color: #EFE; }
 qs( 'nav' ).style.display = 'block';
 qs( '#btnLoad' ).addEventListener( 'click', () => loadFiles( true ) );
 qs( '#chkDark' ).addEventListener( 'change', () => document.body.classList.toggle( 'dark' ) );
-[ ... qsa( '#chkDesc, #chkHuman' ) ].forEach( e => e.addEventListener( 'change', () => loadFiles( false ) ) );
+[ ... qsa( '#chkDesc, #chkHuman' ) ].forEach( e => e.addEventListener( 'change', render ) );
 qs( 'input[type=file]' ).addEventListener( 'input', () => loadFiles( false ) );
 if ( qs( 'input[type=file]' ).files.length ) loadFiles( false );
 
@@ -46,8 +46,6 @@ async function loadFiles ( forceLoad ) {
 
       defs.clear();
       byType.clear();
-      const main = qs( 'main' );
-      main.textContent = '';
       for ( let doc of docs ) {
          const type = doc.tagName;
          for ( let e of doc.children ) {
@@ -65,10 +63,10 @@ async function loadFiles ( forceLoad ) {
 }
 
 function addToDef ( element, types = [] ) {
-   const guid = element.getAttribute( 'guid' );
-   if ( ! element.childElementCount ) return; // Not interested in empty data
+   if ( ! element.firstElementChild ) return; // Not interested in empty data
    for ( let e of element.children )
       recurAddDef( e );
+   const guid = element.getAttribute( 'guid' );
    if ( ! defs.has( guid ) ) {
       defs.set( guid, element );
       for ( let t of types ) {
@@ -84,14 +82,15 @@ function addToDef ( element, types = [] ) {
 function recurAddDef ( element ) {
    if ( element.hasAttribute( 'guid' ) )
       addToDef( element );
-   else if ( element.childElementCount )
+   else if ( element.firstElementChild )
       for ( let e of element.children )
          recurAddDef( e );
 }
 
 function render () {
-   const showDesc = qs( 'input#chkDesc' ).checked;
+   const options = { desc: qs( 'input#chkDesc' ).checked, human: qs( 'input#chkHuman' ).checked };
    const main = qs( 'main' );
+   main.textContent = '';
    if ( ! byType.has( 'ResearchDef' ) )
       return main.textContent = 'No research data found';
    const namePairs = [];
@@ -110,7 +109,7 @@ function render () {
       if ( initFac ) body += 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) + '<br>';
 
       const view = def.xpa( 'ViewElementDef' )[0];
-      if ( showDesc && view ) {
+      if ( options.desc && view ) {
          const preText = view.xps( 'UnlockText/text()' ), postText = view.xps( 'CompleteText/text()' );
          if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += '< ' + esc( preText ) + '<br>';
          if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += '> ' + esc( postText ) + '<br>';
@@ -118,7 +117,7 @@ function render () {
 
       let unlocks = [];
       def.xpa( 'Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
-      def.xpa( 'Unlocks/*' )?.forEach( e => unlocks.push( reward2Txt( e ) ) );
+      def.xpa( 'Unlocks/*' )?.forEach( e => unlocks.push( reward2Txt( e, options ) ) );
       if ( unlocks.length ) unlocks = unlocks.filter( e => e );
       if ( unlocks.length )
          body += 'Unlocks: ' + unlocks.filter( e => e ).join( ', ' );
@@ -200,9 +199,9 @@ function factionAbbr ( fac ) {
    return fac;
 }
 
-function reward2Txt ( ele, pre = true ) {
+function reward2Txt ( ele, options, pre = true ) {
    if ( pre ) {
-      const fac = ele.xpa( 'ValidForFactions/*' ), result = reward2Txt( ele, false );
+      const fac = ele.xpa( 'ValidForFactions/*' ), result = reward2Txt( ele, options, false );
       if ( fac?.length && result ) return '[' + fac.map( e => factionAbbr( e ) ).join( ' & ' ) + '] ' + result;
       return result;
    }
@@ -263,7 +262,7 @@ function reward2Txt ( ele, pre = true ) {
       case 'StatusBuffResearchRewardDef' :
          return 'Combat Buff ' + ele.xps( 'StatusBuffEffectDef/@name' );
       case 'UnitTemplateResearchRewardDef' :
-         if ( ! qs( '#chkHuman' ).checked && ele.ppd( 'Template' ).xps( 'TacticalActorBaseDef/@name' ) === 'Soldier_ActorDef' )
+         if ( ! options.human && ele.ppd( 'Template' ).xps( 'TacticalActorBaseDef/@name' ) === 'Soldier_ActorDef' )
             return '';
          return ele.ppd( 'Template' ).xps( 'SpawnCommandId/@val' ) + ' Template';
       case 'UnlockFunctionalityResearchRewardDef' :
