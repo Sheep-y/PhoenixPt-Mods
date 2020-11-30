@@ -218,8 +218,28 @@ function reward2Txt ( ele, pre = true ) {
          return ( ele.ppd( 'Facility' )?.ppn( 1 ) || 'All Facilities' ) + ' Output Buff ' + mod2Txt( ele, 'ModificationType' ) + ele.xps( 'Increase/@val' );
       case 'FacilityResearchRewardDef' :
          return ele.xpa( 'Facilities/*' ).map( e => e.ppd().ppn( 1 ) ).join( ' Facility, ' ) + ' Facility';
+      case 'HavenZoneBuffResearchRewardDef' :
+         return 'Buff ' + ele.xpa( '*' ).map( e => {
+            const val = e.getAttribute( 'val' );
+            switch ( e.tagName ) {
+               case 'DeploymentModifier' : return 'Military ' + sign( val );
+               case 'GlobalModifier' : return 'All Zones ' + sign( val );
+               case 'ProductionModifier' : return 'Production ' + sign( val );
+               case 'FoodModifier' : return 'Food ' + sign( val );
+               case 'ResearchModifier' : return 'Research ' + sign( val );
+               case 'hideFlags' : case 'ResourcePath' : return '';
+            }
+            console.warn( e );
+            return e.tagName;
+         } ).filter( e => e ).join( ', Buff ' );
+      case 'HavenZoneResearchRewardDef' :
+         return ele.ppd( 'Zone' ).ppn( 1 ) + ' Zone';
       case 'ManufactureResearchRewardDef' :
          return ele.xpa( 'Items/*' ).map( e => e.ppd().ppn( 3 ).replace( ' {0}', '' ) ).join( ' Production, ' ) + ' Production';
+      case 'ResearchBonusResearchRewardDef' :
+         return ele.xps( 'Tag/@name' ) + ' Research Speed ' + sign( ele.xps( 'Amount/@val' ) );
+      case 'StatusBuffResearchRewardDef' :
+         return 'Combat Buff ' + ele.xps( 'StatusBuffEffectDef/@name' );
       case 'UnitTemplateResearchRewardDef' :
          return ele.ppd( 'Template' ).xps( 'SpawnCommandId/@val' ) + ' Template';
       case 'UnlockFunctionalityResearchRewardDef' :
@@ -237,12 +257,8 @@ function reward2Txt ( ele, pre = true ) {
                console.warn( ele.xps( 'Tag/@name' ) );
                return 'New Function ' + ele.xps( 'Tag/@name' );
          }
-      case 'HavenZoneResearchRewardDef' :
-      case 'HavenZoneBuffResearchRewardDef' :
-      case 'ResearchBonusResearchRewardDef' :
-      case 'StatusBuffResearchRewardDef' :
-         return 'Some Buff';
    }
+   console.warn( ele.tagName.substr( 3 ) );
    return ele.tagName.substr( 3 );
 }
 
