@@ -10,7 +10,7 @@ h3 { margin-top: 1ex; }
 </head><body>
    <nav>
       <label>Data XML: <input type='file' multiple accept=".xml"/></label> <button id='btnLoad'>Refresh</button>
-      <label><input type='checkbox' id='chkDesc' checked>Show Descriptions</label>
+      <label><input type='checkbox' id='chkDesc'>Descriptions</label>
    </nav>
    <main><br>Please select the xml files dumped by the <a href='https://www.nexusmods.com/phoenixpoint/mods/50'>Dump Data</a> mod, all 20+ of them.<br><br>All data will be processed locally; nothing will be uploaded.</main>
 <script>(()=>{
@@ -84,32 +84,33 @@ function render () {
       return main.textContent = 'No research data found';
    const namePairs = [];
    for ( let def of byType.get( 'ResearchDef' ) ) {
-      const name = uncap( xps( def, './ViewElementDef/DisplayName1/text()' ) );
+      const name = getName( def, 1 );
       namePairs.push( [ name, def ] );
    }
    namePairs.sort( (a,b) => ( a[0] > b[0] ? 1 : ( a[0] === b[0] ? 0 : -1 ) ) );
    add( main, ce( 'h2', 'Research' ) );
    for ( let [ name, def ] of namePairs ) {
-      const view = xpa( def, './ViewElementDef' )[0];
+      const view = xpa( def, 'ViewElementDef' )[0];
 
-      const cost = xps( def, './ResearchCost/@val' ), faction = factionAbbr( xps( def, './Faction/@guid' ) );
+      const cost = xps( def, 'ResearchCost/@val' ), faction = factionAbbr( xps( def, 'Faction/@guid' ) );
       let subtitle = '', body = '';
       if ( cost ) subtitle += cost + ' ';
       if ( faction ) subtitle += faction + ' ';
       subtitle += def.getAttribute( 'guid' );
       title = ce( 'h3', esc( name ) + ce( 'span', esc( subtitle ) ) );
 
-      const initFac = xpa( def, './InitialStates//State[not(@val="Hidden")]' );
+      const initFac = xpa( def, 'InitialStates//State[not(@val="Hidden")]' );
       if ( initFac ) body += 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) + '<br>';
 
       if ( showDesc ) {
-         const preText = xps( view, './UnlockText/text()' ), postText = xps( view, './CompleteText/text()' );
+         const preText = xps( view, 'UnlockText/text()' ), postText = xps( view, 'CompleteText/text()' );
          if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += '< ' + esc( preText ) + '<br>';
          if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += '> ' + esc( postText ) + '<br>';
       }
 
       const unlocks = [];
-      xpa( def, './Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
+      xpa( def, 'Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
+      xpa( def, 'Unlocks/*' )?.forEach( e => unlocks.push( reward2Txt( e ) ) );
       if ( unlocks.length )
          body += 'Unlocks: ' + unlocks.join( ', ' );
 
@@ -121,11 +122,12 @@ function uncap ( text ) { return text?.split( / +/g ).map( e => e[0] + e.substr(
 function camel2words ( text ) { return [ ... text.matchAll( /[A-Z]+[a-z]*/g ) ].map( e => e[0] ).join( ' ' ); }
 function esc ( text ) { return text?.replaceAll( /[&<>"']/g, e => '&'+({"&":'amp',"<":'lt',">":'gt',"\"":'quot',"'":'#039'})[e]+';' ); }
 function xpa ( ele, path ) {
-   let it = ele?.ownerDocument.evaluate( path, ele, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null ), result = [], e;
+   let it = ele?.ownerDocument.evaluate( './' + path, ele, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null ), result = [], e;
    while ( ( e = it?.iterateNext() ) !== null ) result.push( e );
    return result.length ? result : null;
 }
-function xps ( ele, path ) { return ele?.ownerDocument.evaluate( path, ele, null, XPathResult.STRING_TYPE, null )?.stringValue; }
+function xpn ( ele, path ) { return ele?.ownerDocument.evaluate( './' + path, ele, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null )?.singleNodeValue; }
+function xps ( ele, path ) { return ele?.ownerDocument.evaluate( './' + path, ele, null, XPathResult.STRING_TYPE, null )?.stringValue; }
 
 function qs ( root, selector = null ) { if ( ! selector ) [ root, selector ] = [ document, root ]; return root.querySelector( selector ); }
 function qsa ( root, selector = null ) { if ( ! selector ) [ root, selector ] = [ document, root ]; return root.querySelectorAll( selector ); }
@@ -138,6 +140,28 @@ function ce ( tag, content, prop = {} ) {
    return open + '>' + content + '</' + tag + '>';
 }
 
+function getDef ( guid, path ) {
+   if ( path ) guid = xps( guid, path + '/@guid' );
+   else if ( guid.hasAttribute && guid.hasAttribute( 'guid' ) ) guid = guid.getAttribute( 'guid' );
+   return defs.get( guid );
+}
+
+function getName ( def, name = 0 ) {
+   let ele = typeof( def ) === 'string' ? defs.get( def ) : def, id = ele.getAttribute( 'name' );
+   if ( ele.getAttribute( 'null' ) ) return '';
+   else if ( ! ele.childElementCount ) ele = defs.get( ele.getAttribute( 'guid' ) );
+   if ( ! ele ) debugger;
+   switch ( name ) {
+      case 0 :
+         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/Name/text()" ) ) || id;
+      case 1 :
+         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/DisplayName1/text()" ) ) || id;
+      case 2 :
+         return uncap( xps( ele , "*[starts-with(local-name(),'ViewElement')]/DisplayName2/text()" ) ) || id;
+   }
+   return id;
+}
+
 function factionAbbr ( fac ) {
    if ( fac.getAttribute ) fac = fac.getAttribute( 'guid' );
    switch ( fac ) {
@@ -148,6 +172,46 @@ function factionAbbr ( fac ) {
       case '0e6dc218-e157-5954-c9ab-1a0606e0d914' : return 'SYN';
       default: return fac;
    }
+}
+
+function reward2Txt ( ele ) {
+   switch ( ele.tagName.substr( 3 ) ) {
+      case 'AircraftBuffResearchRewardDef' :
+         return ( getName( xpn( ele, 'VehicleDef' ), 2 ) || 'Aircrafts' ) + ' '
+            + xpa( ele, 'ModData/*' ).map( e => e.tagName + ' x' + e.getAttribute( 'val' ) ).join( ' & ' );
+      case 'AlienBaseTypeResearchRewardDef' :
+         return uncap( xps( getDef( ele, 'BaseType' ), 'Name/text()' ) );
+      case 'CharacterStatResearchRewardDef' :
+         return 'Unit ' + xpa( getDef( ele, 'PassiveModifierAbilityDef' ), 'StatModifications/*' ).map( buff2Txt ).join( ' & ' );
+      case 'ClassResearchRewardDef' :
+         return 'New Class';
+      case 'EncounterVarResearchRewardDef' :
+         return 'Game Flag';
+      case 'FacilityResearchRewardDef' :
+         return 'New Facility';
+      case 'ManufactureResearchRewardDef' :
+         return 'New Item';
+      case 'UnitTemplateResearchRewardDef' :
+         return 'New Enemy';
+      case 'UnlockFunctionalityResearchRewardDef' :
+         return 'New Function';
+      case 'FacilityBuffResearchRewardDef' :
+      case 'FactionModifierResearchRewardDef' :
+      case 'HavenZoneResearchRewardDef' :
+      case 'HavenZoneBuffResearchRewardDef' :
+      case 'ResearchBonusResearchRewardDef' :
+      case 'StatusBuffResearchRewardDef' :
+         return 'Some Buff';
+   }
+   return ele.tagName.substr( 3 );
+}
+
+function buff2Txt ( ele ) {
+   let op = xps( ele, 'Modification/@val' );
+   switch ( op ) {
+      case 'Add' : op = '+'; break;
+   }
+   return xps( ele, 'TargetStat/@val' ) + ' ' + op + xps( ele, 'Value/@val' );
 }
 
 window.getPPDef = ( guid = '' ) => guid ? defs.get( guid ) : defs;
