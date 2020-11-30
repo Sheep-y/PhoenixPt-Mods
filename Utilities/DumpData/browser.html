@@ -59,7 +59,7 @@ async function loadFiles ( forceLoad ) {
          }
       }
       render();
-      console.info( `${files.length} files, ${defs.size} definitions, ${+(performance.now()-startTime)} ms` );
+      console.info( `Total ${files.length} files, ${defs.size} definitions, ${~~(performance.now()-startTime)} ms` );
    } catch ( err ) {
       console.error( err );
    } finally {
@@ -93,6 +93,7 @@ function recurAddDef ( element ) {
 }
 
 function render () {
+   const startTime = performance.now();
    const options = {
       desc: qs( 'input#chkDesc' ).checked,
       human: qs( 'input#chkHuman' ).checked,
@@ -107,6 +108,7 @@ function render () {
    namePairs.sort( (a,b) => ( a[0] > b[0] ? 1 : ( a[0] === b[0] ? 0 : -1 ) ) );
    for ( let [ name, def ] of namePairs )
       main.iah( renderEntry( name, def, options ) );
+   console.info( `Render took ${~~(performance.now()-startTime)} ms` );
 }
 
 function renderEntry ( name, ele, options ) {
@@ -119,14 +121,14 @@ function renderEntry ( name, ele, options ) {
 
    const DLC = ele.xpn( 'DLC[not(@null)]' );
    if ( DLC )
-      body += ce( 'p', 'DLC: ' + uncap( DLC.ppd().xps( 'Name/text()' ) ) );
+      body += ce( 'p', 'DLC: ' + uncap( DLC.ppd().xps( 'Name' ) ) );
 
    const initFac = ele.xpa( 'InitialStates//State[not(@val="Hidden")]' );
    if ( initFac ) body += ce( 'p', 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) );
 
    const view = ele.xpn( 'ViewElementDef' );
    if ( options.desc && view ) {
-      const preText = view.xps( 'UnlockText/text()' ), postText = view.xps( 'CompleteText/text()' );
+      const preText = view.xps( 'UnlockText' ), postText = view.xps( 'CompleteText' );
       if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += ce( 'p', '&lt; ' + esc( preText ) );
       if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += ce( 'p', '&gt; ' + esc( postText ) );
    }
@@ -168,8 +170,8 @@ Element.prototype.iah = function insertAdjacentHTML ( html, pos = 'beforeend' ) 
    return this.insertAdjacentHTML( pos, html );
 };
 
-function qs ( root, selector = null ) { if ( ! selector ) [ root, selector ] = [ document, root ]; return root.querySelector( selector ); }
-function qsa ( root, selector = null ) { if ( ! selector ) [ root, selector ] = [ document, root ]; return root.querySelectorAll( selector ); }
+function qs ( root, selector = null ) { return selector ? root.querySelector( selector ) : document.querySelector( root ); }
+function qsa ( root, selector = null ) { return selector ? root.querySelectorAll( selector ) : document.querySelectorAll( root ); }
 function ce ( tag, content, prop = {} ) {
    let open = '<' + tag;
    if ( prop )
@@ -194,13 +196,13 @@ Element.prototype.ppn = function pp_getName ( name = 0 ) {
       case 0 :
          result = uncap( view.xps( "Name/@val" ) ); break;
       case 1 :
-         result = uncap( view.xps( "DisplayName1/text()" ) ); break;
+         result = uncap( view.xps( "DisplayName1" ) ); break;
       case 2 :
-         result = uncap( view.xps( "DisplayName2/text()" ) ); break;
+         result = uncap( view.xps( "DisplayName2" ) ); break;
       case 3 :
-         result = uncap( view.xps( "DisplayName2/text()" ) || view.xps( "DisplayName1/text()" ) ); break;
+         result = uncap( view.xps( "DisplayName2" ) || view.xps( "DisplayName1" ) ); break;
    }
-   if ( result?.includes( '{0}' ) === true && ( param = view.xps( 'TitleLocalizationParams/LI/text()' ) ) )
+   if ( result?.includes( '{0}' ) === true && ( param = view.xps( 'TitleLocalizationParams/LI' ) ) )
       return result.replace( /\{0\}/g, param );
    return result || id;
 }
@@ -228,7 +230,7 @@ function reward2Txt ( ele, options, pre = true ) {
          return ( ele.xpn( 'VehicleDef' ).ppn( 2 ) || 'Aircrafts' ) + ' '
             + ele.xpa( 'ModData/*' ).map( e => e.tagName + ' Buff x' + e.getAttribute( 'val' ) ).join( ' & ' );
       case 'AlienBaseTypeResearchRewardDef' :
-         return uncap( ele.ppd( 'BaseType' ).xps( 'Name/text()' ) );
+         return uncap( ele.ppd( 'BaseType' ).xps( 'Name' ) );
       case 'CharacterStatResearchRewardDef' :
          return 'Unit ' + ele.ppd( 'PassiveModifierAbilityDef' ).xpa( 'StatModifications/*' ).map( buff2Txt ).join( ' & ' );
       case 'ClassResearchRewardDef' :
