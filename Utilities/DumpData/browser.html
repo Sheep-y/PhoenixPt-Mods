@@ -9,39 +9,47 @@ h3 { margin-top: 1ex; }
 </style>
 </head><body>
    <nav>
-      <label>Data XML: <input type='file' multiple accept=".xml"/></label> <button id='btnLoad'>Load</button><br>
-      (please select all 20+ xml files)
+      <label>Data XML: <input type='file' multiple accept=".xml"/></label> <button id='btnLoad'>Refresh</button>
+      <label><input type='checkbox' id='chkDesc' checked>Show Descriptions</label>
    </nav>
-   <main></main>
+   <main><br>Please select the xml files dumped by the <a href='https://www.nexusmods.com/phoenixpoint/mods/50'>Dump Data</a> mod, all 20+ of them.<br><br>All data will be processed locally; nothing will be uploaded.</main>
 <script>(()=>{
-document.querySelector( 'nav' ).style.display = 'block';
-document.querySelector( '#btnLoad' ).addEventListener( 'click', () => loadFiles( true ) )
-document.querySelector( 'input[type=file]' ).addEventListener( 'input', () => loadFiles( false ) );
-if ( document.querySelector( 'input[type=file]' ).files.length ) loadFiles( false );
+qs( 'nav' ).style.display = 'block';
+qs( '#btnLoad' ).addEventListener( 'click', () => loadFiles( true ) )
+qs( '#chkDesc' ).addEventListener( 'change', () => loadFiles( false ) )
+qs( 'input[type=file]' ).addEventListener( 'input', () => loadFiles( false ) );
+if ( qs( 'input[type=file]' ).files.length ) loadFiles( false );
 
 const defs = new Map(), byType = new Map();
 
 async function loadFiles ( forceLoad ) {
-   const files = document.querySelector( 'input[type=file]' ).files;
-   if ( files.length <= 0 ) return;
-   const docs = ( await Promise.allSettled( [ ... files ].map( e => e.text() ) ) )
-      .filter( e => e?.status === 'fulfilled' )
-      .map( e => new DOMParser().parseFromString( e.value, 'text/xml' ).documentElement )
-      .filter( e => e?.tagName !== 'parsererror' );
-   if ( ! docs.length ) return;
+   [ ... qsa( 'nav input, nav button' ) ].forEach( e => e.disabled = true );
+   try {
+      const files = qs( 'input[type=file]' ).files;
+      if ( files.length <= 0 ) return;
+      const docs = ( await Promise.allSettled( [ ... files ].map( e => e.text() ) ) )
+         .filter( e => e?.status === 'fulfilled' )
+         .map( e => new DOMParser().parseFromString( e.value, 'text/xml' ).documentElement )
+         .filter( e => e?.tagName !== 'parsererror' );
+      if ( ! docs.length ) return;
 
-   defs.clear();
-   byType.clear();
-   const main = document.querySelector( 'main' );
-   main.textContent = '';
-   for ( let doc of docs ) {
-      const type = doc.tagName;
-      for ( let e of doc.children ) {
-         if ( ! e.hasAttribute( 'guid' ) ) continue;
-         addToDef( e, type === e.tagName ? [ type ] : [ type, e.tagName ] );
+      defs.clear();
+      byType.clear();
+      const main = qs( 'main' );
+      main.textContent = '';
+      for ( let doc of docs ) {
+         const type = doc.tagName;
+         for ( let e of doc.children ) {
+            if ( ! e.hasAttribute( 'guid' ) ) continue;
+            addToDef( e, type === e.tagName ? [ type ] : [ type, e.tagName ] );
+         }
       }
+      render();
+   } catch ( err ) {
+      console.error( err );
+   } finally {
+      [ ... qsa( 'nav input, nav button' ) ].forEach( e => e.disabled = false );
    }
-   render();
 }
 
 function addToDef ( element, types = [] ) {
@@ -70,7 +78,8 @@ function recurAddDef ( element ) {
 }
 
 function render () {
-   const main = document.querySelector( 'main' );
+   const showDesc = qs( 'input#chkDesc' ).checked;
+   const main = qs( 'main' );
    if ( ! byType.has( 'ResearchDef' ) )
       return main.textContent = 'No research data found';
    const namePairs = [];
@@ -81,18 +90,28 @@ function render () {
    namePairs.sort( (a,b) => ( a[0] > b[0] ? 1 : ( a[0] === b[0] ? 0 : -1 ) ) );
    add( main, ce( 'h2', 'Research' ) );
    for ( let [ name, def ] of namePairs ) {
-      const view = xp( def, './ViewElementDef' ).iterateNext();
+      const view = xpa( def, './ViewElementDef' )[0];
 
       const cost = xps( def, './ResearchCost/@val' ), faction = factionAbbr( xps( def, './Faction/@guid' ) );
       let subtitle = '', body = '';
+      if ( cost ) subtitle += cost + ' ';
       if ( faction ) subtitle += faction + ' ';
-      subtitle += ( cost ? cost : '--' ) + ' ';
       subtitle += def.getAttribute( 'guid' );
       title = ce( 'h3', esc( name ) + ce( 'span', esc( subtitle ) ) );
 
-      const preText = xps( view, './UnlockText/text()' ), postText = xps( view, './CompleteText/text()' );
-      if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += '< ' + esc( preText ) + '<br>';
-      if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += '> ' + esc( postText ) + '<br>';
+      const initFac = xpa( def, './InitialStates//State[not(@val="Hidden")]' );
+      if ( initFac ) body += 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) + '<br>';
+
+      if ( showDesc ) {
+         const preText = xps( view, './UnlockText/text()' ), postText = xps( view, './CompleteText/text()' );
+         if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += '< ' + esc( preText ) + '<br>';
+         if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += '> ' + esc( postText ) + '<br>';
+      }
+
+      const unlocks = [];
+      xpa( def, './Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
+      if ( unlocks.length )
+         body += 'Unlocks: ' + unlocks.join( ', ' );
 
       add( main, ce( 'div', title + ce( 'p', body ) ) );
    }
@@ -101,9 +120,15 @@ function render () {
 function uncap ( text ) { return text?.split( / +/g ).map( e => e[0] + e.substr( 1 ).toLowerCase() ).join( ' ' ); }
 function camel2words ( text ) { return [ ... text.matchAll( /[A-Z]+[a-z]*/g ) ].map( e => e[0] ).join( ' ' ); }
 function esc ( text ) { return text?.replaceAll( /[&<>"']/g, e => '&'+({"&":'amp',"<":'lt',">":'gt',"\"":'quot',"'":'#039'})[e]+';' ); }
-function xp ( ele, path, type = XPathResult.ANY_TYPE ) { return ele?.ownerDocument.evaluate( path, ele, null, type, null ); }
-function xps ( ele, path ) { return xp( ele, path, XPathResult.STRING_TYPE )?.stringValue; }
+function xpa ( ele, path ) {
+   let it = ele?.ownerDocument.evaluate( path, ele, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null ), result = [], e;
+   while ( ( e = it?.iterateNext() ) !== null ) result.push( e );
+   return result.length ? result : null;
+}
+function xps ( ele, path ) { return ele?.ownerDocument.evaluate( path, ele, null, XPathResult.STRING_TYPE, null )?.stringValue; }
 
+function qs ( root, selector = null ) { if ( ! selector ) [ root, selector ] = [ document, root ]; return root.querySelector( selector ); }
+function qsa ( root, selector = null ) { if ( ! selector ) [ root, selector ] = [ document, root ]; return root.querySelectorAll( selector ); }
 function add ( ele, html, pos = 'beforeend' ) { return ele.insertAdjacentHTML( pos, html ); }
 function ce ( tag, content, prop = {} ) {
    let open = '<' + tag;
