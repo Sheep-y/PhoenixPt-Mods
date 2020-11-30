@@ -175,17 +175,13 @@ Element.prototype.ppn = function pp_getName ( name = 0 ) {
    if ( ! view ) debugger;
    switch ( name ) {
       case 0 :
-         result = uncap( view.xps( "Name/@val|/Name/@val" ) );
-         break;
+         result = uncap( view.xps( "Name/@val" ) ); break;
       case 1 :
-         result = uncap( view.xps( "DisplayName1/text()" ) );
-         break;
+         result = uncap( view.xps( "DisplayName1/text()" ) ); break;
       case 2 :
-         result = uncap( view.xps( "DisplayName2/text()" ) );
-         break;
+         result = uncap( view.xps( "DisplayName2/text()" ) ); break;
       case 3 :
-         result = uncap( view.xps( "DisplayName2/text()" ) || ele.xps( "DisplayName1/text()" ) );
-         break;
+         result = uncap( view.xps( "DisplayName2/text()" ) || view.xps( "DisplayName1/text()" ) ); break;
    }
    if ( result?.includes( '{0}' ) === true && ( param = view.xps( 'TitleLocalizationParams/LI/text()' ) ) )
       return result.replace( /\{0\}/g, param );
