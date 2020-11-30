@@ -1,0 +1,109 @@
+<!DOCTYPE html><head><meta charset='utf-8'/>
+   <title>Phoenix Point research browser</title>
+<style>
+* { box-sizing: border-box; }
+div, p, span, ul, ol, li, h1, h2, h3, h4, h5, h6 { margin: 0; padding: 0; }
+nav { display: none; }
+</style>
+</head><body>
+   <nav>
+      <label>Data XML: <input type='file' multiple accept=".xml"/></label> <button id='btnLoad'>Load</button><br>
+      (please select all 20+ xml files)
+   </nav>
+   <main></main>
+<script>(()=>{
+document.querySelector( 'nav' ).style.display = 'block';
+document.querySelector( '#btnLoad' ).addEventListener( 'click', () => loadFiles( true ) )
+document.querySelector( 'input[type=file]' ).addEventListener( 'input', () => loadFiles( false ) );
+if ( document.querySelector( 'input[type=file]' ).files.length ) loadFiles( false );
+
+const defs = new Map(), byType = new Map();
+
+async function loadFiles ( forceLoad ) {
+   const files = document.querySelector( 'input[type=file]' ).files;
+   if ( files.length <= 0 ) return;
+   const docs = ( await Promise.allSettled( [ ... files ].map( e => e.text() ) ) )
+      .filter( e => e?.status === 'fulfilled' )
+      .map( e => new DOMParser().parseFromString( e.value, 'text/xml' ).documentElement )
+      .filter( e => e?.tagName !== 'parsererror' );
+   if ( ! docs.length ) return;
+
+   defs.clear();
+   byType.clear();
+   const main = document.querySelector( 'main' );
+   main.textContent = '';
+   for ( let doc of docs ) {
+      const type = doc.tagName;
+      for ( let e of doc.children ) {
+         if ( ! e.hasAttribute( 'guid' ) ) continue;
+         addToDef( e, type === e.tagName ? [ type ] : [ type, e.tagName ] );
+      }
+   }
+   render();
+}
+
+function addToDef ( element, types = [] ) {
+   const guid = element.getAttribute( 'guid' );
+   if ( ! element.childElementCount ) return; // Not interested in empty data
+   for ( let e of element.children )
+      recurAddDef( e );
+   if ( ! defs.has( guid ) ) {
+      defs.set( guid, element );
+      for ( let t of types ) {
+         let list = byType.get( t );
+         if ( ! list ) byType.set( t, list = [] );
+         list.push( element );
+      }
+   } else // Remove children from duplicate data
+      for ( let e of element.children )
+         e.remove();
+}
+
+function recurAddDef ( element ) {
+   if ( element.hasAttribute( 'guid' ) )
+      addToDef( element );
+   else if ( element.childElementCount )
+      for ( let e of element.children )
+         recurAddDef( e );
+}
+
+function render () {
+   const main = document.querySelector( 'main' );
+   if ( ! byType.has( 'ResearchDef' ) )
+      return main.textContent = 'No research data found';
+   const namePairs = [];
+   for ( let def of byType.get( 'ResearchDef' ) ) {
+      const name = uncap( def.querySelector( 'ViewElementDef>DisplayName1' ).textContent );
+      namePairs.push( [ name, def ] );
+   }
+   namePairs.sort( (a,b) => ( a[0] > b[0] ? 1 : ( a[0] === b[0] ? 0 : -1 ) ) );
+   add( main, ce( 'h2', 'Research' ) );
+   for ( let [ name, def ] of namePairs ) {
+      const cost = xps( def, './ResearchCost/@val' );
+      const title = name + ( cost ? ` (${cost})` : '' );
+      add( main, ce( 'div', ce( 'h3', esc( title ) ) ) );
+   }
+}
+
+function uncap ( text ) { return text.split( / +/g ).map( e => e[0] + e.substr( 1 ).toLowerCase() ).join( ' ' ); }
+function camel2words ( text ) { return [ ... text.matchAll( /[A-Z]+[a-z]*/g ) ].map( e => e[0] ).join( ' ' ); }
+function esc ( text ) { return text.replaceAll( /[&<>"']/g, e => '&'+({"&":'amp',"<":'lt',">":'gt',"\"":'quot',"'":'#039'})[e]+';' ); }
+function xp ( ele, path, type = XPathResult.ANY_TYPE ) { return ele.ownerDocument.evaluate( path, ele, null, type, null ); }
+function xps ( ele, path ) { return xp( ele, path, XPathResult.STRING_TYPE )?.stringValue; }
+
+function add ( ele, html, pos = 'beforeend' ) { return ele.insertAdjacentHTML( pos, html ); }
+function ce ( tag, content, prop = {} ) {
+   let open = '<' + tag;
+   if ( prop )
+      for ( let p in prop )
+         open += ' ' + p + '="' + esc( prop[p] ) + '"';
+   return open + '>' + content + '</' + tag + '>';
+}
+
+window.getPPDef = ( guid = '' ) => guid ? defs.get( guid ) : defs;
+window.getPPType = ( type = '' ) => type ? byType.get( type ) : byType;
+
+})()</script><noscript>
+   <h1>Requires JavaScript</h1>
+</noscript>
+</body></html>
