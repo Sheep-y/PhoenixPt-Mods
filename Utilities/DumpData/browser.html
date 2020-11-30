@@ -7,8 +7,12 @@ div, p, span, ul, ol, li, h1, h2, h3, h4, h5, h6 { margin: 0; padding: 0; }
 nav { display: none; }
 h2 { margin-bottom: 1ex; }
 h3 { margin-top: 1em; }
-   h3 > span { font-size: 90%; font-weight: normal; padding-left: 1em; }
+   h3 > span { color: #888; font-size: 90%; font-weight: normal; padding-left: 1em; }
    data { font-family: monospace; padding-left: 1ex; text-transform: uppercase; }
+main > div > p { margin-top: 5px; }
+   main > div:hover { outline: 1px solid green; }
+   main > div > p:hover { background-color: #DFD; }
+   body.dark main > div > p:hover { background-color: #040; }
 
 body.dark { background-color: black; color: #EFE; }
    body.dark a { color: white; }
@@ -107,21 +111,21 @@ function render () {
       title = ce( 'h3', esc( name ) + ce( 'span', subtitle ) );
 
       const initFac = def.xpa( 'InitialStates//State[not(@val="Hidden")]' );
-      if ( initFac ) body += 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) + '<br>';
+      if ( initFac ) body += '<p>Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) + '</p>';
 
       const view = def.xpa( 'ViewElementDef' )[0];
       if ( options.desc && view ) {
          const preText = view.xps( 'UnlockText/text()' ), postText = view.xps( 'CompleteText/text()' );
-         if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += '< ' + esc( preText ) + '<br>';
-         if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += '> ' + esc( postText ) + '<br>';
+         if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += '<p>&lt; ' + esc( preText ) + '</p>';
+         if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += '<p>&gt; ' + esc( postText ) + '</p>';
       }
 
       let unlocks = [];
       def.xpa( 'Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
-      def.xpa( 'Unlocks/*' )?.forEach( e => unlocks.push( reward2Txt( e, options ) ) );
+      def.xpa( 'Unlocks/*' )?.forEach( e => unlocks.push( esc( reward2Txt( e, options ) ) ) );
       if ( unlocks.length ) unlocks = unlocks.filter( e => e );
       if ( unlocks.length )
-         body += 'Unlocks: ' + unlocks.filter( e => e ).join( ', ' );
+         body += '<p>Unlocks: ' + unlocks.filter( e => e ).join( ', ' ) + '</p>';
 
       main.iah( ce( 'div', title + ce( 'p', body ) ) );
    }
