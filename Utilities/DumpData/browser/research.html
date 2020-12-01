@@ -37,7 +37,7 @@ qs( '#chkDark' ).addEventListener( 'change', () => document.body.classList.toggl
 qs( 'input[type=file]' ).addEventListener( 'input', () => loadFiles( false ) );
 if ( qs( 'input[type=file]' ).files.length ) loadFiles( false );
 
-const defs = new Map(), byType = new Map();
+const defs = new Map(), byType = new Map(), txtCache = new Map();
 
 async function loadFiles ( forceLoad ) {
    const startTime = performance.now();
@@ -94,6 +94,9 @@ function recurAddDef ( element ) {
          recurAddDef( e );
 }
 
+function getCache ( guid ) { return guid ? txtCache.get( guid ) : null; }
+function setCache ( guid, val ) { if ( guid ) txtCache.set( guid, val ); return val; }
+
 function render () {
    const startTime = performance.now();
    const options = {
@@ -114,13 +117,14 @@ function render () {
    namePairs.sort( (a,b) => ( a[0] > b[0] ? 1 : ( a[0] === b[0] ? 0 : -1 ) ) );
    for ( let [ name, def ] of namePairs )
       main.iah( renderEntry( name, def, options ) );
+   txtCache.clear();
    console.info( `Render took ${~~(performance.now()-startTime)} ms` );
 }
 
 function renderEntry ( name, ele, options ) {
    const cost = ele.xps( 'ResearchCost/@val' ), faction = factionAbbr( ele.xps( 'Faction/@guid' ) );
    let subtitle = '', body = '';
-   subtitle += ( cost ? cost : '--' ) + ' ';
+   subtitle += ( cost ?? '--' ) + ' ';
    if ( options.meta ) {
       if ( faction ) subtitle += faction + ' ';
       subtitle += ce( 'data', ele.getAttribute( 'guid' ) ) + ' ' + ele.xps( '@name' );
@@ -254,6 +258,12 @@ function req2Txt ( ele, op ) {
    if ( ele.tagName === 'LI' )
       return req2Txt( ele.xpa( 'Requirements/*' ), ele.xps( 'Operation/@val' ) );
 
+   const guid = ele.getAttribute( 'guid' );
+   const txt = getCache( guid );
+   return txt ?? setCache( guid, reqDef2Txt( ele ) );
+}
+
+function reqDef2Txt ( ele ) {
    let def = ele.ppd(), fac = def?.xpn( 'Faction[not(@null)]' ), txt = '';
    if ( fac ) fac = uncap( factionAbbr( fac ) );
 
