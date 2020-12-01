@@ -120,11 +120,12 @@ function render () {
 function renderEntry ( name, ele, options ) {
    const cost = ele.xps( 'ResearchCost/@val' ), faction = factionAbbr( ele.xps( 'Faction/@guid' ) );
    let subtitle = '', body = '';
-   subtitle += ( cost ? cost : '(Report)' ) + ' ';
+   subtitle += ( cost ? cost : '--' ) + ' ';
    if ( options.meta ) {
       if ( faction ) subtitle += faction + ' ';
       subtitle += ce( 'data', ele.getAttribute( 'guid' ) ) + ' ' + ele.xps( '@name' );
-   }
+   } else if ( faction === 'ALN' )
+      return '';
    title = ce( 'h3', esc( name ) + ce( 'span', subtitle ) );
 
    const DLC = ele.xpn( 'DLC[not(@null)]' );
@@ -312,7 +313,7 @@ function reward2Txt ( ele, options, pre = true ) {
       case 'CharacterStatResearchRewardDef' :
          return 'Unit ' + ele.ppd( 'PassiveModifierAbilityDef' ).xpa( 'StatModifications/*' ).map( buff2Txt ).join( ' & ' );
       case 'ClassResearchRewardDef' :
-         return 'Class ' + ele.ppd( 'SpecializationDef' ).ppn( 1 );
+         return ele.ppd( 'SpecializationDef' ).ppn( 1 ) + ' Class';
       case 'EncounterVarResearchRewardDef' :
          return 'Flag `' + ele.xps( 'VariableName/@val' ) + '`'
             + ( ele.xps( 'IsSetOperation/@val' ) === 'True' ? '=' : '+' ) + ele.xps( 'VariableValue/@val' );
