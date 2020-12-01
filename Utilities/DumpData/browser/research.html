@@ -141,7 +141,7 @@ function renderEntry ( name, ele, options ) {
    //if ( ele.getAttribute( 'guid' ).startsWith('2692c7ce') ) debugger;
    let reveals = ele.xpa( 'RevealRequirements/Container/LI' );
    if ( reveals ) {
-      reveals = formatReq( req2Txt( reveals, ele.xps( 'RevealRequirements/Operation/@val' ) ), 0 );
+      reveals = formatReq( req2Txt( reveals, ele.xps( 'RevealRequirements/Operation/@val' ) ), 'root' );
       body += ce( 'p', 'Revealed By: ' + reveals );
    }
 
@@ -263,23 +263,27 @@ function req2Txt ( ele, op ) {
          return ( txt || def.getAttribute( 'name' ) )
             + ( cls[0] == 'A' ? ' Corpse' : ' Capture' )
             + ( fac ? ' owned by ' + fac : '' );
+      case 'EncounterVariableResearchRequirementDef' :
+         return 'Flag `' + def.xps( 'VariableName/@val' ) + '` ' + def.xps( 'Operation/@val' ) + ' ' + def.xps( 'Value/@val' );         
       case 'ExistingResearchRequirementDef' :
-         txt = findByName( def.xps( 'ResearchID/@val' ) );
+         txt = '"' + findByName( def.xps( 'ResearchID/@val' ) ) + '"';
          return fac ? fac + ' has ' + txt : txt;
       case 'FactionDiplomacyRequirementDef' :
          return def.xps( 'DiplomacyState/@val' ) + ' with ' + uncap( factionAbbr( def.xpn( 'WithFaction' ) ) );
       case 'IsFactionResearchRequirementDef' :
          return 'Is ' + fac;
+      case 'ResourcesResearchRequirementDef' :
+         return def.xpa( 'Resources/*' ).map( e => e.xps( 'Type/@val' ) + ' >= ' + e.xps( 'Value/@val' ) ).join( ' & ' );
    }
    return cls;
 }
 
 const ReqJoin = { 'ALL':' AND ', 'ANY':' OR ' };
 
-function formatReq ( req, nonRoot ) {
+function formatReq ( req, opt ) {
    if ( ! req || typeof( req ) === 'string' ) return req;
    req = req.slice( 1 ).map( formatReq ).join( ReqJoin[ req[0] ] );
-   return nonRoot ? `( ${req} )` : req;
+   return opt === 'root' ? req : `( ${req} )`;
 }
 
 function reward2Txt ( ele, options, pre = true ) {
@@ -299,7 +303,7 @@ function reward2Txt ( ele, options, pre = true ) {
       case 'ClassResearchRewardDef' :
          return 'Class ' + ele.ppd( 'SpecializationDef' ).ppn( 1 );
       case 'EncounterVarResearchRewardDef' :
-         return 'Flag ' + ele.xps( 'VariableName/@val' )
+         return 'Flag `' + ele.xps( 'VariableName/@val' ) + '`'
             + ( ele.xps( 'IsSetOperation/@val' ) === 'True' ? '=' : '+' ) + ele.xps( 'VariableValue/@val' );
       case 'FactionModifierResearchRewardDef' :
          return ele.xpa( '*' ).map( e => {
@@ -343,7 +347,7 @@ function reward2Txt ( ele, options, pre = true ) {
       case 'ResearchBonusResearchRewardDef' :
          return ele.xps( 'Tag/@name' ) + ' Research Speed ' + sign( ele.xps( 'Amount/@val' ) );
       case 'StatusBuffResearchRewardDef' :
-         return 'Combat Buff ' + ele.xps( 'StatusBuffEffectDef/@name' );
+         return 'Combat Buff ' + ele.xps( 'StatusBuffEffectDef/@name' ).replace( /_FactionEffectDef$/, '' );
       case 'UnitTemplateResearchRewardDef' :
          if ( ! options.human && ele.ppd( 'Template' ).xps( 'TacticalActorBaseDef/@name' ) === 'Soldier_ActorDef' )
             return '';
