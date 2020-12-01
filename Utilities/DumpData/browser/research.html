@@ -119,7 +119,7 @@ function render () {
 function renderEntry ( name, ele, options ) {
    const cost = ele.xps( 'ResearchCost/@val' ), faction = factionAbbr( ele.xps( 'Faction/@guid' ) );
    let subtitle = '', body = '';
-   if ( cost ) subtitle += cost + ' ';
+   subtitle += ( cost ? cost : '(Report)' ) + ' ';
    if ( options.meta ) {
       if ( faction ) subtitle += faction + ' ';
       subtitle += ce( 'data', ele.getAttribute( 'guid' ) ) + ' ' + ele.xps( '@name' );
@@ -257,23 +257,31 @@ function req2Txt ( ele, op ) {
    switch ( cls ) {
       case 'ActorResearchRequirementDef' :
       case 'CaptureActorResearchRequirementDef' :
+         if ( fac ) debugger;
          txt = def.ppd( 'Actor' );
          txt = txt ? txt.xpn( 'GameTags/LI.ClassTagDef' )?.ppd()?.xps( 'className/@val' )
                    : def.xps( 'Tag/@name' )?.replace( /_TagDef$/, ' Tagged' );
-         return ( txt || def.getAttribute( 'name' ) )
-            + ( cls[0] == 'A' ? ' Corpse' : ' Capture' )
-            + ( fac ? ' owned by ' + fac : '' );
+         return ( txt || def.getAttribute( 'name' ) ) + ( cls[0] == 'A' ? ' Corpse' : ' Capture' );
       case 'EncounterVariableResearchRequirementDef' :
-         return 'Flag `' + def.xps( 'VariableName/@val' ) + '` ' + def.xps( 'Operation/@val' ) + ' ' + def.xps( 'Value/@val' );         
+         if ( fac ) debugger;
+         return 'Flag `' + def.xps( 'VariableName/@val' ) + '` ' + def.xps( 'Operation/@val' ) + ' ' + def.xps( 'Value/@val' );
       case 'ExistingResearchRequirementDef' :
          txt = '"' + findByName( def.xps( 'ResearchID/@val' ) ) + '"';
+         if ( txt === '""' ) txt = '"' + def.xps( 'Tag/@name' ).replace( /_ResearchTagDef$/, '' ) + '" Tagged Reaearch';
          return fac ? fac + ' has ' + txt : txt;
       case 'FactionDiplomacyRequirementDef' :
+         if ( fac ) debugger;
          return def.xps( 'DiplomacyState/@val' ) + ' with ' + uncap( factionAbbr( def.xpn( 'WithFaction' ) ) );
       case 'IsFactionResearchRequirementDef' :
          return 'Is ' + fac;
       case 'ResourcesResearchRequirementDef' :
+         if ( fac ) debugger;
          return def.xpa( 'Resources/*' ).map( e => e.xps( 'Type/@val' ) + ' >= ' + e.xps( 'Value/@val' ) ).join( ' & ' );
+      case 'VisitSiteRequirementDef' :
+         txt = factionAbbr( def.xpn( 'FactionDef' ) ) || '';
+         if ( txt ) txt += ' ' + def.xps( 'Type/@val' );
+         else debugger;
+         return 'Visited a ' + txt;
    }
    return cls;
 }
