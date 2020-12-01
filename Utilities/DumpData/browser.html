@@ -140,7 +140,7 @@ function renderEntry ( name, ele, options ) {
 
    let reveals = ele.xpa( 'RevealRequirements/Container/LI' );
    if ( reveals ) {
-      reveals = req2Txt( reveals, ele.xps( 'RevealRequirements/Operation/@val' ) );
+      reveals = formatReq( req2Txt( reveals, ele.xps( 'RevealRequirements/Operation/@val' ) ), 0 );
       body += ce( 'p', 'Revealed By: ' + reveals );
    }
 
@@ -160,12 +160,10 @@ function renderEntry ( name, ele, options ) {
 
    if ( options.meta ) {
       const invalid = ele.xpa( 'InvalidatedBy/LI/@val' );
-      if ( invalid ) body += ce( 'p', 'Invalidated By: ' + invalid.map( e => e.nodeValue )
-         .map( e => byType.get( 'ResearchDef' ).find( def => def.getAttribute( 'name' ) === e )?.ppn( 1 ) || e ).join( ', ' ) );
+      if ( invalid ) body += ce( 'p', 'Invalidated By: ' + invalid.map( e => e.nodeValue ).map( findByName ).join( ', ' ) );
+      const video = ele.xpn( 'TriggerCutscene[not(@null)]' );
+      if ( video ) body += ce( 'p', 'Cutscene: ' + video.ppd().xps( 'ResourcePath/@val' ) );
    }
-
-   const video = ele.xpn( 'TriggerCutscene[not(@null)]' );
-   if ( video ) body += ce( 'p', 'Cutscene: ' + video.ppd().xps( 'ResourcePath/@val' ) );
 
    return ce( 'div', title + ce( 'p', body ) );
 }
@@ -224,6 +222,10 @@ Element.prototype.ppn = function pp_getName ( name = 0 ) {
    return result || id;
 }
 
+function findByName ( name ) {
+   return byType.get( 'ResearchDef' ).find( def => def.getAttribute( 'name' ) === name )?.ppn( 1 ) || name;
+}
+
 function factionAbbr ( fac ) {
    if ( fac.getAttribute ) fac = fac.getAttribute( 'guid' );
    switch ( fac ) {
@@ -239,14 +241,33 @@ function factionAbbr ( fac ) {
 function req2Txt ( ele, op ) {
    if ( ! ele ) return '';
    if ( op ) {
-      if ( ! ele.length ) return;
-      const parts = ele.map( e => req2Txt( e ) );
+      if ( ! ele.length ) return '';
+      const parts = ele.map( e => req2Txt( e ) ).filter( e => e );
       if ( parts.length === 1 ) return parts[0];
-      return '( ' + parts.join( op === 'AND' ? ' AND ' : ' OR ' ) + ' )';
+      return [ op, ... parts ];
    }
    op = ele.xps( 'Operation/@val' );
    if ( op ) return req2Txt( ele.xpa( 'Requirements/*' ), op );
+
+   let def = ele.ppd(), fac = def?.xpn( 'Faction[not(@null)]' ), txt = '';
+   switch ( ele.tagName.substr( 3 ) ) {
+      case 'ExistingResearchRequirementDef' :
+         txt = findByName( def.xps( 'ResearchID/@val' ) );
+         return fac ? uncap( factionAbbr( fac ) ) + ' has ' + txt : txt;
+      case 'FactionDiplomacyRequirementDef' :
+         return def.xps( 'DiplomacyState/@val' ) + ' with ' + uncap( factionAbbr( def.xpn( 'WithFaction' ) ) );
+      case 'IsFactionResearchRequirementDef' :
+         return 'Is ' + uncap( factionAbbr( fac ) );
+   }
    return ele.tagName.substr( 3 );
+}
+
+const ReqJoin = { 'ALL':' AND ', 'ANY':' OR ' };
+
+function formatReq ( req, nonRoot ) {
+   if ( ! req || typeof( req ) === 'string' ) return req;
+   req = req.slice( 1 ).map( formatReq ).join( ReqJoin[ req[0] ] );
+   return nonRoot ? `( ${req} )` : req;
 }
 
 function reward2Txt ( ele, options, pre = true ) {
