@@ -211,7 +211,9 @@ Element.prototype.ppd = function pp_getDef ( path = '' ) {
    return guid ? defs.get( guid.toLowerCase() ) : null;
 };
 Element.prototype.ppn = function pp_getName ( name = 0 ) {
-   let ele = this, id = ele.getAttribute( 'name' ), param, result;
+   const guid = this.getAttribute( 'guid' ), key = guid ? guid + '-name' + name : '';
+   let result = getCache( key ), ele = this, param;
+   if ( result ) return result;
    if ( ele.getAttribute( 'null' ) ) return '';
    else if ( ! ele.firstElementChild ) ele = ele.ppd();
    const view = ele?.xpn( "ViewElementDef" ) || ele?.xpn( "ViewElement" );
@@ -227,8 +229,8 @@ Element.prototype.ppn = function pp_getName ( name = 0 ) {
          result = uncap( view.xps( "DisplayName2" ) || view.xps( "DisplayName1" ) ); break;
    }
    if ( result?.includes( '{0}' ) === true && ( param = view.xps( 'TitleLocalizationParams/LI' ) ) )
-      return result.replace( /\{0\}/g, param );
-   return result || id;
+      result = result.replace( /\{0\}/g, param );
+   return setCache( key, result || ele.getAttribute( 'name' ) );
 }
 
 function findByName ( name ) {
