@@ -1,10 +1,11 @@
 <!DOCTYPE html><head><meta charset='utf-8'/>
    <title>Phoenix Point research browser</title>
 <style>
-* { box-sizing: border-box; }`
-body { padding: 1em; }
+* { box-sizing: border-box; }
+body { --back: #EED; --fore: black; background-color: var( --back ); color: var( --fore ); }
 div, p, span, ul, ol, li, h1, h2, h3, h4, h5, h6 { margin: 0; padding: 0; }
-nav { display: none; }
+nav, main { margin: 0 auto; max-width: 1024px; background-color: var( --back ); }
+nav { position: sticky; top: 0; }
 h2 { margin-bottom: 1ex; }
 h3 { margin-top: 1em; }
    h3 > span { color: #999; font-size: 90%; font-weight: normal; padding-left: 1em; }
@@ -14,8 +15,8 @@ main > div > p { margin-top: 5px; }
    main > div > p:hover { background-color: #DFD; }
    body.dark main > div > p:hover { background-color: #040; }
 
-body.dark { background-color: black; color: #EFE; }
-   body.dark a { color: white; }
+body.dark { --back: black; --fore: #EFE; }
+   body.dark a { color: var( --fore ); }
 </style>
 </head><body class='dark'>
    <nav>
@@ -27,9 +28,9 @@ body.dark { background-color: black; color: #EFE; }
       <label><input type='checkbox' id='chkDark' checked>Dark Mode</label>
       <br><hr>
    </nav>
+   <noscript><h1>Requires JavaScript</h1></noscript>
    <main>Please select the xml files dumped by the <a href='https://www.nexusmods.com/phoenixpoint/mods/50'>Dump Data</a> mod, all 20+ of them.<br><br>All data will be processed locally; nothing will be uploaded.</main>
 <script>(()=>{
-qs( 'nav' ).style.display = 'block';
 qs( '#btnLoad' ).addEventListener( 'click', () => loadFiles( true ) );
 qs( '#chkDark' ).addEventListener( 'change', () => document.body.classList.toggle( 'dark' ) );
 [ ... qsa( '#chkMeta, #chkDesc, #chkMinu' ) ].forEach( e => e.addEventListener( 'change', render ) );
@@ -396,7 +397,5 @@ function mod2Txt ( mod, path ) {
 window.getPPDef = ( guid = '' ) => guid ? defs.get( guid.toLowerCase() ) : defs;
 window.getPPType = ( type = '' ) => type ? byType.get( type ) : byType;
 
-})()</script><noscript>
-   <h1>Requires JavaScript</h1>
-</noscript>
+})()</script>
 </body></html>
