@@ -138,6 +138,7 @@ function renderEntry ( name, ele, options ) {
       if ( priority ) body += ce( 'p', 'Priorities: ' + priority + ', ' + ele.xps( 'SecodaryPriority/@val' ) )
       }
 
+   //if ( ele.getAttribute( 'guid' ).startsWith('2692c7ce') ) debugger;
    let reveals = ele.xpa( 'RevealRequirements/Container/LI' );
    if ( reveals ) {
       reveals = formatReq( req2Txt( reveals, ele.xps( 'RevealRequirements/Operation/@val' ) ), 0 );
@@ -246,20 +247,31 @@ function req2Txt ( ele, op ) {
       if ( parts.length === 1 ) return parts[0];
       return [ op, ... parts ];
    }
-   op = ele.xps( 'Operation/@val' );
-   if ( op ) return req2Txt( ele.xpa( 'Requirements/*' ), op );
+   if ( ele.tagName === 'LI' )
+      return req2Txt( ele.xpa( 'Requirements/*' ), ele.xps( 'Operation/@val' ) );
 
    let def = ele.ppd(), fac = def?.xpn( 'Faction[not(@null)]' ), txt = '';
-   switch ( ele.tagName.substr( 3 ) ) {
+   if ( fac ) fac = uncap( factionAbbr( fac ) );
+
+   const cls = ele.tagName.substr( 3 );
+   switch ( cls ) {
+      case 'ActorResearchRequirementDef' :
+      case 'CaptureActorResearchRequirementDef' :
+         txt = def.ppd( 'Actor' );
+         txt = txt ? txt.xpn( 'GameTags/LI.ClassTagDef' )?.ppd()?.xps( 'className/@val' )
+                   : def.xps( 'Tag/@name' )?.replace( /_TagDef$/, ' Tagged' );
+         return ( txt || def.getAttribute( 'name' ) )
+            + ( cls[0] == 'A' ? ' Corpse' : ' Capture' )
+            + ( fac ? ' owned by ' + fac : '' );
       case 'ExistingResearchRequirementDef' :
          txt = findByName( def.xps( 'ResearchID/@val' ) );
-         return fac ? uncap( factionAbbr( fac ) ) + ' has ' + txt : txt;
+         return fac ? fac + ' has ' + txt : txt;
       case 'FactionDiplomacyRequirementDef' :
          return def.xps( 'DiplomacyState/@val' ) + ' with ' + uncap( factionAbbr( def.xpn( 'WithFaction' ) ) );
       case 'IsFactionResearchRequirementDef' :
-         return 'Is ' + uncap( factionAbbr( fac ) );
+         return 'Is ' + fac;
    }
-   return ele.tagName.substr( 3 );
+   return cls;
 }
 
 const ReqJoin = { 'ALL':' AND ', 'ANY':' OR ' };
