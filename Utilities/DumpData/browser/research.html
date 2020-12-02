@@ -179,7 +179,7 @@ function renderEntry ( name, ele ) {
 
    let unlocks = [];
    ele.xpa( 'Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
-   ele.xpa( 'Unlocks/*' )?.forEach( e => unlocks.push( esc( reward2Txt( e ) ) ) );
+   ele.xpa( 'Unlocks/*' )?.forEach( e => unlocks.push( reward2Txt( e ) ) );
    if ( unlocks.length ) unlocks = unlocks.filter( e => e );
    if ( unlocks.length )
       body += ce( 'p', 'Unlocks: ' + unlocks.filter( e => e ).join( ', ' ) );
@@ -213,8 +213,8 @@ Element.prototype.xps = function xpath_string ( path ) {
 Element.prototype.iah = function insertAdjacentHTML ( html, pos = 'beforeend' ) {
    return this.insertAdjacentHTML( pos, html );
 };
-Element.prototype.link = function createLink ( text, escape = true ) {
-   return text ? ce( 'span', escape ? esc( text ) : text, { title: this.getAttribute( 'guid' ) } ) : null;
+Element.prototype.link = function createLink ( text ) {
+   return text ? ce( 'span', esc( text ), { title: this.getAttribute( 'guid' ) } ) : null;
 };
 
 function qs ( root, selector = null ) { return selector ? root.querySelector( selector ) : document.querySelector( root ); }
@@ -321,7 +321,7 @@ function reqDef2Txt ( ele, post = true ) {
          return 'Encountered ' + def.xps( 'Type/@val' ) + ' Effect';
       case 'ExistingResearchRequirementDef' :
          txt = techName( def.xps( 'ResearchID/@val' ) ) || def.xps( 'Tag/@name' ).replace( /_ResearchTagDef$/, '' ) + ' Tagged Reaearch';
-         return fac ? fac + ' has ' + txt : txt;
+         return fac ? fac + ' researched ' + txt : txt;
       case 'FactionDiplomacyRequirementDef' :
          return def.xps( 'DiplomacyState/@val' ) + ' with ' + uncap( factionAbbr( def.xpn( 'WithFaction' ) ) );
       case 'IsFactionResearchRequirementDef' :
