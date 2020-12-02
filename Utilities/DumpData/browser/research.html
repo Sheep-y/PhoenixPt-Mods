@@ -335,8 +335,10 @@ const ReqJoin = { 'ALL':' AND ', 'ANY':' OR ' };
 
 function formatReq ( req, isRoot = null ) {
    if ( ! req || typeof( req ) === 'string' ) return req;
-   if ( ! options.minu )
+   if ( ! options.minu ) {
       req = req[0] === 'ALL' ? optimizeAnd( req ) : optimizeOr( req );
+      if ( typeof( req ) === 'string' ) return req;
+   }
    req = req.slice( 1 ).map( e => formatReq( e ) ).join( ReqJoin[ req[0] ] );
    return isRoot === 'root' ? req : `( ${req} )`;
 }
@@ -359,12 +361,20 @@ function optimizeAnd ( req ) {
          nonOR.push( e );
    if ( or.length <= 1 ) return req;
    const shared = [ 'ANY' ];
-   for ( let e of or[0].slice() )
-      if ( or.every( ary => ary.includes( e ) ) ) {
-         shared.push( e );
-         for ( let ary of or ) ary.splice( ary.indexOf( e ), 1 );
-      }
-   if ( shared.length === 1 ) return req;
+   do {
+      for ( let e of or[0].slice() )
+         if ( or.every( ary => ary.includes( e ) ) ) {
+            shared.push( e );
+            for ( let ary of or ) ary.splice( ary.indexOf( e ), 1 );
+         }
+      if ( shared.length > 1 )
+         break;
+      else
+         if ( or.length >= 3 )
+            nonOR.push( [ 'ANY', ... or.shift() ] );
+         else
+            return req;
+   } while ( true );
    const result = nonOR.length ? [ 'ALL', ... nonOR, shared ] : shared, newAnd = [ 'ALL' ];
    for ( let ary of or ) switch ( ary.length ) {
       case 0 : continue;
