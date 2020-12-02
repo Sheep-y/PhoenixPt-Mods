@@ -145,7 +145,7 @@ function renderEntry ( name, ele, options ) {
       if ( priority ) body += ce( 'p', 'Priorities: ' + priority + ', ' + ele.xps( 'SecodaryPriority/@val' ) );
    }
 
-   //if ( ele.getAttribute( 'guid' ).startsWith('2692c7ce') ) debugger;
+   //if ( ele.getAttribute( 'guid' ).startsWith('6fb221c7') ) debugger;
    let reveals = ele.xpa( 'RevealRequirements/Container/LI' );
    if ( reveals ) {
       reveals = formatReq( req2Txt( reveals, ele.xps( 'RevealRequirements/Operation/@val' ) ), options, 'root' );
@@ -325,20 +325,20 @@ function optimizeAnd ( req ) {
       if ( e[0] === 'ANY' ) or.push( e.slice( 1 ) );
       else nonOR.push( e );
    if ( or.length <= 1 ) return req;
-   const commonOr = [ 'ANY' ];
+   const shared = [ 'ANY' ];
    for ( let e of or[0].slice() )
       if ( or.every( ary => ary.includes( e ) ) ) {
-         commonOr.push( e );
+         shared.push( e );
          for ( let ary of or ) ary.splice( ary.indexOf( e ), 1 );
       }
-   if ( commonOr.length === 1 ) return req;
-   const result = [ 'ALL', ... nonOR, commonOr ], newAnd = [ 'ALL' ];
-   commonOr.push( newAnd );
+   if ( shared.length === 1 ) return req;
+   const result = nonOR.length ? [ 'ALL', ... nonOR, shared ] : shared, newAnd = [ 'ALL' ];
    for ( let ary of or ) switch ( ary.length ) {
       case 0 : continue;
       case 1 : newAnd.push( ary[ 0 ] ); break;
-      default : ary.unshift( 'OR' ); newAnd.push( ary ); break;
+      default : ary.unshift( 'ANY' ); newAnd.push( ary ); break;
    }
+   shared.push( optimizeAnd( newAnd ) );
    return result;
 }
 
