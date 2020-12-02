@@ -143,13 +143,13 @@ function renderEntry ( name, ele ) {
    if ( tags ) body += ce( 'p', 'Tags: ' + tags.map( e => e.getAttribute( 'name' ).replace( /_ResearchTagDef$/, '' ) ).join( ', ' ) );
 
    if ( options.meta ) {
-      const restrict = ele.xpa( 'ValidForFactions/*' );
-      if ( restrict ) body += ce( 'p', 'Available For: ' + restrict.map( factionAbbr ) );
       const initFac = ele.xpa( 'InitialStates//State[not(@val="Hidden")]' );
       if ( initFac ) body += ce( 'p', 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) );
    }
 
    if ( options.minu ) {
+      const restrict = ele.xpa( 'ValidForFactions/*' );
+      if ( restrict ) body += ce( 'p', 'Available For: ' + restrict.map( factionAbbr ) );
       const priority = ele.xps( 'Priority/@val' );
       if ( priority ) body += ce( 'p', 'Priorities: ' + priority + ', ' + ele.xps( 'SecodaryPriority/@val' ) );
    }
@@ -451,6 +451,7 @@ function reward2Txt ( ele, pre = true ) {
       case 'FacilityResearchRewardDef' :
          return ele.xpa( 'Facilities/*' ).map( e => e.ppd().ppn( 1 ) ).join( ' Facility, ' ) + ' Facility';
       case 'HavenZoneBuffResearchRewardDef' :
+         if ( ! options.meta && ! options.minu ) return '';
          return 'Buff ' + ele.xpa( '*' ).map( e => {
             const val = e.getAttribute( 'val' );
             switch ( e.tagName ) {
@@ -465,6 +466,7 @@ function reward2Txt ( ele, pre = true ) {
             return e.tagName;
          } ).filter( e => e ).join( ', Buff ' );
       case 'HavenZoneResearchRewardDef' :
+         if ( ! options.meta && ! options.minu ) return '';
          return ele.ppd( 'Zone' ).ppn( 1 ) + ' Zone';
       case 'ManufactureResearchRewardDef' :
          return ele.xpa( 'Items/*' ).map( itemName ).join( ' Production, ' ) + ' Production';
