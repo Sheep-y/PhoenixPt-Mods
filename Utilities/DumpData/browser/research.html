@@ -156,6 +156,12 @@ function renderEntry ( name, ele ) {
       body += ce( 'p', 'Revealed By: ' + reveals );
    }
 
+   let requirements = ele.xpa( 'UnlockRequirements/Container/LI' );
+   if ( requirements ) {
+      requirements = formatReq( req2Txt( requirements, ele.xps( 'UnlockRequirements/Operation/@val' ) ), 'root' );
+      body += ce( 'p', 'Requirements: ' + requirements );
+   }
+
    const view = ele.xpn( 'ViewElementDef' );
    if ( options.desc && view ) {
       const preText = view.xps( 'UnlockText' ), postText = view.xps( 'CompleteText' );
@@ -172,7 +178,7 @@ function renderEntry ( name, ele ) {
 
    if ( options.meta ) {
       const invalid = ele.xpa( 'InvalidatedBy/LI/@val' );
-      if ( invalid ) body += ce( 'p', 'Invalidated By: ' + invalid.map( e => e.nodeValue ).map( findByName ).join( ', ' ) );
+      if ( invalid ) body += ce( 'p', 'Invalidated By: ' + invalid.map( e => e.nodeValue ).map( techName ).join( ', ' ) );
       const video = ele.xpn( 'TriggerCutscene[not(@null)]' );
       if ( video ) body += ce( 'p', 'Cutscene: ' + video.ppd().xps( 'ResourcePath/@val' ) );
    }
@@ -236,8 +242,13 @@ Element.prototype.ppn = function pp_getName ( name = 0 ) {
    return setCache( key, result || ele.getAttribute( 'name' ) );
 }
 
-function findByName ( name ) {
+function techName ( name ) {
    return byType.get( 'ResearchDef' ).find( def => def.getAttribute( 'name' ) === name )?.ppn( 1 ) || name;
+}
+
+function itemName ( item ) {
+   item = item.ppd ? item.ppd() : defs.get( item );
+   return item.ppn( 3 ).replace( ' {0}', '' )
 }
 
 function factionAbbr ( fac ) {
@@ -250,6 +261,10 @@ function factionAbbr ( fac ) {
       case '0e6dc218-e157-5954-c9ab-1a0606e0d914' : return 'SYN';
    }
    return fac;
+}
+
+function facTxt ( fac ) {
+   return fac ? uncap( factionAbbr( fac ) ) : '';
 }
 
 function req2Txt ( ele, op ) {
@@ -268,33 +283,41 @@ function req2Txt ( ele, op ) {
    return txt ?? setCache( guid, reqDef2Txt( ele ) );
 }
 
-function reqDef2Txt ( ele ) {
-   let def = ele.ppd(), fac = def?.xpn( 'Faction[not(@null)]' ), txt = '';
-   if ( fac ) fac = uncap( factionAbbr( fac ) );
-
+function reqDef2Txt ( ele, post = true ) {
+   let def = ele.ppd(), fac = facTxt( def?.xpn( 'Faction[not(@null)]' ) ), txt = '';
    const cls = ele.tagName.substr( 3 );
+
+   if ( post && fac && ! [ 'ExistingResearchRequirementDef', 'IsFactionResearchRequirementDef' ].includes( cls ) )
+      return reqDef2Txt( ele ) + ' by ' + fac;
+
    switch ( cls ) {
       case 'ActorResearchRequirementDef' :
       case 'CaptureActorResearchRequirementDef' :
-         if ( fac ) debugger;
          txt = def.ppd( 'Actor' );
          txt = txt ? txt.xpn( 'GameTags/LI.ClassTagDef' )?.ppd()?.xps( 'className/@val' )
                    : def.xps( 'Tag/@name' )?.replace( /_TagDef$/, ' Tagged' );
          return ( txt || def.getAttribute( 'name' ) ) + ( cls[0] == 'A' ? ' Corpse' : ' Capture' );
+      case 'RevealSiteResearchRequirementDef' :
+      case 'DestroySiteResearchRequirementDef' :
+         txt = def.xps( 'RequirementText' );
+         if ( txt ) return txt;
+         txt = cls[0] === 'R' ? 'Discovered ' : 'Destroyed ';
+         return txt + uncap( factionAbbr( def.xpn( 'FactionDef' ) ) ) + ' ' + uncap( def.ppd( 'AlienBaseDef' ).xps( 'Name' ) );
       case 'EncounterVariableResearchRequirementDef' :
-         if ( fac ) debugger;
          return 'Flag `' + def.xps( 'VariableName/@val' ) + '` ' + def.xps( 'Operation/@val' ) + ' ' + def.xps( 'Value/@val' );
+      case 'EncounteredVoxelResearchRequirementDef' :
+         return 'Encountered ' + def.xps( 'Type/@val' ) + ' Effect';
       case 'ExistingResearchRequirementDef' :
-         txt = '"' + findByName( def.xps( 'ResearchID/@val' ) ) + '"';
-         if ( txt === '""' ) txt = '"' + def.xps( 'Tag/@name' ).replace( /_ResearchTagDef$/, '' ) + '" Tagged Reaearch';
+         txt = techName( def.xps( 'ResearchID/@val' ) );
+         txt = txt ? `"${txt}"` : '"' + def.xps( 'Tag/@name' ).replace( /_ResearchTagDef$/, '' ) + '" Tagged Reaearch';
          return fac ? fac + ' has ' + txt : txt;
       case 'FactionDiplomacyRequirementDef' :
-         if ( fac ) debugger;
          return def.xps( 'DiplomacyState/@val' ) + ' with ' + uncap( factionAbbr( def.xpn( 'WithFaction' ) ) );
       case 'IsFactionResearchRequirementDef' :
          return 'Is ' + fac;
+      case 'ReceiveItemResearchRequirementDef' :
+         return ( itemName( def.xpn( 'ItemDef[not(@null)]' ) ) || def.xps( 'Tag/@name' )?.replace( /_TagDef$/, ' Tagged' ) ) + ' Item';
       case 'ResourcesResearchRequirementDef' :
-         if ( fac ) debugger;
          return def.xpa( 'Resources/*' ).map( e => e.xps( 'Type/@val' ) + ' >= ' + e.xps( 'Value/@val' ) ).join( ' & ' );
       case 'VisitSiteRequirementDef' :
          txt = factionAbbr( def.xpn( 'FactionDef' ) ) || '';
@@ -416,9 +439,9 @@ function reward2Txt ( ele, pre = true ) {
       case 'HavenZoneResearchRewardDef' :
          return ele.ppd( 'Zone' ).ppn( 1 ) + ' Zone';
       case 'ManufactureResearchRewardDef' :
-         return ele.xpa( 'Items/*' ).map( e => e.ppd().ppn( 3 ).replace( ' {0}', '' ) ).join( ' Production, ' ) + ' Production';
+         return ele.xpa( 'Items/*' ).map( itemName ).join( ' Production, ' ) + ' Production';
       case 'ResearchBonusResearchRewardDef' :
-         return ele.xps( 'Tag/@name' ) + ' Research Speed ' + sign( ele.xps( 'Amount/@val' ) );
+         return ele.xps( 'Tag/@name' ).replace( /_ResearchTagDef$/, '' ) + ' Research Speed ' + sign( ele.xps( 'Amount/@val' ) );
       case 'StatusBuffResearchRewardDef' :
          return 'Combat Buff ' + ele.xps( 'StatusBuffEffectDef/@name' ).replace( /_FactionEffectDef$/, '' );
       case 'UnitTemplateResearchRewardDef' :
