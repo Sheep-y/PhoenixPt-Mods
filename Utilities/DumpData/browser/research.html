@@ -148,7 +148,7 @@ function renderEntry ( name, ele, options ) {
    //if ( ele.getAttribute( 'guid' ).startsWith('2692c7ce') ) debugger;
    let reveals = ele.xpa( 'RevealRequirements/Container/LI' );
    if ( reveals ) {
-      reveals = formatReq( req2Txt( reveals, ele.xps( 'RevealRequirements/Operation/@val' ) ), 'root' );
+      reveals = formatReq( req2Txt( reveals, ele.xps( 'RevealRequirements/Operation/@val' ) ), options, 'root' );
       body += ce( 'p', 'Revealed By: ' + reveals );
    }
 
@@ -303,11 +303,13 @@ function reqDef2Txt ( ele ) {
 
 const ReqJoin = { 'ALL':' AND ', 'ANY':' OR ' };
 
-function formatReq ( req, opt ) {
+function formatReq ( req, options, isRoot = null ) {
    if ( ! req || typeof( req ) === 'string' ) return req;
-   if ( req[0] === 'ALL' ) req = optimizeAnd( req );
-   req = req.slice( 1 ).map( formatReq ).join( ReqJoin[ req[0] ] );
-   return opt === 'root' ? req : `( ${req} )`;
+   if ( ! options.minu ) {
+      if ( req[0] === 'ALL' ) req = optimizeAnd( req );
+   }
+   req = req.slice( 1 ).map( e => formatReq( e, options ) ).join( ReqJoin[ req[0] ] );
+   return isRoot === 'root' ? req : `( ${req} )`;
 }
 
 function optimizeAnd ( req ) {
