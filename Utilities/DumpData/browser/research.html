@@ -311,9 +311,16 @@ function formatReq ( req, opt ) {
 }
 
 function optimizeAnd ( req ) {
+   // A AND ( B AND C ) => A AND B AND C
+   if ( req.find( e => e[0] === 'ALL' ) ) {
+      for ( let i = req.len - 1 ; i >= 1 ; i-- )
+         if ( req[i][0] === 'ALL' )
+            req.splice( i, 1, ... req[i].slice( 1 ) );
+   }
+   // ( B OR C ) AND ( B OR D ) => B AND ( C OR D )
    const or = [], nonOR = [];
    for ( let e of req.slice( 1 ) )
-      if ( e instanceof Array && e[0] === 'ANY' ) or.push( e.slice( 1 ) );
+      if ( e[0] === 'ANY' ) or.push( e.slice( 1 ) );
       else nonOR.push( e );
    if ( or.length <= 1 ) return req;
    const commonOr = [ 'ANY' ];
@@ -325,10 +332,11 @@ function optimizeAnd ( req ) {
    if ( commonOr.length === 1 ) return req;
    const result = [ 'ALL', ... nonOR, commonOr ], newAnd = [ 'ALL' ];
    commonOr.push( newAnd );
-   for ( let ary of or )
-      if ( ary.length === 0 ) continue;
-      else if ( ary.length === 1 ) newAnd.push( ary[ 0 ] );
-      else { ary.unshift( 'OR' ); newAnd.push( ary ); }
+   for ( let ary of or ) switch ( ary.length ) {
+      case 0 : continue;
+      case 1 : newAnd.push( ary[ 0 ] ); break;
+      default : ary.unshift( 'OR' ); newAnd.push( ary ); break;
+   }
    return result;
 }
 
