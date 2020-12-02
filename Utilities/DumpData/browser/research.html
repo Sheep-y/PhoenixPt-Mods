@@ -37,7 +37,7 @@ qs( '#chkDark' ).addEventListener( 'change', () => document.body.classList.toggl
 qs( 'input[type=file]' ).addEventListener( 'input', () => loadFiles( false ) );
 if ( qs( 'input[type=file]' ).files.length ) loadFiles( false );
 
-const defs = new Map(), byType = new Map(), txtCache = new Map();
+const defs = new Map(), byType = new Map(), txtCache = new Map(), options = {};
 
 async function loadFiles ( forceLoad ) {
    const startTime = performance.now();
@@ -99,11 +99,9 @@ function setCache ( guid, val ) { if ( guid ) txtCache.set( guid, val ); return 
 
 function render () {
    const startTime = performance.now();
-   const options = {
-      meta: qs( 'input#chkMeta' ).checked,
-      desc: qs( 'input#chkDesc' ).checked,
-      minu: qs( 'input#chkMinu' ).checked,
-   };
+   options.meta = qs( 'input#chkMeta' ).checked;
+   options.desc = qs( 'input#chkDesc' ).checked;
+   options.minu = qs( 'input#chkMinu' ).checked;
    const main = qs( 'main' );
    if ( ! byType.has( 'ResearchDef' ) ) {
       if ( qs( 'input[type=file]' ).files.length )
@@ -115,13 +113,19 @@ function render () {
    for ( let def of byType.get( 'ResearchDef' ) )
       namePairs.push( [ def?.ppn( 1 ), def ] );
    namePairs.sort( (a,b) => ( a[0] > b[0] ? 1 : ( a[0] === b[0] ? 0 : -1 ) ) );
-   for ( let [ name, def ] of namePairs )
-      main.iah( renderEntry( name, def, options ) );
+   for ( let [ name, def ] of namePairs ) try {
+      main.iah( renderEntry( name, def ) );
+   } catch ( err ) {
+      console.error( err );
+      main.iah( ce( 'div', 
+         ce( 'h3', def.getAttribute( 'name' ) + ' ' + def.getAttribute( 'guid' ) )
+         + ce( 'p', err ) ) );
+   }
    txtCache.clear();
    console.info( `Render took ${~~(performance.now()-startTime)} ms` );
 }
 
-function renderEntry ( name, ele, options ) {
+function renderEntry ( name, ele ) {
    const cost = ele.xps( 'ResearchCost/@val' ), faction = factionAbbr( ele.xps( 'Faction/@guid' ) );
    let subtitle = '', body = '';
    subtitle += ( cost ?? '--' ) + ' ';
@@ -148,7 +152,7 @@ function renderEntry ( name, ele, options ) {
    //if ( ele.getAttribute( 'guid' ).startsWith('6fb221c7') ) debugger;
    let reveals = ele.xpa( 'RevealRequirements/Container/LI' );
    if ( reveals ) {
-      reveals = formatReq( req2Txt( reveals, ele.xps( 'RevealRequirements/Operation/@val' ) ), options, 'root' );
+      reveals = formatReq( req2Txt( reveals, ele.xps( 'RevealRequirements/Operation/@val' ) ), 'root' );
       body += ce( 'p', 'Revealed By: ' + reveals );
    }
 
@@ -161,7 +165,7 @@ function renderEntry ( name, ele, options ) {
 
    let unlocks = [];
    ele.xpa( 'Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
-   ele.xpa( 'Unlocks/*' )?.forEach( e => unlocks.push( esc( reward2Txt( e, options ) ) ) );
+   ele.xpa( 'Unlocks/*' )?.forEach( e => unlocks.push( esc( reward2Txt( e ) ) ) );
    if ( unlocks.length ) unlocks = unlocks.filter( e => e );
    if ( unlocks.length )
       body += ce( 'p', 'Unlocks: ' + unlocks.filter( e => e ).join( ', ' ) );
@@ -303,12 +307,11 @@ function reqDef2Txt ( ele ) {
 
 const ReqJoin = { 'ALL':' AND ', 'ANY':' OR ' };
 
-function formatReq ( req, options, isRoot = null ) {
+function formatReq ( req, isRoot = null ) {
    if ( ! req || typeof( req ) === 'string' ) return req;
-   if ( ! options.minu ) {
-      if ( req[0] === 'ALL' ) req = optimizeAnd( req );
-   }
-   req = req.slice( 1 ).map( e => formatReq( e, options ) ).join( ReqJoin[ req[0] ] );
+   if ( ! options.minu )
+      req = req[0] === 'ALL' ? optimizeAnd( req ) : optimizeOr( req );
+   req = req.slice( 1 ).map( e => formatReq( e ) ).join( ReqJoin[ req[0] ] );
    return isRoot === 'root' ? req : `( ${req} )`;
 }
 
@@ -322,8 +325,12 @@ function optimizeAnd ( req ) {
    // ( B OR C ) AND ( B OR D ) => B AND ( C OR D )
    const or = [], nonOR = [];
    for ( let e of req.slice( 1 ) )
-      if ( e[0] === 'ANY' ) or.push( e.slice( 1 ) );
-      else nonOR.push( e );
+      if ( e[0] === 'ANY' ) {
+         e = optimizeOr( e );
+         if ( e instanceof Array ) or.push( e.slice( 1 ) );
+         else if ( e ) nonOR.push( e );
+      } else
+         nonOR.push( e );
    if ( or.length <= 1 ) return req;
    const shared = [ 'ANY' ];
    for ( let e of or[0].slice() )
@@ -342,9 +349,19 @@ function optimizeAnd ( req ) {
    return result;
 }
 
-function reward2Txt ( ele, options, pre = true ) {
+function optimizeOr ( req ) {
+   if ( options.meta || options.minu ) return req;
+   req = req.filter( e => typeof( e ) !== 'string' || ! e.match( /^Is \w+$/ ) );
+   switch ( req.length ) {
+      case 1 : return '';
+      case 2 : return req[ 1 ];
+      default : return req;
+   }
+}
+
+function reward2Txt ( ele, pre = true ) {
    if ( pre ) {
-      const fac = ele.xpa( 'ValidForFactions/*' ), result = reward2Txt( ele, options, false );
+      const fac = ele.xpa( 'ValidForFactions/*' ), result = reward2Txt( ele, false );
       if ( fac?.length && result ) return '[' + fac.map( e => factionAbbr( e ) ).join( ' & ' ) + '] ' + result;
       return result;
    }
