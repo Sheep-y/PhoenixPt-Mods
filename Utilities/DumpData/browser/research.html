@@ -143,6 +143,8 @@ function renderEntry ( name, ele ) {
    if ( tags ) body += ce( 'p', 'Tags: ' + tags.map( e => e.getAttribute( 'name' ).replace( /_ResearchTagDef$/, '' ) ).join( ', ' ) );
 
    if ( options.meta ) {
+      const restrict = ele.xpa( 'ValidForFactions/*' );
+      if ( restrict ) body += ce( 'p', 'Available For: ' + restrict.map( factionAbbr ) );
       const initFac = ele.xpa( 'InitialStates//State[not(@val="Hidden")]' );
       if ( initFac ) body += ce( 'p', 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) );
    }
@@ -171,6 +173,9 @@ function renderEntry ( name, ele ) {
       if ( preText?.startsWith( '<!-MISSING KEY' ) === false ) body += ce( 'p', '&lt; ' + esc( preText ) );
       if ( postText?.startsWith( '<!-MISSING KEY' ) === false && preText !== postText ) body += ce( 'p', '&gt; ' + esc( postText ) );
    }
+
+   const costs = ele.xpa( "Costs/*" );
+   if ( costs ) body += ce( 'p', 'Costs: ' + costs.map( cost2Txt ) );
 
    let unlocks = [];
    ele.xpa( 'Resources/LI.ResourceUnit/Type' )?.forEach( e => unlocks.push( e.getAttribute( 'val' ) + ' ' + e.nextElementSibling.getAttribute( 'val' ) ) );
@@ -288,7 +293,7 @@ function req2Txt ( ele, op ) {
 
 function reqDef2Txt ( ele, post = true ) {
    let def = ele.ppd(), fac = facTxt( def?.xpn( 'Faction[not(@null)]' ) ), txt = '';
-   const cls = ele.tagName.substr( 3 );
+   const cls = ele.tagName.replace( /^LI\./, '' );
 
    if ( post && fac && ! [ 'ExistingResearchRequirementDef', 'IsFactionResearchRequirementDef' ].includes( cls ) )
       return reqDef2Txt( ele ) + ' by ' + fac;
@@ -395,13 +400,23 @@ function optimizeOr ( req ) {
    }
 }
 
+function cost2Txt ( ele ) {
+   const cls = ele.tagName.replace( /^LI\./, '' ), def = ele.ppd();
+   switch ( cls ) {
+      case 'ItemResearchCostDef' :
+         return itemName( def.ppd( 'ItemDef' ) ) + ' x' + def.xps( 'Amount/@val' );
+   }
+   return cls;
+}
+
 function reward2Txt ( ele, pre = true ) {
    if ( pre ) {
       const fac = ele.xpa( 'ValidForFactions/*' ), result = reward2Txt( ele, false );
       if ( fac?.length && result ) return '[' + fac.map( e => factionAbbr( e ) ).join( ' & ' ) + '] ' + result;
       return result;
    }
-   switch ( ele.tagName.substr( 3 ) ) {
+   const cls = ele.tagName.replace( /^LI\./, '' );
+   switch ( cls ) {
       case 'AircraftBuffResearchRewardDef' :
          return ( ele.xpn( 'VehicleDef' ).ppn( 2 ) || 'Aircrafts' ) + ' '
             + ele.xpa( 'ModData/*' ).map( e => e.tagName + ' Buff x' + e.getAttribute( 'val' ) ).join( ' & ' );
@@ -475,8 +490,8 @@ function reward2Txt ( ele, pre = true ) {
          console.warn( ele.xps( 'Tag/@name' ) );
          return 'New Function ' + ele.xps( 'Tag/@name' );
    }
-   console.warn( ele.tagName.substr( 3 ) );
-   return ele.tagName.substr( 3 );
+   console.warn( cls );
+   return cls;
 }
 
 function buff2Txt ( ele ) {
