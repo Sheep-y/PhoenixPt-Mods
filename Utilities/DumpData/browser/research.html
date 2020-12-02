@@ -12,8 +12,8 @@ h3 { margin-top: 1em; }
    data { font-family: monospace; padding: 0 1ex; text-transform: uppercase; }
 main > div > p { margin-top: 5px; }
    main > div:hover { outline: 1px solid green; }
-   main > div > p:hover { background-color: #DFD; }
-   body.dark main > div > p:hover { background-color: #040; }
+   main > div span:hover { background-color: #DFD; }
+   body.dark main > div span:hover { background-color: #040; }
 
 body.dark { --back: black; --fore: #EFE; }
    body.dark a { color: var( --fore ); }
@@ -213,6 +213,9 @@ Element.prototype.xps = function xpath_string ( path ) {
 Element.prototype.iah = function insertAdjacentHTML ( html, pos = 'beforeend' ) {
    return this.insertAdjacentHTML( pos, html );
 };
+Element.prototype.link = function createLink ( text, escape = true ) {
+   return text ? ce( 'span', escape ? esc( text ) : text, { title: this.getAttribute( 'guid' ) } ) : null;
+};
 
 function qs ( root, selector = null ) { return selector ? root.querySelector( selector ) : document.querySelector( root ); }
 function qsa ( root, selector = null ) { return selector ? root.querySelectorAll( selector ) : document.querySelectorAll( root ); }
@@ -251,12 +254,13 @@ Element.prototype.ppn = function pp_getName ( name = 0 ) {
 }
 
 function techName ( name ) {
-   return byType.get( 'ResearchDef' ).find( def => def.getAttribute( 'name' ) === name )?.ppn( 1 ) || name;
+   const tech = byType.get( 'ResearchDef' ).find( def => def.getAttribute( 'name' ) === name );
+   return tech ? tech.link( tech.ppn( 1 ) ) : name;
 }
 
 function itemName ( item ) {
    item = item.ppd ? item.ppd() : defs.get( item );
-   return item.ppn( 3 ).replace( ' {0}', '' )
+   return item.link( item.ppn( 3 ).replace( ' {0}', '' ) );
 }
 
 function factionAbbr ( fac ) {
@@ -304,7 +308,7 @@ function reqDef2Txt ( ele, post = true ) {
          txt = def.ppd( 'Actor' );
          txt = txt ? txt.xpn( 'GameTags/LI.ClassTagDef' )?.ppd()?.xps( 'className/@val' )
                    : def.xps( 'Tag/@name' )?.replace( /_TagDef$/, ' Tagged' );
-         return ( txt || def.getAttribute( 'name' ) ) + ( cls[0] == 'A' ? ' Corpse' : ' Capture' );
+         return def.link( txt || def.getAttribute( 'name' ) ) + ( cls[0] == 'A' ? ' Corpse' : ' Capture' );
       case 'RevealSiteResearchRequirementDef' :
       case 'DestroySiteResearchRequirementDef' :
          txt = def.xps( 'RequirementText' );
@@ -316,15 +320,15 @@ function reqDef2Txt ( ele, post = true ) {
       case 'EncounteredVoxelResearchRequirementDef' :
          return 'Encountered ' + def.xps( 'Type/@val' ) + ' Effect';
       case 'ExistingResearchRequirementDef' :
-         txt = techName( def.xps( 'ResearchID/@val' ) );
-         txt = txt ? `"${txt}"` : def.xps( 'Tag/@name' ).replace( /_ResearchTagDef$/, '' ) + ' Tagged Reaearch';
+         txt = techName( def.xps( 'ResearchID/@val' ) ) || def.xps( 'Tag/@name' ).replace( /_ResearchTagDef$/, '' ) + ' Tagged Reaearch';
          return fac ? fac + ' has ' + txt : txt;
       case 'FactionDiplomacyRequirementDef' :
          return def.xps( 'DiplomacyState/@val' ) + ' with ' + uncap( factionAbbr( def.xpn( 'WithFaction' ) ) );
       case 'IsFactionResearchRequirementDef' :
          return 'Is ' + fac;
       case 'ReceiveItemResearchRequirementDef' :
-         return ( itemName( def.xpn( 'ItemDef[not(@null)]' ) ) || def.xps( 'Tag/@name' )?.replace( /_TagDef$/, ' Tagged' ) ) + ' Item';
+         const item = def.xpn( 'ItemDef[not(@null)]' );
+         return ( item ? itemName( item ) : def.xps( 'Tag/@name' )?.replace( /_TagDef$/, ' Tagged' ) ) + ' Item';
       case 'ResourcesResearchRequirementDef' :
          return def.xpa( 'Resources/*' ).map( e => e.xps( 'Type/@val' ) + ' >= ' + e.xps( 'Value/@val' ) ).join( ' & ' );
       case 'VisitSiteRequirementDef' :
