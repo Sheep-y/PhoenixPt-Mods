@@ -139,6 +139,9 @@ function renderEntry ( name, ele ) {
    const DLC = ele.xpn( 'DLC[not(@null)]' );
    if ( DLC ) body += ce( 'p', 'DLC: ' + uncap( DLC.ppd().xps( 'Name' ) ) );
 
+   const tags = ele.xpa( 'Tags/*' );
+   if ( tags ) body += ce( 'p', 'Tags: ' + tags.map( e => e.getAttribute( 'name' ).replace( /_ResearchTagDef$/, '' ) ).join( ', ' ) );
+
    if ( options.meta ) {
       const initFac = ele.xpa( 'InitialStates//State[not(@val="Hidden")]' );
       if ( initFac ) body += ce( 'p', 'Starts Revealed: ' + initFac.map( e => factionAbbr( e.previousElementSibling ) + ` (${e.getAttribute('val')})` ).join( ', ' ) );
@@ -309,7 +312,7 @@ function reqDef2Txt ( ele, post = true ) {
          return 'Encountered ' + def.xps( 'Type/@val' ) + ' Effect';
       case 'ExistingResearchRequirementDef' :
          txt = techName( def.xps( 'ResearchID/@val' ) );
-         txt = txt ? `"${txt}"` : '"' + def.xps( 'Tag/@name' ).replace( /_ResearchTagDef$/, '' ) + '" Tagged Reaearch';
+         txt = txt ? `"${txt}"` : def.xps( 'Tag/@name' ).replace( /_ResearchTagDef$/, '' ) + ' Tagged Reaearch';
          return fac ? fac + ' has ' + txt : txt;
       case 'FactionDiplomacyRequirementDef' :
          return def.xps( 'DiplomacyState/@val' ) + ' with ' + uncap( factionAbbr( def.xpn( 'WithFaction' ) ) );
