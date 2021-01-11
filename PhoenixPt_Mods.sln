@@ -111,6 +111,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LootEverything", "Tactical\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VariableRageBurst", "Tactical\RageBurstCap\VariableRageBurst.csproj", "{D41ABAD7-0BE9-4B60-9995-1755C537611E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegendPrologue", "Utilities\LegendPrologue\LegendPrologue.csproj", "{F3D9024C-D1C0-45A3-BFA3-BCC5CBB05EE2}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Tactical\LaserOnFire\LaserOnFire.projitems*{0b467fab-7aa1-4fac-b4a3-fec5ec9ddba6}*SharedItemsImports = 13
@@ -208,6 +210,10 @@ Global
 		{D41ABAD7-0BE9-4B60-9995-1755C537611E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D41ABAD7-0BE9-4B60-9995-1755C537611E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D41ABAD7-0BE9-4B60-9995-1755C537611E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3D9024C-D1C0-45A3-BFA3-BCC5CBB05EE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3D9024C-D1C0-45A3-BFA3-BCC5CBB05EE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3D9024C-D1C0-45A3-BFA3-BCC5CBB05EE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3D9024C-D1C0-45A3-BFA3-BCC5CBB05EE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
