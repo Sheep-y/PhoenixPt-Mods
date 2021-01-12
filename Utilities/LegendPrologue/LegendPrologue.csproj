@@ -56,6 +56,10 @@
     <Compile Include="LegendPrologue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="changelog.md" />
+    <EmbeddedResource Include="mod_info.js" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" "$(SolutionDir)distro/"</PostBuildEvent>
