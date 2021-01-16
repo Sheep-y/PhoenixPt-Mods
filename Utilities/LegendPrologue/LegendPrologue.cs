@@ -7,6 +7,8 @@ using PhoenixPoint.Home.View.ViewStates;
 namespace Sheepy.PhoenixPt.LegendPrologue {
 
    public class Mod : ZyMod {
+      private static Mod Instance; // Prevent gc of mod instance which would prevents unloading.
+
       public static void Init () => new Mod().MainMod();
 
       public void MainMod ( Func< string, object, object > api = null ) => HomeMod( api );
@@ -17,13 +19,20 @@ namespace Sheepy.PhoenixPt.LegendPrologue {
          SetApi( api );
          TickboxPatch = TryPatch( typeof( UIModuleGameSettings ), "MainOptions_OnElementSelected", postfix: nameof( AfterOptionSelected_ShowTickbox ) );
          if ( TickboxPatch != null ) {
+            Instance = this;
             BackPatch = TryPatch( typeof( UIStateNewGeoscapeGameSettings ), "OnSettingsBackClicked", nameof( AfterBack_ClearFlag ) );
             FlagPatch = TryPatch( typeof( UIStateNewGeoscapeGameSettings ), "CreateSceneBinding", nameof( BeforeSceneBind_CheckFlag ) );
             if ( FlagPatch == null ) Unpatch( ref TickboxPatch );
          }
       }
 
-      public void UnloadMod () { Unpatch( ref TickboxPatch ); Unpatch( ref BackPatch ); Unpatch( ref FlagPatch ); }
+      public void UnloadMod () {
+         Unpatch( ref TickboxPatch );
+         Unpatch( ref BackPatch );
+         Unpatch( ref FlagPatch );
+         TutorialBox = null;
+         Instance = null;
+      }
 
       private static GameOptionViewController TutorialBox;
 
