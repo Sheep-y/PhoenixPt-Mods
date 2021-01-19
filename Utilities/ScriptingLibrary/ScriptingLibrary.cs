@@ -52,8 +52,11 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static void CopyLib () {
          foreach ( var lib in Eval_Libraries ) { try {
             var from = Path.Combine( Api( "dir" ).ToString(), "lib", lib );
-            var to = Path.Combine( Api( "dir", "loader" ).ToString(), lib );
-            if ( ! File.Exists( from ) ) return;
+            var to = Path.Combine( Api( "dir", "managed" ).ToString(), lib );
+            if ( ! File.Exists( from ) ) {
+               Warn( "Not found: {0}", from );
+               return;
+            }
             if ( File.Exists( to ) && new FileInfo( to ).Length == new FileInfo( from ).Length ) return;
             Info( "Copy {0} to {1}", lib, to );
             File.Copy( from, to );
