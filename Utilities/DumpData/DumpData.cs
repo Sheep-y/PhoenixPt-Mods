@@ -37,8 +37,7 @@ namespace Sheepy.PhoenixPt.DumpData {
 
       internal void Upgrade () {
          if ( Config_Version >= 20201128 ) return;
-
-         if ( Config_Version < 20200630 ) ; // Do nothing; Added Auto_Dump field
+         //if ( Config_Version < 20200630 ) ; // Do nothing; Added Auto_Dump field
          if ( Config_Version < 20201128 )
             if ( Dump_Defs?.Length == 23 && Dump_Defs[0] == "VehicleItemDef" && Dump_Defs[22] == "AbilityDef" )
                Dump_Defs = new ModConfig().Dump_Defs; // Add EntitlementDef

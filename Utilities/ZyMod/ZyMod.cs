@@ -304,10 +304,12 @@ namespace Sheepy.PhoenixPt {
             var file = Assembly.GetExecutingAssembly().Location.Replace( ".dll", ".conf" );
             if ( File.Exists( file ) ) try {
                config = JsonConvert.DeserializeObject<T>( File.ReadAllText( file ) );
+            #if ZyDefLog
             } catch ( Exception ex ) {
-               #if ZyDefLog
                Warn( ex );
-               #endif
+            #else
+            } catch ( Exception ) {
+            #endif
             }
          } else {
             config = (T) api( "config", typeof( T ) );
