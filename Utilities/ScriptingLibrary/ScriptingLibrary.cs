@@ -76,7 +76,9 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          var lib = Path.Combine( Api( "dir" )?.ToString(), "lib" );
          foreach ( var f in Eval_Libraries ) {
             var path = Path.Combine( lib, f );
+         //foreach ( var path in Directory.GetFiles( lib, "*.dll" ) ) {
             if ( File.Exists( path ) ) {
+               Api( "log flush", "Loading " + path );
                //Verbo( "Loading {0}", path );
                var asm = Assembly.LoadFrom( path );
                Verbo( "Loaded {0}", asm?.FullName, asm.IsDynamic ? "(dynamic)" : asm.Location );

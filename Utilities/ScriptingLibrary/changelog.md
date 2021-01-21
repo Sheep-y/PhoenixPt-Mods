@@ -2,7 +2,8 @@ Changelog of Scripting Library (C#), a Phoenix Point Mod by Sheepy
 
 # Version Beta ?
 
-* Mod API now run in the Eval context of the caller, inheriting its variables and .
+* Mod API now run in the Eval context of the caller, inheriting its variables and state.
+* Giving up because failed to get the mod work on on Year One Edition. Development have ceased.
 
 # Version Alpha 0.0.2020.0605
 
