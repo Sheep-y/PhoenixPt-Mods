@@ -1,8 +1,9 @@
 Changelog of Legend Prologue, a Phoenix Point Mod by Sheepy
 
-# Version 1.0.1, 2021-01-16
+# Version 1.1, 2021-01-27
 
-* Fix bugs with Modnix 3 mod unloading.
+* Full rewrite to make code independent and easier to understand.
+* Support Modnix 3 Disarm.
 
 # Version 1, 2021-01-12
 
