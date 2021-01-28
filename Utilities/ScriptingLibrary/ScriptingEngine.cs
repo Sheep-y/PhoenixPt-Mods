@@ -2,12 +2,7 @@
 using Microsoft.ClearScript.V8;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
@@ -19,11 +14,14 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          lock ( HostObjects ) {
             if ( HostObjects.Count == 0 ) {
                Verbo( "Listing game object types" );
-               HostObjects.Add( "DotNet", new HostTypeCollection( "mscorlib" ) );
+               HostObjects.Add( "host", new ExtendedHostFunctions() );
+               HostObjects.Add( "DotNet", new HostTypeCollection( "mscorlib", "System", "System.Core", "System.Numerics" ) );
                HostObjects.Add( "Game", new HostTypeCollection( "Assembly-CSharp" ) );
                HostTypes.Add( "Aide", typeof( ScriptHelpers ) );
+               HostTypes.Add( "Enumerable", typeof( Enumerable ) );
                foreach ( var type in GameAssembly.GetTypes() ) {
                   var name = type.Name;
+                  if ( name == "JSON" ) continue;
                   if ( HostTypes.ContainsKey( name ) ) continue;
                   HostTypes.Add( name, type );
                }
@@ -45,7 +43,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          lock ( Sessions ) Sessions.TryGetValue( id, out state );
          if ( ! ( state is V8ScriptEngine engine ) ) {
             Verbo( "New eval shell for {0}", id );
-            state = engine = new V8ScriptEngine();
+            state = engine = new V8ScriptEngine( V8ScriptEngineFlags.DisableGlobalMembers );
             PrepareEngine( engine );
             lock ( Sessions ) Sessions[ id ] = state;
          }
