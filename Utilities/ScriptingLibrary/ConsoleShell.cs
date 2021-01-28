@@ -24,8 +24,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          }
          ShowLinePatch = me.TryPatch( typeof( GameConsoleWindow ).GetMethod( "ExecuteCommandLine", new Type[]{ typeof( string ), typeof( bool ), typeof( bool ) } ),
             prefix: nameof( BeforeExecuteCommandLine_ShowLine ) );
-         SetConsoleInputPlaceholder( "Enter C# expression...", Color.blue );
-         console.Write( "Entering C# Shell.  Type 'Exit' to return." );
+         SetConsoleInputPlaceholder( "Enter JS expression...", Color.blue );
+         console.Write( "Entering JS Shell.  Type 'Exit' to return." );
       }
 
       private static void SetConsoleInputPlaceholder ( string hint, Color color ) { try {
@@ -48,7 +48,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       private static void BeforeExecuteCommandLine_ShowLine ( GameConsoleWindow __instance, string line, ref bool showLine ) {
          if ( ! showLine ) return;
-         __instance.WriteLine( "C#> {0}", line );
+         __instance.WriteLine( "JS> {0}", line );
          showLine = false;
       }
 
@@ -63,7 +63,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Unpatch( ref EvalPatch );
          Unpatch( ref ShowLinePatch );
          SetConsoleInputPlaceholder( "Enter command...", Color.grey );
-         GameConsoleWindow.Create().Write( "Exiting C# Shell." );
+         GameConsoleWindow.Create().Write( "Exiting JS Shell." );
       }
 
    }

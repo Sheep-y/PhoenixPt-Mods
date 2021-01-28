@@ -1,5 +1,9 @@
 Changelog of Scripting Library (C#), a Phoenix Point Mod by Sheepy
 
+# Version 2 Beta, in develpoment
+
+* Switch to ClearScript to support V8 engine.  It is working!
+
 # Version Beta ?
 
 * Mod API now run in the Eval context of the caller, inheriting its variables and state.

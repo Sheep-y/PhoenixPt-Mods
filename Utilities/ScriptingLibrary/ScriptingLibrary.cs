@@ -13,16 +13,16 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       public static void SplashMod ( ModnixAPI api = null ) {
          SetApi( api );
-         CopyLib();
+         LoadLibraries();
          ScriptingExt.RegisterAPI();
          DataCache.RegisterAPI();
-         Task.Run( () => Api( "eval.cs", "\"Scripting Warmup\"" ) );
+         Task.Run( () => Api( "eval.js", "\"Scripting Warmup\"" ) );
       }
 
       public static object ActionMod ( string modId, Dictionary<string,object> action ) { try {
          object value = null;
          if ( action?.TryGetValue( "eval", out value ) != true || ! ( value is string code ) ) return false;
-         if ( LoadLibraries() is Exception lib_err ) return lib_err;
+         if ( Eval_Lib_Result is Exception lib_err ) return lib_err;
          Info( "Action> {0}", code );
          var result = ScriptingEngine.Eval( modId, code );
          if ( result is Exception ev_err ) return ev_err;
@@ -31,39 +31,13 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       } catch ( Exception ex ) { return ex; } }
 
       private static readonly string[] Eval_Libraries = new string[]{
-         "netstandard.dll",
-         "Microsoft.Win32.Primitives.dll",
-         "System.Buffers.dll",
-         "System.Collections.Immutable.dll",
-         "System.Memory.dll",
-         "System.Numerics.Vectors.dll",
-         "System.Reflection.Metadata.dll",
-         "System.Runtime.CompilerServices.VisualC.dll",
-         "System.Security.Principal.dll",
-         "System.Threading.Tasks.Extensions.dll",
-         "System.ValueTuple.dll",
-         "Microsoft.CodeAnalysis.CSharp.dll",
-         "Microsoft.CodeAnalysis.CSharp.Scripting.dll",
-         "Microsoft.CodeAnalysis.dll",
-         "Microsoft.CodeAnalysis.Scripting.dll" };
-
-      // Some libraries, specifically System.Numerics.Vectors.dll, works only when copied to code folder.
-      // Thus, to play it safe, we try to copy all critical dlls.
-      public static void CopyLib () {
-         foreach ( var lib in Eval_Libraries ) { try {
-            var from = Path.Combine( Api( "dir" ).ToString(), "lib", lib );
-            var to = Path.Combine( Api( "dir", "managed" ).ToString(), lib );
-            if ( ! File.Exists( from ) ) {
-               Warn( "Not found: {0}", from );
-               return;
-            }
-            if ( File.Exists( to ) && new FileInfo( to ).Length == new FileInfo( from ).Length ) return;
-            Info( "Copy {0} to {1}", lib, to );
-            File.Copy( from, to );
-         } catch ( SystemException ex ) {
-            Warn( ex );
-         } }
-      }
+         "ClearScript.Core.dll",
+         "ClearScript.V8.dll",
+         "ClearScript.Windows.dll",
+         "ClearScript.Windows.Core.dll",
+         //"ClearScriptV8.win-x64.dll",
+         //"ClearScriptV8.win-x86.dll",
+      };
 
       private static object Eval_Lib_Result;
 
