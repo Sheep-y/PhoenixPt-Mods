@@ -35,8 +35,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          "ClearScript.V8.dll",
          "ClearScript.Windows.dll",
          "ClearScript.Windows.Core.dll",
-         //"ClearScriptV8.win-x64.dll",
-         //"ClearScriptV8.win-x86.dll",
+         //"ClearScriptV8.win-x64.dll", // Do not load. Not .Net.
       };
 
       private static object Eval_Lib_Result;
@@ -50,9 +49,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          var lib = Path.Combine( Api( "dir" )?.ToString(), "lib" );
          foreach ( var f in Eval_Libraries ) {
             var path = Path.Combine( lib, f );
-         //foreach ( var path in Directory.GetFiles( lib, "*.dll" ) ) {
             if ( File.Exists( path ) ) {
-               Api( "log flush", "Loading " + path );
+               //Api( "log flush", "Loading " + path );
                //Verbo( "Loading {0}", path );
                var asm = Assembly.LoadFrom( path );
                Verbo( "Loaded {0}", asm?.FullName, asm.IsDynamic ? "(dynamic)" : asm.Location );
