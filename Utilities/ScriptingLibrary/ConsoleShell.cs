@@ -1,5 +1,6 @@
 ﻿using Base.Utils.GameConsole;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using static System.Reflection.BindingFlags;
@@ -11,6 +12,15 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       internal static Action<IConsole,string> OnCommand;
 
       private static IPatch ReadPatch, EvalPatch, ShowLinePatch;
+
+      private static IDictionary< string, object > CurrentShell;
+      // string          abbr - Short forms used for various default values.
+      // string enter_message - Welcome notice.  Default "Entering {abbr} Shell.  Type '{exit_command}' to return."
+      // string  exit_command - Command to exit, plain text.  Case insensitive.  Default "Exit".
+      // string  exit_message - Exit notice.     Default "Existing {abbr} Shell."
+      // string input_placeholder - Placeholder text of the input box.  Default "Enter {abbr}."
+      // string feedback_format - How to format inputted commands.  Default "> {0}".
+      // Action<IConsole,string> handler - The function that process each command line.  Required.
 
       internal static void EnterEvalMode ( IConsole console ) {
          if ( EvalPatch != null ) return;
