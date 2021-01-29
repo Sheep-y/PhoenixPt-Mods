@@ -57,6 +57,15 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             } else
                Error( "Not found: {0}", path );
          }
+
+         try { // Modnix 3 Beta 2 did not auto-load Microsoft libraries.
+            Assembly.Load( "Microsoft.CSharp" );
+         } catch ( Exception ) {
+            var dn45dir = Path.Combine( Environment.GetFolderPath( Environment.SpecialFolder.Windows ), "Microsoft.NET", "Framework", "v4.0.30319" );
+            var dll = Path.Combine( dn45dir, "Microsoft.CSharp.dll" );
+            Assembly.LoadFrom( dll ); // Yes, please throw on error
+         }
+
          return Eval_Lib_Result = true;
       } catch ( Exception ex ) { return Eval_Lib_Result = ex; } } }
    }
