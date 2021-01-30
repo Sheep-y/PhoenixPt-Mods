@@ -9,31 +9,37 @@ using System.Diagnostics;
 using System.Linq;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
-   public static class ScriptHelpers {
+   public static class LogHelpers {
+      public static void Error ( string msg, params object[] augs ) => ZyMod.Error( msg, augs );
+      public static void Warn ( string msg, params object[] augs ) => ZyMod.Warn( msg, augs );
+      public static void Warning ( string msg, params object[] augs ) => Warn( msg, augs );
+      public static void Info ( string msg, params object[] augs ) => ZyMod.Info( msg, augs );
+      public static void Verbo ( string msg, params object[] augs ) => ZyMod.Verbo( msg, augs );
+   }
 
-      public static object Api ( string action ) => Api( action, null );
-
-      public static object Api < T > ( string action ) => Api< T >( action, null );
-
-      public static object Api ( string action, object param ) => ZyMod.Api( action, param );
-
-      public static T Api < T > ( string action, object param ) {
-         var result = Api ( action, param );
+   public static class ApiHelpers {
+      public static object Call ( string action, object param = null ) => ZyMod.Api( action, param );
+      public static T Call < T > ( string action, object param = null ) {
+         var result = Call ( action, param );
          if ( result is Exception ex ) throw ex;
          return (T) result;
       }
+   }
 
+   public static class RepoHelpers {
       private static DefRepository _Repo;
       public static DefRepository Repo => _Repo ?? ( _Repo = GameUtl.GameComponent< DefRepository >() );
 
-      public static BaseDef GetDef ( string key ) => GetDef< BaseDef >( key );
+      public static BaseDef Get ( string key ) => Get< BaseDef >( key );
 
-      public static T GetDef< T > ( string key ) where T : BaseDef => (T) DataCache.API_PP_Def( null, key );
+      public static T Get< T > ( string key ) where T : BaseDef => (T) DataCache.API_PP_Def( null, key );
 
-      public static IEnumerable< BaseDef > GetDefs ( object nameOrType ) => DataCache.API_PP_Defs( null, nameOrType );
+      public static IEnumerable< BaseDef > GetAll ( object nameOrType ) => DataCache.API_PP_Defs( null, nameOrType );
 
-      public static IEnumerable< T > GetDefs< T > ( object nameOrType = null ) where T : BaseDef => DataCache.API_PP_Defs( null, nameOrType ).OfType<T>();
+      public static IEnumerable< T > GetAll< T > ( object nameOrType = null ) where T : BaseDef => DataCache.API_PP_Defs( null, nameOrType ).OfType<T>();
+   }
 
+   public static class ScriptHelpers {
       private static SharedDamageKeywordsDataDef DmgType;
 
       public static DamageKeywordDef GetDamageType ( string type ) {

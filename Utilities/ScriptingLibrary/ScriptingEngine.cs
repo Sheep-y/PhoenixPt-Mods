@@ -17,6 +17,9 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
                HostObjects.Add( "host", new ExtendedHostFunctions() );
                HostObjects.Add( "DotNet", new HostTypeCollection( "mscorlib", "System", "System.Core", "System.Numerics" ) );
                HostObjects.Add( "Game", new HostTypeCollection( "Assembly-CSharp" ) );
+               HostTypes.Add( "Api", typeof( ApiHelpers ) );
+               HostTypes.Add( "Log", typeof( LogHelpers ) );
+               HostTypes.Add( "Repo", typeof( RepoHelpers ) );
                HostTypes.Add( "Aide", typeof( ScriptHelpers ) );
                HostTypes.Add( "Enumerable", typeof( Enumerable ) );
                foreach ( var type in GameAssembly.GetTypes() ) {
