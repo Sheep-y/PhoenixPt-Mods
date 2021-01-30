@@ -53,11 +53,11 @@ namespace Sheepy.PhoenixPt.DumpData {
       protected override string FileExtension () => "csv";
 
       protected override void DoDump () {
-         NewCells( "Type", "Guid", "name", "Name", "DispayName1", "DisplayName2", "Description", "Category", "Tags" );
+         NewCells( "Type", "Guid", "name", "ResourcePath", "Name", "DispayName1", "DisplayName2", "Description", "Category", "Tags" );
          foreach ( var e in Data.OfType<BaseDef>() ) {
             if ( e == null ) continue;
             var type = e.GetType();
-            NewRow( type.Name, e.Guid, e.name );
+            NewRow( type.Name, e.Guid, e.name, e.ResourcePath );
 
             ViewElementDef v = null;
             if ( type.GetField( "ViewElementDef" ) is FieldInfo f ) v = f.GetValue( e ) as ViewElementDef;

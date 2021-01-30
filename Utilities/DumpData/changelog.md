@@ -4,6 +4,7 @@ Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
 * Add CustomizationTagDef, HumanCustomizationDef, and SharedGameTagsDataDef.
 * Split EntitlementDef to a separate dump file by default.
+* New guid dump column: ResourcePath.
 * Dump_Others now ignore empty entries.
 
 # Version 2.1, 2020-08-29
