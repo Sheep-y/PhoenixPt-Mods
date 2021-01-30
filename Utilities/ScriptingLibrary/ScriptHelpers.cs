@@ -39,7 +39,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static IEnumerable< T > GetAll< T > ( object nameOrType = null ) where T : BaseDef => DataCache.API_PP_Defs( null, nameOrType ).OfType<T>();
    }
 
-   public static class ScriptHelpers {
+   public static class DamageHelpers {
       private static SharedDamageKeywordsDataDef DmgType;
 
       public static DamageKeywordDef GetDamageType ( string type ) {
@@ -60,14 +60,14 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             case "sonic" : return DmgType.SonicKeyword;
             case "syphon" : case "vampiric" : return DmgType.SyphonKeyword;
             case "viral" : return DmgType.ViralKeyword;
-            case "virophage" : return (DamageKeywordDef) Repo.GetDef( "c968f22f-392d-1964-68cd-edd14655082d" );
+            case "virophage" : return (DamageKeywordDef) RepoHelpers.Repo.GetDef( "c968f22f-392d-1964-68cd-edd14655082d" );
             case "normal" : case "" :
                return DmgType.DamageKeyword;
          }
          throw new ArgumentException( "Unknown damage type: " + type );
       }
 
-      private static float SyncDamage ( this WeaponDef weapon, DamageKeywordDef damageType, Func<float,float> handler ) { lock ( weapon ) {
+      private static float Modify ( this WeaponDef weapon, DamageKeywordDef damageType, Func<float,float> handler ) { lock ( weapon ) {
          if ( weapon == null ) throw new ArgumentNullException( nameof( weapon ) );
          if ( damageType == null ) throw new ArgumentNullException( nameof( damageType ) );
          var list = weapon.DamagePayload.DamageKeywords;
@@ -92,61 +92,61 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          return orig;
       } }
 
-      public static float GetDamage ( this WeaponDef weapon, string type ) => GetDamage( weapon, GetDamageType( type ) );
+      public static float Get ( this WeaponDef weapon, string type ) => Get( weapon, GetDamageType( type ) );
 
-      public static float GetDamage ( this WeaponDef weapon, DamageKeywordDef type ) => SyncDamage( weapon, type, null );
+      public static float Get ( this WeaponDef weapon, DamageKeywordDef type ) => Modify( weapon, type, null );
 
-      public static WeaponDef SetDamage ( this WeaponDef weapon, string type, float value ) => SetDamage( weapon, GetDamageType( type ), value );
+      public static WeaponDef Set ( this WeaponDef weapon, string type, float value ) => Set( weapon, GetDamageType( type ), value );
 
-      public static WeaponDef SetDamage ( this WeaponDef weapon, DamageKeywordDef type, float value ) {
-         ExchangeDamage( weapon, type, value );
+      public static WeaponDef Set ( this WeaponDef weapon, DamageKeywordDef type, float value ) {
+         Exchange( weapon, type, value );
          return weapon;
       }
 
-      public static float AddDamage ( this WeaponDef weapon, string type, float value ) => AddDamage( weapon, GetDamageType( type ), value );
+      public static float Add ( this WeaponDef weapon, string type, float value ) => Add( weapon, GetDamageType( type ), value );
 
-      public static float AddDamage ( this WeaponDef weapon, DamageKeywordDef type, float value ) => SyncDamage( weapon, type, ( orig ) => orig + value );
+      public static float Add ( this WeaponDef weapon, DamageKeywordDef type, float value ) => Modify( weapon, type, ( orig ) => orig + value );
 
-      public static float ExchangeDamage ( this WeaponDef weapon, string type, float value ) => ExchangeDamage( weapon, GetDamageType( type ), value );
+      public static float Exchange ( this WeaponDef weapon, string type, float value ) => Exchange( weapon, GetDamageType( type ), value );
 
-      public static float ExchangeDamage ( this WeaponDef weapon, DamageKeywordDef type, float value ) => SyncDamage( weapon, type, ( _ ) => value );
+      public static float Exchange ( this WeaponDef weapon, DamageKeywordDef type, float value ) => Modify( weapon, type, ( _ ) => value );
 
-      public static float CompareExchangeDamage ( this WeaponDef weapon, string type, float ifMatch, float setTo ) => CompareExchangeDamage( weapon, GetDamageType( type ), ifMatch, setTo );
+      public static float CompareExchange ( this WeaponDef weapon, string type, float ifMatch, float setTo ) => CompareExchange( weapon, GetDamageType( type ), ifMatch, setTo );
 
-      public static float CompareExchangeDamage ( this WeaponDef weapon, DamageKeywordDef type, float ifMatch, float setTo ) =>
-         SyncDamage( weapon, type, ( orig ) => orig == ifMatch ? setTo : orig );
+      public static float CompareExchange ( this WeaponDef weapon, DamageKeywordDef type, float ifMatch, float setTo ) =>
+         Modify( weapon, type, ( orig ) => orig == ifMatch ? setTo : orig );
 
-      public static float Acid ( this WeaponDef weapon ) => GetDamage( weapon, "acid" );
-      public static WeaponDef Acid ( this WeaponDef weapon, float value ) => SetDamage( weapon, "acid", value );
-      public static float Blast ( this WeaponDef weapon ) => GetDamage( weapon, "blast" );
-      public static WeaponDef Blast ( this WeaponDef weapon, float value ) => SetDamage( weapon, "blast", value );
-      public static float Bleed ( this WeaponDef weapon ) => GetDamage( weapon, "bleed" );
-      public static WeaponDef Bleed ( this WeaponDef weapon, float value ) => SetDamage( weapon, "bleed", value );
-      public static float Damage ( this WeaponDef weapon ) => GetDamage( weapon, "" );
-      public static WeaponDef Damage ( this WeaponDef weapon, float value ) => SetDamage( weapon, "", value );
-      public static float Fire ( this WeaponDef weapon ) => GetDamage( weapon, "fire" );
-      public static WeaponDef Fire ( this WeaponDef weapon, float value ) => SetDamage( weapon, "fire", value );
-      public static float Goo ( this WeaponDef weapon ) => GetDamage( weapon, "goo" );
-      public static WeaponDef Goo ( this WeaponDef weapon, float value ) => SetDamage( weapon, "goo", value );
-      public static float Mist ( this WeaponDef weapon ) => GetDamage( weapon, "mist" );
-      public static WeaponDef Mist ( this WeaponDef weapon, float value ) => SetDamage( weapon, "mist", value );
-      public static float Paralyze ( this WeaponDef weapon ) => GetDamage( weapon, "paralyse" );
-      public static WeaponDef Paralyze ( this WeaponDef weapon, float value ) => SetDamage( weapon, "paralyse", value );
-      public static float Pierce ( this WeaponDef weapon ) => GetDamage( weapon, "pierce" );
-      public static WeaponDef Pierce ( this WeaponDef weapon, float value ) => SetDamage( weapon, "pierce", value );
-      public static float Poison ( this WeaponDef weapon ) => GetDamage( weapon, "poison" );
-      public static WeaponDef Poison ( this WeaponDef weapon, float value ) => SetDamage( weapon, "poison", value );
-      public static float Psychic ( this WeaponDef weapon ) => GetDamage( weapon, "psychic" );
-      public static WeaponDef Psychic ( this WeaponDef weapon, float value ) => SetDamage( weapon, "psychic", value );
-      public static float Shred ( this WeaponDef weapon ) => GetDamage( weapon, "shred" );
-      public static WeaponDef Shred ( this WeaponDef weapon, float value ) => SetDamage( weapon, "shred", value );
-      public static float Sonic ( this WeaponDef weapon ) => GetDamage( weapon, "sonic" );
-      public static WeaponDef Sonic ( this WeaponDef weapon, float value ) => SetDamage( weapon, "sonic", value );
-      public static float Vampiric ( this WeaponDef weapon ) => GetDamage( weapon, "vampiric" );
-      public static WeaponDef Vampiric ( this WeaponDef weapon, float value ) => SetDamage( weapon, "vampiric", value );
-      public static float Viral ( this WeaponDef weapon ) => GetDamage( weapon, "viral" );
-      public static WeaponDef Viral ( this WeaponDef weapon, float value ) => SetDamage( weapon, "viral", value );
-      public static float Virophage ( this WeaponDef weapon ) => GetDamage( weapon, "virophage" );
-      public static WeaponDef Virophage ( this WeaponDef weapon, float value ) => SetDamage( weapon, "virophage", value );
+      public static float Acid ( this WeaponDef weapon ) => Get( weapon, "acid" );
+      public static WeaponDef Acid ( this WeaponDef weapon, float value ) => Set( weapon, "acid", value );
+      public static float Blast ( this WeaponDef weapon ) => Get( weapon, "blast" );
+      public static WeaponDef Blast ( this WeaponDef weapon, float value ) => Set( weapon, "blast", value );
+      public static float Bleed ( this WeaponDef weapon ) => Get( weapon, "bleed" );
+      public static WeaponDef Bleed ( this WeaponDef weapon, float value ) => Set( weapon, "bleed", value );
+      public static float Damage ( this WeaponDef weapon ) => Get( weapon, "" );
+      public static WeaponDef Damage ( this WeaponDef weapon, float value ) => Set( weapon, "", value );
+      public static float Fire ( this WeaponDef weapon ) => Get( weapon, "fire" );
+      public static WeaponDef Fire ( this WeaponDef weapon, float value ) => Set( weapon, "fire", value );
+      public static float Goo ( this WeaponDef weapon ) => Get( weapon, "goo" );
+      public static WeaponDef Goo ( this WeaponDef weapon, float value ) => Set( weapon, "goo", value );
+      public static float Mist ( this WeaponDef weapon ) => Get( weapon, "mist" );
+      public static WeaponDef Mist ( this WeaponDef weapon, float value ) => Set( weapon, "mist", value );
+      public static float Paralyze ( this WeaponDef weapon ) => Get( weapon, "paralyse" );
+      public static WeaponDef Paralyze ( this WeaponDef weapon, float value ) => Set( weapon, "paralyse", value );
+      public static float Pierce ( this WeaponDef weapon ) => Get( weapon, "pierce" );
+      public static WeaponDef Pierce ( this WeaponDef weapon, float value ) => Set( weapon, "pierce", value );
+      public static float Poison ( this WeaponDef weapon ) => Get( weapon, "poison" );
+      public static WeaponDef Poison ( this WeaponDef weapon, float value ) => Set( weapon, "poison", value );
+      public static float Psychic ( this WeaponDef weapon ) => Get( weapon, "psychic" );
+      public static WeaponDef Psychic ( this WeaponDef weapon, float value ) => Set( weapon, "psychic", value );
+      public static float Shred ( this WeaponDef weapon ) => Get( weapon, "shred" );
+      public static WeaponDef Shred ( this WeaponDef weapon, float value ) => Set( weapon, "shred", value );
+      public static float Sonic ( this WeaponDef weapon ) => Get( weapon, "sonic" );
+      public static WeaponDef Sonic ( this WeaponDef weapon, float value ) => Set( weapon, "sonic", value );
+      public static float Vampiric ( this WeaponDef weapon ) => Get( weapon, "vampiric" );
+      public static WeaponDef Vampiric ( this WeaponDef weapon, float value ) => Set( weapon, "vampiric", value );
+      public static float Viral ( this WeaponDef weapon ) => Get( weapon, "viral" );
+      public static WeaponDef Viral ( this WeaponDef weapon, float value ) => Set( weapon, "viral", value );
+      public static float Virophage ( this WeaponDef weapon ) => Get( weapon, "virophage" );
+      public static WeaponDef Virophage ( this WeaponDef weapon, float value ) => Set( weapon, "virophage", value );
    }
 }

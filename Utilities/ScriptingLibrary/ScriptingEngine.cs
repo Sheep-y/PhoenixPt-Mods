@@ -20,7 +20,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
                HostTypes.Add( "Api", typeof( ApiHelpers ) );
                HostTypes.Add( "Log", typeof( LogHelpers ) );
                HostTypes.Add( "Repo", typeof( RepoHelpers ) );
-               HostTypes.Add( "Aide", typeof( ScriptHelpers ) );
+               HostTypes.Add( "Damage", typeof( DamageHelpers ) );
                HostTypes.Add( "Enumerable", typeof( Enumerable ) );
                foreach ( var type in GameAssembly.GetTypes() ) {
                   var name = type.Name;
