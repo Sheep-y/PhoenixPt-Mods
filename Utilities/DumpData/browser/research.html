@@ -9,9 +9,12 @@ nav { position: sticky; top: 0; }
 h2 { margin-bottom: 1ex; }
 h3 { margin-top: 1em; }
    h3 > span { color: #999; font-size: 90%; font-weight: normal; padding-left: 1em; }
+   h3:target { padding-top: 90px; margin-top: calc( -90px + 1em ); }
+      h3:target ~ p { padding-left: 3ex }
    data { font-family: monospace; padding: 0 1ex; text-transform: uppercase; }
 main > div > p { margin-top: 5px; }
-   main > div:hover { outline: 1px solid green; }
+   main > div:hover:not(:target) { outline: 1px solid green; }
+   main > div span.ResearchDef { cursor: pointer; }
    main > div span:hover { background-color: #DFD; }
    body.dark main > div span:hover { background-color: #040; }
 
@@ -127,14 +130,14 @@ function render () {
 
 function renderEntry ( name, ele ) {
    const cost = ele.xps( 'ResearchCost/@val' ), faction = factionAbbr( ele.xps( 'Faction/@guid' ) );
-   let subtitle = '', body = '';
+   let subtitle = '', body = '', guid = ele.getAttribute( 'guid' );
    subtitle += ( cost ?? '--' ) + ' ';
    if ( options.meta ) {
       if ( faction ) subtitle += faction + ' ';
-      subtitle += ce( 'data', ele.getAttribute( 'guid' ) ) + ' ' + ele.xps( '@name' );
+      subtitle += ce( 'data', guid ) + ' ' + ele.xps( '@name' );
    } else if ( faction === 'ALN' )
       return '';
-   title = ce( 'h3', esc( name ) + ce( 'span', subtitle ) );
+   title = ce( 'h3', esc( name ) + ce( 'span', subtitle ), { id: guid, title: guid } );
 
    const DLC = ele.xpn( 'DLC[not(@null)]' );
    if ( DLC ) body += ce( 'p', 'DLC: ' + uncap( DLC.ppd().xps( 'Name' ) ) );
@@ -214,7 +217,10 @@ Element.prototype.iah = function insertAdjacentHTML ( html, pos = 'beforeend' ) 
    return this.insertAdjacentHTML( pos, html );
 };
 Element.prototype.link = function createLink ( text ) {
-   return text ? ce( 'span', esc( text ), { title: this.getAttribute( 'guid' ) } ) : null;
+   if ( ! text ) return null;
+   let guid = this.getAttribute( 'guid' ), target = guid ? defs.get( guid ) : null, prop = { title: guid };
+   if ( target ) prop.class = target.tagName;
+   return ce( 'span', esc( text ), prop );
 };
 
 function qs ( root, selector = null ) { return selector ? root.querySelector( selector ) : document.querySelector( root ); }
@@ -515,6 +521,11 @@ function mod2Txt ( mod, path ) {
 
 window.getPPDef = ( guid = '' ) => guid ? defs.get( guid.toLowerCase() ) : defs;
 window.getPPType = ( type = '' ) => type ? byType.get( type ) : byType;
+
+qs( 'main' ).addEventListener( 'click', ( evt ) => {
+   if ( evt && evt.target && evt.target.tagName === 'SPAN' && evt.target.title && qs( "[id='" + evt.target.title + "']" ) )
+      location.hash = evt.target.title;
+} );
 
 })()</script>
 </body></html>
