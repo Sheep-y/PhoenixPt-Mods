@@ -43,6 +43,7 @@ namespace Sheepy.PhoenixPt.DumpData {
          if ( Mod.GameVersion != null ) attr.AddRange( new string[]{ "game", Mod.GameVersion } );
          attr.AddRange( new string[]{ "DumpData", Assembly.GetExecutingAssembly().GetName().Version.ToString() } );
          StartTag( DataType.Name, false, attr.ToArray() );
+         Writer.Write( "\n" );
          foreach ( var val in Data )
             RecurringObject.Add( val, RecurringObject.Count );
          foreach ( var val in Data )
