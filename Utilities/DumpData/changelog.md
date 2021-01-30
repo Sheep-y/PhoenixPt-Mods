@@ -3,7 +3,7 @@ Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 # Version 2.2, in development
 
 * Fix: Directory with same name as dump files will now be deleted for the dumps.
-* Add AIActionDef, CustomizationTagDef, HumanCustomizationDef, and SharedGameTagsDataDef.
+* Add AIActionDef, HumanCustomizationDef, and SharedGameTagsDataDef.
 * Split EntitlementDef to a separate dump file by default.
 * New guid dump column: ResourcePath.
 * Dump_Others now ignore empty entries.

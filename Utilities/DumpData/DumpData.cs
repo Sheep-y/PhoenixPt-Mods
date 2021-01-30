@@ -47,7 +47,6 @@ namespace Sheepy.PhoenixPt.DumpData {
          "GameTagDef",
          "EntitlementDef",
          "DamageKeywordDef",
-         "CustomizationTagDef",
          "ComponentSetDef",
          "BodyPartAspectDef",
          "AIActionDef",
@@ -68,10 +67,21 @@ namespace Sheepy.PhoenixPt.DumpData {
          if ( Config_Version >= 20201128 ) return;
          //if ( Config_Version < 20200630 ) ; // Do nothing; Added Auto_Dump field
          //if ( Config_Version < 20201128 ) ; // Never released and merged with 20210129. Added EntitlementDef.
-         if ( Config_Version < 20210129 )
-            if ( Dump_Defs?.Length == 23 && Dump_Defs[0] == "VehicleItemDef" && Dump_Defs[22] == "AbilityDef" )
-               Dump_Defs = new ModConfig().Dump_Defs; // Add AIActionDef, CustomizationTagDef, EntitlementDef, HumanCustomizationDef, SharedGameTagsDataDef
+         if ( Config_Version < 20210129 && Dump_Defs?.Length > 0 ) {
+            AddDef( "AIActionDef" );
+            AddDef( "EntitlementDef" );
+            AddDef( "HumanCustomizationDef" );
+            AddDef( "SharedGameTagsDataDef" );
+         }
+         Config_Version = 20210129;
          ZyMod.Api( "config save", this ); // Add Auto_Dump
+      }
+
+      private void AddDef ( string def ) {
+         if ( Dump_Defs.Contains( def ) ) return;
+         var list = new List< string >( Dump_Defs );
+         list.Add( def );
+         Dump_Defs = list.ToArray();
       }
    }
 
