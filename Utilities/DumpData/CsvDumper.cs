@@ -53,20 +53,32 @@ namespace Sheepy.PhoenixPt.DumpData {
       protected override string FileExtension () => "csv";
 
       protected override void DoDump () {
-         NewCells( "Type", "Guid", "name", "ResourcePath", "Name", "DispayName1", "DisplayName2", "Description", "Category", "Tags" );
+         NewCells( "Type", "Guid", "name", "ResourcePath", "Name/Id", "DispayName1", "DisplayName2", "Description", "Category", "Tags" );
          foreach ( var e in Data.OfType<BaseDef>() ) {
             if ( e == null ) continue;
             var type = e.GetType();
             NewRow( type.Name, e.Guid, e.name, e.ResourcePath );
 
-            ViewElementDef v = null;
-            if ( type.GetField( "ViewElementDef" ) is FieldInfo f ) v = f.GetValue( e ) as ViewElementDef;
-            else if ( type.GetProperty( "ViewElementDef" ) is PropertyInfo p ) v = p.GetValue( e ) as ViewElementDef;
-            if ( v != null )
+            // ViewElement, ViewDef, Id, RequirementText
+            var view = e.GetMember( "ViewElementDef" ) ?? e.GetMember( "ViewElement" ) ?? e.GetMember( "ViewDef" );
+            if ( view is ViewElementDef v )
                NewCells( v.Name, v.DisplayName1?.Localize(), v.DisplayName2?.Localize(), v.Description?.Localize(), v.Category?.Localize() );
-
-            var tags = ( type.GetField( "Tags" )?.GetValue( e ) as IEnumerable )?.OfType<BaseDef>();
-            if ( tags != null ) NewCell( String.Join( ", ", tags.Select( tag => tag.name ) ) );
+            else if ( view != null ) {
+               NewCell( view.GetMember( "Name" )?.ToText() );
+               NewCell( view.GetMember( "DisplayName1" )?.ToText() ?? view.GetMember( "DisplayName" )?.ToText() );
+               NewCell( view.GetMember( "DisplayName2" )?.ToText() );
+               NewCell( view.GetMember( "Description" )?.ToText() );
+               NewCell( view.GetMember( "Category" )?.ToText() );
+            } else {
+               view = e.GetMember( "Id" );
+               if ( view != null ) NewCell( view?.ToText() );
+               else {
+                  view = e.GetMember( "RequirementText" );
+                  if ( view != null ) NewCells( "", "", "", view?.ToText() );
+               }
+            }
+            var tags = ( e.GetMember( "Tags" ) as IEnumerable )?.OfType<BaseDef>();
+            if ( tags != null ) NewCell( string.Join( ", ", tags.Select( tag => tag.name ) ) );
          }
       }
    }

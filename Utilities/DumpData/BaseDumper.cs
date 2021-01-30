@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Base.UI;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Reflection;
 
 namespace Sheepy.PhoenixPt.DumpData {
 
@@ -66,5 +68,20 @@ namespace Sheepy.PhoenixPt.DumpData {
       protected abstract string FileExtension();
       protected abstract void SortData();
       protected abstract void DoDump();
+   }
+
+   internal static class Tools {
+      public static object GetMember ( this object subject, string name ) {
+         if ( subject == null ) return null;
+         var type = subject.GetType();
+         if ( type.GetField( name ) is FieldInfo f ) return f.GetValue( subject );
+         if ( type.GetProperty( name ) is PropertyInfo p ) return p.GetValue( subject );
+         return null;
+      }
+
+      public static string ToText ( this object subject ) {
+         if ( subject is LocalizedTextBind txt ) return txt.Localize();
+         return subject.ToString();
+      }
    }
 }

@@ -2,10 +2,11 @@ Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
 # Version 2.2, in development
 
-* Add CustomizationTagDef, HumanCustomizationDef, and SharedGameTagsDataDef.
+* Add AIActionDef, CustomizationTagDef, HumanCustomizationDef, and SharedGameTagsDataDef.
 * Split EntitlementDef to a separate dump file by default.
 * New guid dump column: ResourcePath.
 * Dump_Others now ignore empty entries.
+* Better fill Guid dump's view element columns.
 
 # Version 2.1, 2020-08-29
 
