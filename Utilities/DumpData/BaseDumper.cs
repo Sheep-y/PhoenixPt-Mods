@@ -22,12 +22,11 @@ namespace Sheepy.PhoenixPt.DumpData {
 
       protected StreamWriter Writer;
 
-      private string DeleteOldDumps () {
-         var path = Path.Combine( Mod.DumpDir, Filename + "." + FileExtension() );
-         var gz = path + ".gz";
-         File.Delete( path );
-         File.Delete( gz );
-         return Mod.Config.GZip ? gz : path;
+      private void DeleteOldDumps ( string path ) {
+         if ( File.Exists( path ) )
+            File.Delete( path );
+         else if ( Directory.Exists( path ) )
+            Directory.Delete( path, true );
       }
 
       internal void DumpData () { try { lock ( Data ) {
@@ -37,7 +36,9 @@ namespace Sheepy.PhoenixPt.DumpData {
          }
          ZyMod.Info( "Dumping {0} ({1})", Name, Data.Count );
          SortData();
-         var path = DeleteOldDumps();
+         var path = Path.Combine( Mod.DumpDir, Filename + "." + FileExtension() );
+         if ( Mod.Config.GZip ) path += ".gz";
+         DeleteOldDumps( path );
          using ( var fstream = new FileStream( path, FileMode.Create ) ) {
             if ( Mod.Config.GZip ) {
                var buffer = new GZipStream( fstream, CompressionLevel.Optimal );
