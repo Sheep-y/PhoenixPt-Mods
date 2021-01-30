@@ -71,6 +71,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /y "$(ProjectDir)$(OutDir)$(TargetFileName)" "$(SolutionDir)distro/"</PostBuildEvent>
+    <PostBuildEvent>del "$(SolutionDir)distro\$(TargetName).7z"
+cd "$(ProjectDir)"
+"c:\Program Files\7-Zip\7z.exe" a -bd -bb0 -mx=9 -mfb=258 "$(SolutionDir)distro\$(TargetName).7z" "$(ProjectDir)$(OutDir)$(TargetFileName)" .\browser\*.html</PostBuildEvent>
   </PropertyGroup>
 </Project>
