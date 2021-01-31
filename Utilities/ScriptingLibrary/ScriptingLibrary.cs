@@ -25,7 +25,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static object ActionMod ( string modId, Dictionary<string,object> action ) { try {
          object value = null, lang = null;
          if ( action?.TryGetValue( "eval", out value ) != true || ! ( value is string code ) ) return false;
-         if ( action?.TryGetValue( "script", out lang ) != true || ! ( value is string l ) || ! ScriptNames.Contains( l.Trim().ToLowerInvariant() ) ) return false;
+         if ( action?.TryGetValue( "script", out lang ) != true || ! ( lang is string l ) || ! ScriptNames.Contains( l.Trim().ToLowerInvariant() ) ) return false;
          if ( Eval_Lib_Result is Exception lib_err ) return lib_err;
          Info( "Action> {0}", code );
          var result = ScriptingEngine.Eval( modId, code );
