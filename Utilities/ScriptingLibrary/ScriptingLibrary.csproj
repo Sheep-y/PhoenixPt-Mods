@@ -31,7 +31,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;ZyLog; ZyLib; ZyUnpatch</DefineConstants>
+    <DefineConstants>TRACE;ZyLog; ZyLib</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -87,7 +87,6 @@
     <Compile Include="..\ZyMod\ZyMod.cs">
       <Link>ZyMod.cs</Link>
     </Compile>
-    <Compile Include="ConsoleShell.cs" />
     <Compile Include="DataCache.cs" />
     <Compile Include="ScriptHelpers.cs" />
     <Compile Include="ScriptingExt.cs" />

@@ -22,8 +22,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          return ScriptingEngine.Eval( mod, code );
       }
 
-      [ ConsoleCommand( Command = "Eval", Description = "(code) - Evaluate JavaScript code, or enter JavaScript shell if no code" ) ]
-      public static void Console_Eval_CS ( IConsole console, string[] param ) {
+      [ ConsoleCommand( Command = "JavaScript", Description = "(code) - Evaluate JavaScript code, or enter JavaScript shell if no code" ) ]
+      public static void Console_JavaScript ( IConsole console, string[] param ) {
          var code = string.Join( " ", param ?? Array.Empty<string>() ).Trim();
          if ( string.IsNullOrEmpty( code ) ) {
             Api( "console.shell start", new Dictionary<string, object> {
@@ -40,7 +40,6 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             return;
          }
          var result = ScriptingEngine.Eval( "Console", code );
-         if ( result == null && code.IndexOf( '-' ) > 0 ) return; // Ignore "null" result from assignment statement.
          if ( result is Exception ex ) result = FormatException( ex ) + ex.StackTrace;
          if ( Api( "console.write", result ) is bool write && write ) return;
          else try { // Catch ToString() error

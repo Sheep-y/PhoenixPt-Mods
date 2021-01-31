@@ -3,6 +3,9 @@ Changelog of Scripting Library (C#), a Phoenix Point Mod by Sheepy
 # Version 2 Beta, in develpoment
 
 * Switch to ClearScript to support V8 engine.  It is working!
+* Refactoring of helpers due to engine switch.
+* Moved console shell to Debug Console.  The one-line Eval command still works.
+* Renamed Eval console command to Javascript.
 
 # Version Beta ?
 

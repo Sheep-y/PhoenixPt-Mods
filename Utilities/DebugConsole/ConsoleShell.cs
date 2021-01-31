@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using static System.Reflection.BindingFlags;
 
-namespace Sheepy.PhoenixPt.ScriptingLibrary {
+namespace Sheepy.PhoenixPt.DebugConsole {
    using ModnixAPI = Func< string, object, object >;
    using IShell = IDictionary< string, object >;
    using ConsoleHandler = Action< IConsole, string >;
@@ -13,7 +13,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
    public class ConsoleShell : ZyMod {
       private static IPatch ReadPatch, EvalPatch, ShowLinePatch;
-      private static IShell CurrentShell;
+      private static readonly Stack< IShell > Shells = new Stack<IShell>();
       // string          abbr - Short forms used for various default values.  Required.
       //  ???   enter_command - Each mod should define their own enter command.
       // string enter_message - Welcome notice.  Default "Entering {abbr} shell.  Type '{exit_command}' to return."
@@ -32,15 +32,15 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       internal object StartShell ( string command, object shell ) {
          switch ( command?.ToLowerInvariant() ) {
             case "stop" : 
-               if ( CurrentShell == null ) return false;
+               if ( Shells.Count == 0 ) return false;
                ExitShell();
                return true;
             case "start" : case null :
-               if ( CurrentShell != null ) ExitShell();
-               CurrentShell = shell as IShell;
-               if ( CurrentShell == null ) return new ArgumentException( "shell start param must be IDictionary<string,object>" );
+               var cmdShell = shell as IShell;
+               if ( cmdShell == null ) return new ArgumentException( "shell start param must be IDictionary<string,object>" );
+               Shells.Push( cmdShell );
                if ( string.IsNullOrWhiteSpace( Abbr ) || ! ( Handler is ConsoleHandler || Handler is CommandHandler ) ) {
-                  CurrentShell = null;
+                  Shells.Pop();
                   return new ArgumentException( "shell must have 'abbr' as string and 'handler' as Func<string,object> or Action<IConsole,string>" );
                }
                EnterShell( GameConsoleWindow.Create() );
@@ -115,15 +115,18 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       }
 
       private static void ExitShell () {
-         Command = null;
-         Unpatch( ref ReadPatch );
-         Unpatch( ref EvalPatch );
-         Unpatch( ref ShowLinePatch );
-         SetConsoleInputPlaceholder( "Enter command...", Color.grey );
-         GameConsoleWindow.Create().Write( ExitMessage );
-         CurrentShell = null;
+         if ( Shells.Count == 1 ) {
+            Command = null;
+            Unpatch( ref ReadPatch );
+            Unpatch( ref EvalPatch );
+            Unpatch( ref ShowLinePatch );
+            SetConsoleInputPlaceholder( "Enter command...", Color.grey );
+            GameConsoleWindow.Create().Write( ExitMessage );
+         }
+         if ( Shells.Count > 0 ) Shells.Pop();
       }
 
+      private static IShell CurrentShell => Shells.Count > 0 ? Shells.Peek() : null;
       private static string Abbr => CurrentShell?.GetText( "abbr" ) ?? "???";
       private static string EnterMessage => CurrentShell?.GetText( "enter_message" ) ?? $"Entering {Abbr} shell. Type '{ExitCommand}' to return.";
       private static string PlaceholderText => CurrentShell?.GetText( "placeholder_text" ) ?? $"Enter {Abbr}...";
