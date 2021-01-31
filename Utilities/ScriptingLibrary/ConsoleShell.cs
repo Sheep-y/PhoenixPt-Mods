@@ -8,7 +8,8 @@ using static System.Reflection.BindingFlags;
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
    using ModnixAPI = Func< string, object, object >;
    using IShell = IDictionary< string, object >;
-   using CommandHandler = Action< IConsole, string >;
+   using ConsoleHandler = Action< IConsole, string >;
+   using CommandHandler = Func< string, object >;
 
    public class ConsoleShell : ZyMod {
       private static IPatch ReadPatch, EvalPatch, ShowLinePatch;
@@ -38,9 +39,9 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
                if ( CurrentShell != null ) ExitShell();
                CurrentShell = shell as IShell;
                if ( CurrentShell == null ) return new ArgumentException( "shell start param must be IDictionary<string,object>" );
-               if ( string.IsNullOrWhiteSpace( Abbr ) || Handler == null ) {
+               if ( string.IsNullOrWhiteSpace( Abbr ) || ! ( Handler is ConsoleHandler || Handler is CommandHandler ) ) {
                   CurrentShell = null;
-                  return new ArgumentException( "shell must have 'abbr' as string and 'handler' as Action<IConsole,string>" );
+                  return new ArgumentException( "shell must have 'abbr' as string and 'handler' as Func<string,object> or Action<IConsole,string>" );
                }
                EnterShell( GameConsoleWindow.Create() );
                return true;
@@ -85,7 +86,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static void BeforeExecuteCommandLine_ShowLine ( GameConsoleWindow __instance, string line, ref bool showLine ) {
          var fmt = FeedbackFormat;
          if ( ! showLine || string.IsNullOrWhiteSpace( fmt ) ) return;
-         __instance.WriteLine( fmt, line );
+         __instance.Write( fmt, line );
          showLine = false;
       }
 
@@ -94,7 +95,23 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Command = null;
          var handler = Handler;
          if ( code == null || handler == null ) return;
-         handler( context, code );
+         object result = null;
+         try {
+            if ( handler is ConsoleHandler conFunc ) {
+               conFunc( context, code );
+               return;
+            }
+            if ( handler is CommandHandler objFunc ) {
+               result = objFunc( code );
+               if ( result is Exception ex ) throw ex;
+               if ( Api( "console.write", result ) is bool write && write ) return;
+               else try { // Catch ToString() error
+                  context.Write( result + " (" + result.GetType().FullName + ")" );
+               } catch ( Exception ) { context.Write( result.GetType().FullName ); }
+            }
+         } catch ( Exception ex ) {
+            context.Write( $"<color=red>{ex.GetType()} {ex.Message}</color>" + ex.StackTrace );
+         }
       }
 
       private static void ExitShell () {
@@ -112,13 +129,12 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static string PlaceholderText => CurrentShell?.GetText( "placeholder_text" ) ?? $"Enter {Abbr}...";
       private static Color PlaceholderColour => CurrentShell?.TryGet( "placeholder_colour" ) is Color c ? c : Color.grey;
       private static string FeedbackFormat => CurrentShell?.GetText( "feedback_format" ) ?? $"{Abbr}> {{0}}";
-      private static CommandHandler Handler => CurrentShell?.TryGet( "handler" ) as CommandHandler;
+      private static object Handler => CurrentShell?.TryGet( "handler" );
       private static string ExitCommand => CurrentShell?.GetText( "exit_command" ) ?? "Exit";
       private static string ExitMessage => CurrentShell?.GetText( "exit_message" ) ?? $"Exiting {Abbr} shell.";
    }
 
    internal static class Tools {
-
       internal static object TryGet  ( this IShell shell, string name ) =>
          shell.TryGetValue( name, out object val ) ? val : null;
 
