@@ -10,11 +10,11 @@ using System.Linq;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
    public static class LogHelpers {
-      public static void Error ( string msg, params object[] args ) => ZyMod.Error( msg, args );
-      public static void Warn ( string msg, params object[] args ) => ZyMod.Warn( msg, args );
-      public static void Warning ( string msg, params object[] args ) => Warn( msg, args );
-      public static void Info ( string msg, params object[] args ) => ZyMod.Info( msg, args );
-      public static void Verbo ( string msg, params object[] args ) => ZyMod.Verbo( msg, args );
+      public static void Error ( object msg, params object[] args ) => ZyMod.Error( msg, args );
+      public static void Warn ( object msg, params object[] args ) => ZyMod.Warn( msg, args );
+      public static void Warning ( object msg, params object[] args ) => Warn( msg, args );
+      public static void Info ( object msg, params object[] args ) => ZyMod.Info( msg, args );
+      public static void Verbo ( object msg, params object[] args ) => ZyMod.Verbo( msg, args );
    }
 
    public static class ApiHelpers {
