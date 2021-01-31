@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
-   public static class LogHelpers {
+   public static class LogHelper {
       public static void Error ( object msg, params object[] args ) => ZyMod.Error( msg, args );
       public static void Warn ( object msg, params object[] args ) => ZyMod.Warn( msg, args );
       public static void Warning ( object msg, params object[] args ) => Warn( msg, args );
@@ -17,7 +17,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static void Verbo ( object msg, params object[] args ) => ZyMod.Verbo( msg, args );
    }
 
-   public static class ApiHelpers {
+   public static class ApiHelper {
       public static object Call ( string action, object param = null ) => ZyMod.Api( action, param );
       public static T Call < T > ( string action, object param = null ) {
          var result = Call ( action, param );
@@ -26,7 +26,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       }
    }
 
-   public static class RepoHelpers {
+   public static class RepoHelper {
       private static DefRepository _Repo;
       public static DefRepository Repo => _Repo ?? ( _Repo = GameUtl.GameComponent< DefRepository >() );
 
@@ -60,7 +60,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             case "sonic" : return DmgType.SonicKeyword;
             case "syphon" : case "vampiric" : return DmgType.SyphonKeyword;
             case "viral" : return DmgType.ViralKeyword;
-            case "virophage" : return (DamageKeywordDef) RepoHelpers.Repo.GetDef( "c968f22f-392d-1964-68cd-edd14655082d" );
+            case "virophage" : return (DamageKeywordDef) RepoHelper.Repo.GetDef( "c968f22f-392d-1964-68cd-edd14655082d" );
             case "normal" : case "" :
                return DmgType.DamageKeyword;
          }

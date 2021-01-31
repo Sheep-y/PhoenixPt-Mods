@@ -1,4 +1,4 @@
-Changelog of Scripting Library (C#), a Phoenix Point Mod by Sheepy
+Changelog of Scripting Library (JS), a Phoenix Point Mod by Sheepy
 
 # Version 2 Beta, in develpoment
 
