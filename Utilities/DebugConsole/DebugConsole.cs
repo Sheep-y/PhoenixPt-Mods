@@ -170,20 +170,22 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       #region Forward logs to Console
       private readonly static List<string> ConsoleBuffer = new List<string>();
       //private static string LastLine;
+      private readonly static Regex regCtrlChar = new Regex( "[\x00-\x1f]+" );
 
       internal static void WriteConsole ( string line ) => WriteConsole( DateTime.Now, "", line );
 
-      internal static void WriteConsole ( DateTime time, string level, string line ) {
+      internal static void WriteConsole ( DateTime time, string level, string line, bool trim = true ) {
          if ( string.IsNullOrWhiteSpace( line ) ) return;
          if ( time < StartTime ) time = StartTime;
-         var fullline = string.Format( "{0} {1} {2}", FormatTime( time - StartTime ), level, line );
-         if ( fullline.Length > 300 ) {
+         var fullline = string.Format( "{0} {1} {2}", FormatTime( time - StartTime ), level, regCtrlChar.Replace( line, "" ) );
+         var lines = line.Split( new char[]{ '\r', '\n' }, 2 );
+         if ( trim && ( fullline.Length > 250 || lines.Length > 5 ) ) {
             // Trim long message from console to avoid 65000 vertices error, but write the full log.
             OverrideAppendToLogFile_AddToQueue( fullline, null );
-            line = line.Split( new char[]{ '\r', '\n' }, 2 )[0].Trim();
-            if ( line.Length > 250 ) line = line.Substring( 0, 250 );
+            line = lines[0].Trim();
+            if ( line.Length > 200 ) line = line.Substring( 0, 200 );
             if ( level.StartsWith( "<color=" ) ) line += "</color>";
-            WriteConsole( time, level, EscLine( line ) + $"... ({fullline.Length} chars)<b></b>" );
+            WriteConsole( time, level, EscLine( line ) + $"... ({fullline.Length} chars)<b></b>", false );
             return;
          }
          /*

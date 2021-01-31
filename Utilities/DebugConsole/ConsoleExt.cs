@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -279,14 +280,14 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       }
 
       internal static void DumpComponents ( IConsole output, string prefix, HashSet<object> logged, GameObject e ) {
-         if ( prefix.Length > 20 ) return;
-         if ( logged.Contains( e ) ) return;
+         if ( prefix.Length > 10 ) return;
+         if ( e == null || logged.Contains( e ) ) return;
          logged.Add( e );
          var text = output != null && prefix.Length > 0 ? FindText( e ) : () => "";
          Output( output, "{0}- '{1}'{2} {3}{4}{5}{6} :{7}", prefix, e.name, ToTag( e.tag ), text, TypeName( e ),
             e.activeSelf ? "" : " (Inactive)", ToLayer( e.layer ), ToString( e.GetComponent<Transform>() ) );
          if ( output == null || prefix.Length == 0 )
-            foreach ( var c in e.GetComponents<Component>() ) {
+            foreach ( var c in e.GetComponents<Component>() ) try {
                var typeName = TypeName( c );
                if ( c is Transform cRect ) ;
                else if ( c is UnityEngine.UI.Text txt )
@@ -296,12 +297,12 @@ namespace Sheepy.PhoenixPt.DebugConsole {
                else if ( c is UnityEngine.UI.LayoutGroup layout )
                   Output( output, "{0}...{1} Padding {2}", prefix, typeName, layout.padding );
                else if ( c is FovControllableBehavior fov )
-                  Output( output, "{0}...{1} Invis {2} Billboard {3}-{4}", prefix, typeName, fov.ControllingDef.InvisibleOverFov, fov.ControllingDef.BillboardStartFov, fov.ControllingDef.BillboardFullFov );
+                  Output( output, "{0}...{1} Invis {2} Billboard {3}-{4}", prefix, typeName, fov.ControllingDef?.InvisibleOverFov, fov.ControllingDef?.BillboardStartFov, fov.ControllingDef?.BillboardFullFov );
                else
                   Output( output, "{0}...{1}", prefix, typeName );
-            }
+            } catch ( Exception ) { }
          for ( int i = 0 ; i < e.transform.childCount ; i++ )
-            DumpComponents( output, prefix + "  ", logged, e.transform.GetChild( i ).gameObject );
+            DumpComponents( output, prefix + "  ", logged, e.transform?.GetChild( i )?.gameObject );
       }
 
       private static Func<string> ToTag ( string tag ) => () => "Untagged".Equals( tag ) ? "" : $":{tag}";
@@ -324,11 +325,16 @@ namespace Sheepy.PhoenixPt.DebugConsole {
             .Trim();
       }; }
 
-      private static void Output ( IConsole output, object param, params object[] args ) {
-         if ( output == null ) { Info( param, args ); return; }
+      private static void Output ( IConsole output, object msg, params object[] args ) {
+         if ( output == null ) { Info( msg, args ); return; }
          for ( int i = 0, len = args.Length ; i < len ; i++ )
             if ( args[i] is Func<string> eval ) args[i] = eval();
-         Mod.WriteConsole( string.Format( param?.ToString(), args ) );
+         try {
+            var txt = string.Format( msg?.ToString(), args );
+            Mod.WriteConsole( txt );
+         } catch ( Exception ) {
+            Mod.WriteConsole( msg is string txt ? txt : ( msg?.GetType().FullName ?? "null" ) );
+         }
       }
 
       private static string TypeName ( object e ) => e?.GetType().FullName.Replace( "UnityEngine.", "UE." );
