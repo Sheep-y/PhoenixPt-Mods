@@ -3,9 +3,12 @@ Changelog of Scripting Library (JS), a Phoenix Point Mod by Sheepy
 # Version 2 Beta, in develpoment
 
 * Switch to ClearScript to support V8 engine.  It is working!
-* Refactoring of helpers due to engine switch.
-* Moved console shell to Debug Console.  The one-line Eval command still works.
+* Actions now require both "Eval" and "Lang" to run.  Lang must be JS, JavaScript, or ECMAScript (case insensitive).
+* Mod id changeed to "Zy.JavaScript".
 * Renamed Eval console command to Javascript.
+
+* Refactored helpers due to engine switch.
+* Moved console shell to Debug Console.  The one-line Eval command still works.
 * Tested on Phoenix Point 1.9.3.66065.
 
 # Version Beta ?

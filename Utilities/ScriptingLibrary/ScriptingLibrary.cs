@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -19,9 +20,12 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Task.Run( () => Api( "eval.js", "\"Scripting Warmup\"" ) );
       }
 
+      private static readonly string[] Languages = new string[] { "js", "javascript", "ecmascript" };
+
       public static object ActionMod ( string modId, Dictionary<string,object> action ) { try {
-         object value = null;
+         object value = null, lang = null;
          if ( action?.TryGetValue( "eval", out value ) != true || ! ( value is string code ) ) return false;
+         if ( action?.TryGetValue( "lang", out lang ) != true || ! ( value is string l ) || ! Languages.Contains( l.Trim().ToLowerInvariant() ) ) return false;
          if ( Eval_Lib_Result is Exception lib_err ) return lib_err;
          Info( "Action> {0}", code );
          var result = ScriptingEngine.Eval( modId, code );
