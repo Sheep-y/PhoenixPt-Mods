@@ -7,7 +7,8 @@
    Description : "
 Adds a small fire damage to laser weapons, plus pierce or shred on selected lasers.
 
-This is done as a simple demo to 
+This is done as a simple demo to showcase Modnix 3's Scripting Library,
+which allows plain-text scripting mods to run in the game and modify stuffs.
 
 This mod requires Modnix 3+ and Scripting Library 2+.
 Tested on Phoenix Point 1.9.3.",
@@ -15,19 +16,25 @@ Tested on Phoenix Point 1.9.3.",
       "Action" : "Default",    // Required to set "Script" on all actions.
       "Script" : "JavaScript", // When combined with "Eval", cause the Scripting Library 2 to run the actions.
       "OnError" : "Warn, Continue", // Default is "Log, Stop" which logs the error and stops execution.
-      "Phase" : "MainMod",
+      // "Phase" : "MainMod",  // Default phase is "GameMod" which is when player first start/load a game.
+      // The MainMod phase works on Home screen, which can be faster to test than GameMod.
    },{
-      "Eval" : 'Repo.Get( WeaponDef, "SY_LaserPistol_WeaponDef" ).Fire( 1 )',
+      "Eval" : 'let count = 0;', // Yes!  You can create your own variables.  Or define your own functions.
    },{
-      "Eval" : 'Repo.Get( WeaponDef, "SY_LaserAssaultRifle_WeaponDef" ).Fire( 1 )',
+      "Eval" : 'Repo.Get( WeaponDef, "SY_LaserPistol_WeaponDef" ).Fire( 1 ); count++', // Multi statement is ok.
    },{
-      "Eval" : 'Repo.Get( WeaponDef, "SY_LaserSniperRifle_WeaponDef" ).Fire( 3 ).Pierce( 5 )',
+      "Eval" : 'Repo.Get( WeaponDef, "SY_LaserAssaultRifle_WeaponDef" ).Fire( 1 ); count++',
    },{
-      "Eval" : 'Repo.Get( WeaponDef, "PX_LaserPDW_WeaponDef" ).Fire( 1 )',
+      "Eval" : 'Repo.Get( WeaponDef, "SY_LaserSniperRifle_WeaponDef" ).Fire( 3 ).Pierce( 5 ); count++',
    },{
-      "Eval" : 'Repo.Get( WeaponDef, "PX_LaserTechTurretGun_WeaponDef" ).Fire( 1 ).Shred( 2 )',
+      "Eval" : 'Repo.Get( WeaponDef, "PX_LaserPDW_WeaponDef" ).Fire( 1 ); count++',
    },{
-      "Eval" : 'Repo.Get( WeaponDef, "PX_LaserArrayPack_WeaponDef" ).Fire( 2 )',
+      "Eval" : 'Repo.Get( WeaponDef, "PX_LaserTechTurretGun_WeaponDef" ).Fire( 1 ).Shred( 2 ); count++',
+   },{
+      "Eval" : 'Repo.Get( WeaponDef, "PX_LaserArrayPack_WeaponDef" ).Fire( 2 ); count++',
+   },{
+      "Eval" : 'Log.Info( "Done! {0} lasers now ON FIRE!", count )',
+      //"Eval" : 'Api.Call( "log", `Done! ${count} lasers now ON FIRE!` )', // Alternative.
    }],
    Url : {
       "Nexus" : "https://nexusmods.com/phoenixpoint/mods/33/",
