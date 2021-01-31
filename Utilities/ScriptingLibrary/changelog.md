@@ -6,6 +6,7 @@ Changelog of Scripting Library (C#), a Phoenix Point Mod by Sheepy
 * Refactoring of helpers due to engine switch.
 * Moved console shell to Debug Console.  The one-line Eval command still works.
 * Renamed Eval console command to Javascript.
+* Tested on Phoenix Point 1.9.3.66065.
 
 # Version Beta ?
 

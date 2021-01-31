@@ -28,6 +28,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          if ( string.IsNullOrEmpty( code ) ) {
             Api( "console.shell start", new Dictionary<string, object> {
                { "abbr", "JS" },
+               { "placeholder_colour", UnityEngine.Color.blue },
                { "handler", (Action<IConsole,string>) EvalToConsole },
             } );
          } else
