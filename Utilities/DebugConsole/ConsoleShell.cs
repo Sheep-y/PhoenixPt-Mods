@@ -31,7 +31,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
 
       internal object StartShell ( string command, object shell ) {
          switch ( command?.ToLowerInvariant() ) {
-            case "stop" : 
+            case "stop" :
                if ( Shells.Count == 0 ) return false;
                ExitShell();
                return true;

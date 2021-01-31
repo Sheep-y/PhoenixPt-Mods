@@ -3,6 +3,8 @@ Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 # Version 7, in development
 
 * New api "console.shell start" and "console.shell stop" to create a console shell with caller function.
+* Improves console display for non-data heavy objects, e.g. console.write api, modnix console command's feedback.
+* Tested on Phoenix Point 1.9.3.66065.
 
 # Version 6.1, 2020-07-10
 

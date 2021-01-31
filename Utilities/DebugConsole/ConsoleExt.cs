@@ -352,7 +352,15 @@ namespace Sheepy.PhoenixPt.DebugConsole {
          else if ( result is Exception || result is StackTrace || result is MethodInfo || result is Task ) line = result.ToString();
          else try {
             line = JsonConvert.SerializeObject( result, ExportSettings );
-         } catch ( Exception ) { line = result.GetType().FullName; }
+            if ( line == "{}" ) throw new ApplicationException();
+         } catch ( Exception ex ) { try {
+            line = result.ToString();
+            if ( string.IsNullOrEmpty( line ) && ex is ApplicationException ) line = "{}";
+            var name = result.GetType().FullName;
+            if ( ! line.Contains( name ) ) line += $" ({name})";
+         } catch ( Exception ) {
+            line = result.GetType().FullName;
+         } }
          Mod.WriteConsole( line );
          if ( result is Task<object> task )
             task.ContinueWith( e => {
