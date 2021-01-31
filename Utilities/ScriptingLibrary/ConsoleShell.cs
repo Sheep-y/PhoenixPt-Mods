@@ -61,7 +61,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          }
          ShowLinePatch = TryPatch( typeof( GameConsoleWindow ).GetMethod( "ExecuteCommandLine", new Type[]{ typeof( string ), typeof( bool ), typeof( bool ) } ),
             prefix: nameof( BeforeExecuteCommandLine_ShowLine ) );
-         SetConsoleInputPlaceholder( "Enter JS expression...", Color.blue );
+         SetConsoleInputPlaceholder( PlaceholderText, PlaceholderColour );
          console.Write( EnterMessage );
       }
 
@@ -72,14 +72,13 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          text.color = color;
       } catch ( NullReferenceException ) { } }
 
-      private static string CommandLine;
+      private static string Command;
 
       private static void BeforeReadCommandLine_GetCommand ( ref string commandLine ) {
-         commandLine = commandLine?.Trim();
-         if ( string.IsNullOrEmpty( commandLine ) ) return;
-         CommandLine = commandLine;
+         if ( commandLine == null ) return;
+         Command = commandLine;
          commandLine = ""; // Bypass default execution
-         if ( commandLine.Equals( ExitCommand, StringComparison.OrdinalIgnoreCase ) )
+         if ( Command.Trim().Equals( ExitCommand, StringComparison.OrdinalIgnoreCase ) )
             ExitShell();
       }
 
@@ -91,15 +90,15 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       }
 
       private static void AfterExecute_RunCommand ( IConsole context ) {
-         var code = CommandLine;
-         CommandLine = null;
+         var code = Command;
+         Command = null;
          var handler = Handler;
          if ( code == null || handler == null ) return;
          handler( context, code );
       }
 
       private static void ExitShell () {
-         CommandLine = null;
+         Command = null;
          Unpatch( ref ReadPatch );
          Unpatch( ref EvalPatch );
          Unpatch( ref ShowLinePatch );
@@ -112,7 +111,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static string EnterMessage => CurrentShell?.GetText( "enter_message" ) ?? $"Entering {Abbr} shell. Type '{ExitCommand}' to return.";
       private static string PlaceholderText => CurrentShell?.GetText( "placeholder_text" ) ?? $"Enter {Abbr}...";
       private static Color PlaceholderColour => CurrentShell?.TryGet( "placeholder_colour" ) is Color c ? c : Color.grey;
-      private static string FeedbackFormat => CurrentShell?.GetText( "feedback_format" ) ?? "{Abbr}> {0}";
+      private static string FeedbackFormat => CurrentShell?.GetText( "feedback_format" ) ?? $"{Abbr}> {{0}}";
       private static CommandHandler Handler => CurrentShell?.TryGet( "handler" ) as CommandHandler;
       private static string ExitCommand => CurrentShell?.GetText( "exit_command" ) ?? "Exit";
       private static string ExitMessage => CurrentShell?.GetText( "exit_message" ) ?? $"Exiting {Abbr} shell.";
