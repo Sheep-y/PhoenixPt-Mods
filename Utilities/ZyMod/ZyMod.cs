@@ -367,13 +367,13 @@ namespace Sheepy.PhoenixPt {
 
       #if ZyLog
       public static Action< TraceEventType, object, object[] > Logger;
-      public static void ApiLog ( TraceEventType level, object msg, params object[] augs ) { lock ( _SLock ) Logger?.Invoke( level, msg, augs ); }
-      public static void Trace ( object msg, params object[] augs ) => ApiLog( TraceEventType.Transfer, msg, augs );
-      public static void Verbo ( object msg, params object[] augs ) => ApiLog( TraceEventType.Verbose, msg, augs );
-      public static void Info  ( object msg, params object[] augs ) => ApiLog( TraceEventType.Information, msg, augs );
-      public static void Warn  ( object msg, params object[] augs ) => ApiLog( TraceEventType.Warning, msg, augs );
-      public static bool Error ( object msg, params object[] augs ) {
-         ApiLog( TraceEventType.Error, msg, augs );
+      public static void ApiLog ( TraceEventType level, object msg, params object[] args ) { lock ( _SLock ) Logger?.Invoke( level, msg, args ); }
+      public static void Trace ( object msg, params object[] args ) => ApiLog( TraceEventType.Transfer, msg, args );
+      public static void Verbo ( object msg, params object[] args ) => ApiLog( TraceEventType.Verbose, msg, args );
+      public static void Info  ( object msg, params object[] args ) => ApiLog( TraceEventType.Information, msg, args );
+      public static void Warn  ( object msg, params object[] args ) => ApiLog( TraceEventType.Warning, msg, args );
+      public static bool Error ( object msg, params object[] args ) {
+         ApiLog( TraceEventType.Error, msg, args );
          return true;
       }
       #endif

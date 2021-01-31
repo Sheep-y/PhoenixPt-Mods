@@ -10,11 +10,11 @@ using System.Linq;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
    public static class LogHelpers {
-      public static void Error ( string msg, params object[] augs ) => ZyMod.Error( msg, augs );
-      public static void Warn ( string msg, params object[] augs ) => ZyMod.Warn( msg, augs );
-      public static void Warning ( string msg, params object[] augs ) => Warn( msg, augs );
-      public static void Info ( string msg, params object[] augs ) => ZyMod.Info( msg, augs );
-      public static void Verbo ( string msg, params object[] augs ) => ZyMod.Verbo( msg, augs );
+      public static void Error ( string msg, params object[] args ) => ZyMod.Error( msg, args );
+      public static void Warn ( string msg, params object[] args ) => ZyMod.Warn( msg, args );
+      public static void Warning ( string msg, params object[] args ) => Warn( msg, args );
+      public static void Info ( string msg, params object[] args ) => ZyMod.Info( msg, args );
+      public static void Verbo ( string msg, params object[] args ) => ZyMod.Verbo( msg, args );
    }
 
    public static class ApiHelpers {
@@ -42,7 +42,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
    public static class DamageHelpers {
       private static SharedDamageKeywordsDataDef DmgType;
 
-      public static DamageKeywordDef GetDamageType ( string type ) {
+      public static DamageKeywordDef Parse ( string type ) {
          if ( DmgType == null ) DmgType = SharedData.GetSharedDataFromGame().SharedDamageKeywords;
          switch ( type ) {
             case "acid" : return DmgType.AcidKeyword;
@@ -92,26 +92,26 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          return orig;
       } }
 
-      public static float Get ( this WeaponDef weapon, string type ) => Get( weapon, GetDamageType( type ) );
+      public static float Get ( this WeaponDef weapon, string type ) => Get( weapon, Parse( type ) );
 
       public static float Get ( this WeaponDef weapon, DamageKeywordDef type ) => Modify( weapon, type, null );
 
-      public static WeaponDef Set ( this WeaponDef weapon, string type, float value ) => Set( weapon, GetDamageType( type ), value );
+      public static WeaponDef Set ( this WeaponDef weapon, string type, float value ) => Set( weapon, Parse( type ), value );
 
       public static WeaponDef Set ( this WeaponDef weapon, DamageKeywordDef type, float value ) {
          Exchange( weapon, type, value );
          return weapon;
       }
 
-      public static float Add ( this WeaponDef weapon, string type, float value ) => Add( weapon, GetDamageType( type ), value );
+      public static float Add ( this WeaponDef weapon, string type, float value ) => Add( weapon, Parse( type ), value );
 
       public static float Add ( this WeaponDef weapon, DamageKeywordDef type, float value ) => Modify( weapon, type, ( orig ) => orig + value );
 
-      public static float Exchange ( this WeaponDef weapon, string type, float value ) => Exchange( weapon, GetDamageType( type ), value );
+      public static float Exchange ( this WeaponDef weapon, string type, float value ) => Exchange( weapon, Parse( type ), value );
 
       public static float Exchange ( this WeaponDef weapon, DamageKeywordDef type, float value ) => Modify( weapon, type, ( _ ) => value );
 
-      public static float CompareExchange ( this WeaponDef weapon, string type, float ifMatch, float setTo ) => CompareExchange( weapon, GetDamageType( type ), ifMatch, setTo );
+      public static float CompareExchange ( this WeaponDef weapon, string type, float ifMatch, float setTo ) => CompareExchange( weapon, Parse( type ), ifMatch, setTo );
 
       public static float CompareExchange ( this WeaponDef weapon, DamageKeywordDef type, float ifMatch, float setTo ) =>
          Modify( weapon, type, ( orig ) => orig == ifMatch ? setTo : orig );

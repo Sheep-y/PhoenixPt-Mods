@@ -25,7 +25,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
                foreach ( var type in GameAssembly.GetTypes() ) {
                   var name = type.Name;
                   if ( name == "JSON" ) continue;
-                  if ( HostTypes.ContainsKey( name ) ) continue;
+                  if ( HostTypes.ContainsKey( name ) || HostObjects.ContainsKey( name ) ) continue;
                   HostTypes.Add( name, type );
                }
                Info( "Found {0} object types to add to JavaScript", HostTypes.Count );
