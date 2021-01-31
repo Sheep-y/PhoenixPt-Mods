@@ -1,5 +1,6 @@
 ﻿using Base.Utils.GameConsole;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
@@ -25,8 +26,10 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static void Console_Eval_CS ( IConsole console, string[] param ) {
          var code = string.Join( " ", param ?? Array.Empty<string>() ).Trim();
          if ( string.IsNullOrEmpty( code ) ) {
-            ConsoleShell.OnCommand = EvalToConsole;
-            ConsoleShell.EnterEvalMode( console );
+            Api( "console.shell start", new Dictionary<string, object> {
+               { "abbr", "JS" },
+               { "handler", (Action<IConsole,string>) EvalToConsole },
+            } );
          } else
             EvalToConsole( console, code );
       }
