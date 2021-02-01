@@ -35,6 +35,10 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             if ( string.IsNullOrWhiteSpace( txt ) ) throw new ArgumentNullException( nameof( param ) );
             if ( IsGuid( txt ) ) return DefsByGuid( txt );
             BaseDefs result = null;
+            if ( spec?.Equals( "name", StringComparison.OrdinalIgnoreCase ) == true )
+               result = GetDefs( ByName, txt );
+            else if ( spec?.Equals( "path", StringComparison.OrdinalIgnoreCase ) == true )
+               result = GetDefs( ByPath, txt );
             if ( ! txt.Contains( '/' ) )
                result = GetDefs( ByName, txt ) ?? GetDefs( ByPath, txt );
             else

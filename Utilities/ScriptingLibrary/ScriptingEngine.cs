@@ -15,6 +15,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             if ( HostObjects.Count == 0 ) {
                Verbo( "Listing game object types" );
                HostObjects.Add( "host", new ExtendedHostFunctions() );
+               HostObjects.Add( "xHost", new ExtendedHostFunctions() );
                HostObjects.Add( "DotNet", new HostTypeCollection( "mscorlib", "System", "System.Core", "System.Numerics" ) );
                HostObjects.Add( "Game", new HostTypeCollection( "Assembly-CSharp" ) );
                HostTypes.Add( "Api", typeof( ApiHelper ) );
