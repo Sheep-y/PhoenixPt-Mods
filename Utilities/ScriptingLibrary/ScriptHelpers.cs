@@ -1,5 +1,6 @@
 ﻿using Base.Core;
 using Base.Defs;
+using Base.Utils.GameConsole;
 using Microsoft.ClearScript;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Tactical.Entities.DamageKeywords;
@@ -8,8 +9,25 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
+   public static class ConsoleHelper {
+      public static void assert ( bool assertion, params object[] args ) { if ( ! assertion ) error( "Assertion failed:", args ); }
+
+      public static void clear () =>
+         typeof( GameConsoleWindow ).GetMethod( "ClearScreen", NonPublic | Public | Static | Instance )?.Invoke( GameConsoleWindow.Create(), Array.Empty<object>() );
+
+      public static void dir ( object obj ) => ScriptingExt.WriteToConsole( obj );
+
+      public static void debug ( object msg, params object[] args ) => ZyMod.Verbo( msg, args );
+      public static void error ( object msg, params object[] args ) => ZyMod.Error( msg, args );
+      public static void info ( object msg, params object[] args ) => ZyMod.Info( msg, args );
+      public static void log ( object msg, params object[] args ) => ZyMod.Info( msg, args );
+      public static void trace ( object msg, params object[] args ) => ZyMod.Trace( msg, args );
+      public static void warn ( object msg, params object[] args ) => ZyMod.Warn( msg, args );
+   }
+
    public static class LogHelper {
       public static void Error ( object msg, params object[] args ) => ZyMod.Error( msg, args );
       public static void Warn ( object msg, params object[] args ) => ZyMod.Warn( msg, args );

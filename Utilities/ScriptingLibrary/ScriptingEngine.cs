@@ -20,6 +20,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
                HostTypes.Add( "Api", typeof( ApiHelper ) );
                HostTypes.Add( "Log", typeof( LogHelper ) );
                HostTypes.Add( "Repo", typeof( RepoHelper ) );
+               HostTypes.Add( "console", typeof( ConsoleHelper ) );
                //HostTypes.Add( "Patch", typeof( PatchHelper ) );
                HostTypes.Add( "Damage", typeof( DamageHelpers ) );
                HostTypes.Add( "Enumerable", typeof( Enumerable ) );

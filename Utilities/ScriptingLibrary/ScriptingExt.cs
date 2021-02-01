@@ -36,16 +36,19 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       }
 
       private static void EvalToConsole ( IConsole console, string code ) {
-         if ( ScriptingLibrary.LoadLibraries() is Exception err ) {
+         if ( ScriptingLibrary.LoadLibraries() is Exception err )
             console.Write( FormatException( err ) );
-            return;
-         }
-         var result = ScriptingEngine.Eval( "Console", code );
-         if ( result is Exception ex ) result = FormatException( ex ) + ex.StackTrace;
-         if ( Api( "console.write", result ) is bool write && write ) return;
+         else
+            WriteToConsole( ScriptingEngine.Eval( "Console", code ), console );
+      }
+
+      internal static void WriteToConsole ( object value, IConsole console = null ) {
+         if ( value is Exception ex ) GameConsoleWindow.Create().Write( FormatException( ex ) + ex.StackTrace );
+         if ( Api( "console.write", value ) is bool write && write ) return;
+         if ( console == null ) console = GameConsoleWindow.Create();
          else try { // Catch ToString() error
-            console.Write( result + " (" + result.GetType().FullName + ")" );
-         } catch ( Exception ) { console.Write( result.GetType().FullName ); }
+            console.Write( value + " (" + value.GetType().FullName + ")" );
+         } catch ( Exception ) { console.Write( value.GetType().FullName ); }
       }
 
       private static string FormatException ( Exception ex ) => $"<color=red>{ex.GetType()} {ex.Message}</color>";
