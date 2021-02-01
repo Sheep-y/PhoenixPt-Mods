@@ -105,16 +105,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndiGear", "Tactical\IndiGe
 		{ADBE1F6F-B231-4891-BBB8-D774CA236329} = {ADBE1F6F-B231-4891-BBB8-D774CA236329}
 	EndProjectSection
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "LaserOnFire", "Tactical\LaserOnFire\LaserOnFire.shproj", "{0B467FAB-7AA1-4FAC-B4A3-FEC5EC9DDBA6}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LootEverything", "Tactical\LootEverything\LootEverything.csproj", "{BD455A75-FA78-4B2D-A6F8-6B7772706766}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VariableRageBurst", "Tactical\RageBurstCap\VariableRageBurst.csproj", "{D41ABAD7-0BE9-4B60-9995-1755C537611E}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Tactical\LaserOnFire\LaserOnFire.projitems*{0b467fab-7aa1-4fac-b4a3-fec5ec9ddba6}*SharedItemsImports = 13
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
