@@ -1,8 +1,8 @@
-Changelog of Scripting Library (JS), a Phoenix Point Mod by Sheepy
+Changelog of JavaScript Runtime, a Phoenix Point Mod by Sheepy
 
-# Version 2 Beta, in develpoment
+# Version 2, 2021-02-01
 
-* Switch to ClearScript to support V8 engine.  It is working!
+* Switch to ClearScript to support V8 engine.  Renamed from Scripting Library to JavaScript Runtime.
 * Actions now require both "Eval" and "Script" to run. Script must be JS, JavaScript, or ECMAScript (case insensitive).
 * Mod id changeed to "Zy.JavaScript".
 * Renamed Eval console command to Javascript.
@@ -11,10 +11,10 @@ Changelog of Scripting Library (JS), a Phoenix Point Mod by Sheepy
 * Moved console shell to Debug Console.  The one-line Eval command still works.
 * Tested on Phoenix Point 1.9.3.66065.
 
-# Version Beta ?
+# Version Beta, never release
 
 * Mod API now run in the Eval context of the caller, inheriting its variables and state.
-* Giving up because failed to get the mod work on on Year One Edition. Development have ceased.
+* Giving up on 2021 Jan, because can't get the mod to work on on Year One Edition.
 
 # Version Alpha 0.0.2020.0605
 

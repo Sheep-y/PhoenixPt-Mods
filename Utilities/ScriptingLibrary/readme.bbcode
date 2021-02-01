@@ -14,7 +14,7 @@ Then everything you type will be evaluated as JavaScript on the fly.
 
 For example,
  [font=Courier New]1+2[/font] should get you "3",
- [font=Courier New]Api.Call('mod_list')[/font] should get you a list of mod ids, and [code]Repo.Get( GeoVehicleDef, 'PP_Manticore_Def' ).BaseStats.Speed.Value
+ [font=Courier New]Api.call('mod_list')[/font] should get you a list of mod ids, and [code]Repo.Get( GeoVehicleDef, 'PP_Manticore_Def' ).BaseStats.Speed.Value
 [/code]would return the speed of Manticore.
 (Note that [font=Courier New]BaseStats.Speed[/font] is a C# [url=https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/struct]struct[/url], which restricts how you can modify it.  Welcome to modding.)
 
@@ -71,7 +71,7 @@ Other classes can be imported through the host / xHost object.
 You can access these helpers from within JavaScript.  They are thread-safe.
 You can also access all game types without writing their namespace - they have already been "imported".
 
-All helpers have both C# style methods (GetAll) and JS style methods (getAll), except console which only have lowercase methods.
+All helpers have both C# style methods (GetAll) and JS style methods (getAll), except [font=Courier New]console[/font] which only have lowercase methods.
 The Repo and Damage helpers may be moved into an independent mod in the future, but there is no roadmap yet on when that may happen.
 
 [b]console[/b]

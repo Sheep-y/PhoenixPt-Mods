@@ -1,7 +1,13 @@
 ({
    Id : "Zy.JavaScript",
-   Name : "Scripting Library (Beta)",
-   Description : 'Supports runtime JavaScript evaluation, such as "Eval" mod actions (Modnix 3), "Eval" console command, and "eval.js" api.\r\rProvides data lookup by name and path through "pp.def" and "pp.defs" api.\r\rMods may also directly import helpers from ScriptHelpers.',
+   Name : "JavaScript Runtime",
+   Description : '
+Provide a JavaScript runtime, allowing JavaScript-based mods to run,
+plus a small helper library that helps them get the job done.
+
+Also provide the "JavaScirpt" console command, and "eval.js" API,
+and game def lookup through "pp.def" and "pp.defs" API.
+',
    LoadIndex : -200, // Load early to pre-load scripting engine.
    Requires: [{ Id: "Modnix", Min: "3.0.2021.0125" }],
    Url : {
