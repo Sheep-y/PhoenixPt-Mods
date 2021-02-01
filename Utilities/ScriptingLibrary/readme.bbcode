@@ -1,69 +1,131 @@
-Requires [url=https://github.com/Sheep-y/Modnix#readme]Modnix[/url]﻿.
+Requires [url=https://github.com/Sheep-y/Modnix#readme]Modnix[/url]﻿ 3+.
 
 This mod bundles and bridges a JavaScript runttime,
 so that mods can be written in JavaScript, a quick and easy scripting language.
 JavaScript can run from in-game console, through Modnix API, or in form of Modnix Action mods.
 
 
-[h2]Console[/h2]
+[size=5][b]Console as a Sandbox[/b][/size]
 
 The easiest way to start scripting is by using this with [url=https://www.nexusmods.com/phoenixpoint/mods/44/]Debug Console[/url] (ver 7+).
 
-With Debug Console, you can open the in-game console with '`' key, and enter the "JavaScript" command
-to enter the javascript shell, where everything you type will be evaluated as JavaScript on the fly.
-For example, "1+2" should get you "3", and "Api.Call('mod_list')" should get you a list of mod ids, or 
+After opening the console, enter the "JavaScript" command to enter the javascript shell.
+Then everything you type will be evaluated as JavaScript on the fly.
 
-Repo.Get( GeoVehicleDef, 'PP_Manticore_Def' ).BaseStats.Speed.Value
+For example,
+ [font=Courier New]1+2[/font] should get you "3",
+ [font=Courier New]Api.Call('mod_list')[/font] should get you a list of mod ids, and [code]Repo.Get( GeoVehicleDef, 'PP_Manticore_Def' ).BaseStats.Speed.Value
+[/code]would return the speed of Manticore.
+(Note that [font=Courier New]BaseStats.Speed[/font] is a C# [url=https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/struct]struct[/url], which restricts how you can modify it.  Welcome to modding.)
 
-which gives you the current speed of the Manticore.
+If you prefer [url=https://www.nexusmods.com/phoenixpoint/mods/7]Console Enabler[/url], does not provide console shells, i.e. there is no "JavaScript mode".
+You may still run one-lined script, e.g. [code]JavaScript '"Foobar".substr(3)[/code]
+Remember, you can copy and paste in the console input with Ctrl+C and Ctrl+V.
 
-Note that [url=https://www.nexusmods.com/phoenixpoint/mods/7]Console Enabler[/url] does not provide console shells.
-You may still test one-lined script, without double quote, e.g. "JavaScript 1+2".
 
-
-[h2]Making Your Mod[/h2]
+[size=5][b]Making Your Mod[/b][/size]
 
 Once you are happy with your scripts, you can put them into a plain-text mod.
 
-See [url=https://github.com/Sheep-y/Modnix/tree/master/Demo%20Mods#readme]Laser On Fire[/url] [url=https://github.com/Sheep-y/Modnix/blob/master/Demo%20Mods/LaserOnFire/LaserOnFire.js](code)[/url] for a simple example.
+See [url=https://github.com/Sheep-y/Modnix/tree/master/Demo%20Mods#readme]Laser On Fire[/url] [url=https://github.com/Sheep-y/Modnix/blob/master/Demo%20Mods/LaserOnFire/LaserOnFire.js](code)[/url] for a short example.
 
-You can also call the "eval.js" api to evaluate and get the result of javascript.
+You can also call the [font=Courier New]eval.js[/font] API to evaluate and get the result of javascript.
 For example, [url=https://www.nexusmods.com/phoenixpoint/mods/50]Dump Data[/url] allow users to define extra data to extract through JavaScript.
 
 
-[h2]Why JavaScript?[/h2?]
+[size=5][b]Why JavaScript?[/b][/size]
 
 Because this is the cleanest solution I found.
 
-This mod bundles the [url=https://nodejs.dev/learn/the-v8-javascript-engine]V8 engine[/url] used by Google Chrome browser ([url=https://www.baekdal.com/thoughts/apple-is-limiting-the-new-google-chrome-for-ios/]except on iOS[/url]),
-called through [url=https://github.com/microsoft/ClearScript#readme]Microsoft ClearScript[/url].
+This mod bundles the [url=https://nodejs.dev/learn/the-v8-javascript-engine]V8 engine[/url] used by Google Chrome browser ([url=https://www.baekdal.com/thoughts/apple-is-limiting-the-new-google-chrome-for-ios/]except on iOS[/url]), called through [url=https://github.com/microsoft/ClearScript#readme]Microsoft ClearScript[/url].
 And ClearScript is just a wrapper.  Nothing (too) fancy.
 
-My previous attempt, C# Scripting Library, depended on [url=https://github.com/dotnet/roslyn#readme]Rosyln[/url], which depends on [url=https://docs.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/dynamic-language-runtime-overview]Dynamic Language Runtime[/url] and [url=https://www.c-sharpcorner.com/article/net-framework-vs-net-core-vs-net-standard/].Net Standard[/url], which is not only heavy and creates lots of dynamic assemblies that stay in memory forever, but must also override system libraries, and eventually after a few game updates the conflicts can no longer be solved.
+My previous attempt, C# Scripting Library, depended on [url=https://github.com/dotnet/roslyn#readme]Rosyln[/url], which depends on [url=https://docs.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/dynamic-language-runtime-overview]Dynamic Language Runtime[/url] and [url=https://www.c-sharpcorner.com/article/net-framework-vs-net-core-vs-net-standard/].Net Standard[/url], which is not only heavy and creates lots of dynamic assemblies that stay in memory forever, but must also override system libraries.  After a few game updates, the conflicts can no longer be resolved.
 
-There are other alternatives such as [url=https://ironpython.net/]IronPython[/url] and [url=http://ironruby.net/]IronRuby[/url].
-They seem to be lighter than Rosyln, so may be a modder can make them works.
-Me?  I am happy with JavaScript.  My second highest scored tag on stackoverflow, after Java.
-
-
-[h2]PPML Support?[/h2]
-
-Not planned because I don't think it is important.
-Lots of mods to update, and I haven't play Phoenix Point at all.
-
-You can fork and contribute code, if you can and want to.  Like how I updated PPDefModifier.
-We can't be more happy to have helps.
+There are other alternatives such as [url=https://ironpython.net/]IronPython[/url] and [url=http://ironruby.net/]IronRuby[/url].  They seem to be lighter than Rosyln, so may be a modder can make them works.
+Me?   I am happy with JavaScript.
 
 
-[h2]Scripting Helpers[/h2]
+[size=5][b]PPML Support?[/b][/size]
 
-Repo
-Api
-Log
+Not planned because I don't think it is important.  Lots of mods to update, and I haven't play Phoenix Point at all.
+You can fork and contribute code, like how I updated PPDefModifier.  We can't be more happy to have helps.
+
+Note that it is non-trivial.  If it is trivial, you are doing it wrong.  For example, you need to reimplement [font=Courier New]console[/font].  It is [i]not[/i] as simple as [font=Courier New]string.Format[/font].
 
 
-[h2]API[/h2]
+[b][size=5]C# to JavaScript and back[/size][/b]
 
-eval.js
-pp.def
-pp.defs
+ClearScript is a great library.  Microsoft have made sure that most concepts are transparently translated.
+For example, generic methods just require you to pass in a type as the generic parameter, e.g. [font=Courier New]Repo.Get( GeoVehicleDef, "name" )[/font]
+IEnumerables from C# can be looped with for..of, e.g. [font=Courier New]for ( let v of Repo.GetAll( GeoVehicleDef ) ) console.log( v )[/font]
+
+For more details, read the [url=https://microsoft.github.io/ClearScript/Tutorial/FAQtorial]ClearScript FAQtorial[/url].  The [font=Courier New]ExtendedHostFunctions[/font] object can be accessed as [font=Courier New]host[/font] and [font=Courier New]xHost[/font], so most examples should work as long as you do them in order.
+
+Core system classes can be accessed from the DotNet namespace, e.g. [font=Courier New]DotNet.System.Guid[/font]
+Game classes are already imported, but can also be access from the Game namespace, e.g. [font=Courier New]Game.Base.Core.GameUtl[/font]
+Other classes can be imported through the host / xHost object.
+
+[size=5][b]Scripting Helpers[/b][/size]
+
+You can access these helpers from within JavaScript.  They are thread-safe.
+You can also access all game types without writing their namespace - they have already been "imported".
+
+Note: The Repo and Damage helpers may be moved into an independent mod in the future, but there is no roadmap yet on when that may happen.
+
+[b]console[/b]
+Offers basic console methods such as console.log, .error, .warn, .debug (maps to verbose level), .trace etc.
+If you want to log a formatted message, you must use Unity's tags and C# composit formatting.  e.g. [code]console.log( '<color=blue>{0}</color>', 123 )[/code]
+[b]Log[/b]   
+   ﻿Log.Error
+   ﻿Log.Warn
+   ﻿Log.Info - Log
+   ﻿Log.Verbo / Log.Verbose - Call API to log message at verbose level.
+
+[b]Api[/b]
+   ﻿Api.Call( string, object... ) - Call Modnix API.
+   ﻿Api.Call( type, string, object... ) - Call Modnix API and cast result to specific type.  Will throw error if the cast failed.
+
+[b]Repo[/b]
+   ﻿Repo.Repo - Direct access to the game's [font=Courier New]DefRepository[/font].
+   ﻿Repo.Get( string ) - Find a BaseDef from guid, name, or path.  Name and path are cached and should be faster than you doing the seek.
+   ﻿Repo.Get( type, string ) - Find a Def from guid, name, or path.  type must be a subclass of BaseDef.  You usually want to use this method.
+   ﻿Repo.GetAll( string or type ) - Find all BaseDef of a given name, path, or type.
+   ﻿Repo.GetAll( type, string) - Find all Def of a given name or path of given type.  Type must be a subclass of BaseDef.
+
+[b]Damage[/b]
+   ﻿Damage.Parse( string ) - Find DamageKeywordDef from string - acid, blast, bleed, fire, goo, mist, paralyse, pierce, poison, psychic, shock, shred, sonic, syphon/vampiric, viral, virophage, and normal.  Default to normal if no name supplied.
+   WeaponDef.GetDamage(, string / DamageKeywordDef ) - Get the weapon's damage number (float) of a specific damage type.
+   WeaponDef.SetDamage( string / DamageKeywordDef, float ) Set the weapon's damage and return the weapon (for call chains).
+   WeaponDef.AddDamage( string / DamageKeywordDef, float ) - Add damage number and return the weapon.
+   WeaponDef.ExchangeDamage( string / DamageKeywordDef, float ) - Set damage and return original damage.
+   WeaponDef.CompareExchangeDamage( string / DamageKeywordDef, float ) - Set to second damage if it matches the first, and return the result (float).
+   ﻿WeaponDef.Acid( float ) - Set or remove Acid damage, and return the weapn.
+   ﻿WeaponDef.Damage( float ) - Set or remove normal damage, and return the weapn.
+   ﻿WeaponDef.Blast( float ) / WeaponDef.Bleed( float ) / WeaponDef.Fire( float ) / WeaponDef.Goo( float) etc. - ditto
+
+[size=5][b]API (Modnix)[/b][/size]
+
+The API may be called by other mods.  If Debug Console is installed, they may also be called through the "modnix" console command.
+
+Note: Like helpers, the pp.def and pp.defs APIs may be moved out in the future, but as of writing there is no roadmap.
+
+[b]eval.js
+[/b]   ﻿Param: string
+   ﻿Return: object
+   ﻿Evaluates parameter as JavaScript and return the result.  Each calling mod get their own context which is not shared with other mods.
+
+[b]pp.def[/b]
+   Spec: null, "guid", "name", or "path".  Unrecognised spec will be regarded as null.
+   ﻿﻿Param: string or Type
+   ﻿Return: BaseDef
+   ﻿Find the first BaseDef in the game's [font=Courier New]DefRepository[/font] whose guid/name/path/type matches the given parameter.  If no spec is provided, the api will intelligently detect the spec from the param.
+
+[b]pp.defs[/b]
+   ﻿Find the first BaseDef in game's [font=Courier New]DefRepository[/font] whose guid/name/path/type matches the given parameter.  If no spec is 
+provided, the api will intelligently detect the spec from the param.
+   Spec: null, "guid", "name", or "path".  Unrecognised spec will be regarded as null.
+   ﻿﻿Param: string or Type
+   ﻿Return: IEnumerable<BaseDef>
+   ﻿Find all BaseDef in the game's [font=Courier New]DefRepository[/font] whose guid/name/path/type matches the given parameter.  If no spec is 
+provided, the api will intelligently detect the spec from the param.

@@ -98,6 +98,7 @@
     <EmbeddedResource Include="changelog.md" />
     <None Include="app.config" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="readme.bbcode" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="mod_info.js" />
