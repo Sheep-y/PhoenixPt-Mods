@@ -1,5 +1,6 @@
 ﻿using Base.Core;
 using Base.Defs;
+using Microsoft.ClearScript;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Tactical.Entities.DamageKeywords;
 using PhoenixPoint.Tactical.Entities.Weapons;
@@ -23,6 +24,13 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          var result = Call ( action, param );
          if ( result is Exception ex ) throw ex;
          return (T) result;
+      }
+   }
+
+   public static class PatchHelper {
+      public static void Run ( ScriptObject callback ) {
+         Action action = () => callback.Invoke( false );
+         ZyMod.Info( action.Method );
       }
    }
 
