@@ -9,16 +9,16 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
    internal class ScriptingExt : ZyMod {
 
       internal static void RegisterAPI () {
-         Api( "api_add eval.js", (ModnixAPI) API_Eval_CS );
-         //Api( "api_add zy.eval.cs", (ModnixAPI) API_Eval_CS );
+         Api( "api_add eval.js", (ModnixAPI) API_Eval_JS );
+         //Api( "api_add zy.eval.js", (ModnixAPI) API_Eval_CS );
       }
 
-      private static object API_Eval_CS ( string spec, object param ) {
+      private static object API_Eval_JS ( string spec, object param ) {
          var code = param?.ToString();
          if ( string.IsNullOrWhiteSpace( code ) ) return new ArgumentNullException( nameof( param ) );
          if ( ScriptingLibrary.LoadLibraries() is Exception err ) return err;
          Info( "API> {0}", code );
-         var mod = ( Api( "api_stack mod" ) as string[] )?.FirstOrDefault( e => e != "Zy.cSharp" ) ?? "API";
+         var mod = ( Api( "api_stack mod" ) as string[] )?.FirstOrDefault( e => e != "Zy.JavaScript" ) ?? "API";
          return ScriptingEngine.Eval( mod, code );
       }
 

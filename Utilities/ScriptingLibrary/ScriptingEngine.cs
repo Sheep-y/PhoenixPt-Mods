@@ -53,7 +53,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             PrepareEngine( engine );
             lock ( Sessions ) Sessions[ id ] = state;
          }
-         return engine.Evaluate( code );
+         lock ( engine ) return engine.Evaluate( code );
       } catch ( Exception ex ) { return ex; } }
    }
 }

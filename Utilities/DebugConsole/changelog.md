@@ -1,6 +1,6 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
-# Version 7, in development
+# Version 7, 2021-02-01
 
 * Fix: Long, coloured console messages no longer blow up the game with stackoverflow.
 * New api "console.shell start" and "console.shell stop" to create a console shell with caller function.

@@ -7,7 +7,7 @@ Changelog of JavaScript Runtime, a Phoenix Point Mod by Sheepy
 * Mod id changeed to "Zy.JavaScript".
 * Renamed Eval console command to Javascript.
 
-* Refactored helpers due to engine switch.
+* Add and refactor helpers due to engine switch.
 * Moved console shell to Debug Console.  The one-line Eval command still works.
 * Tested on Phoenix Point 1.9.3.66065.
 
