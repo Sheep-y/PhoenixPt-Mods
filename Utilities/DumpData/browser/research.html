@@ -223,20 +223,20 @@ Element.prototype.link = function createLink ( text ) {
    return ce( 'span', esc( text ), prop );
 };
 
-function qs ( root, selector = null ) { return selector ? root.querySelector( selector ) : document.querySelector( root ); }
-function qsa ( root, selector = null ) { return selector ? root.querySelectorAll( selector ) : document.querySelectorAll( root ); }
-function ce ( tag, content, prop = {} ) {
+function qs ( root, selector = null ) { return selector ? root.querySelector( selector ) : document.querySelector( root ); } // QuerySelector
+function qsa ( root, selector = null ) { return selector ? root.querySelectorAll( selector ) : document.querySelectorAll( root ); } // QuerySelectorAll
+function ce ( tag, content, prop = {} ) { // CreateElement
    let open = '<' + tag;
    if ( prop )
       for ( let p in prop )
          open += ' ' + p + '="' + esc( prop[p] ) + '"';
    return open + '>' + content + '</' + tag + '>';
 }
-Element.prototype.ppd = function pp_getDef ( path = '' ) {
+Element.prototype.ppd = function pp_getDef ( path = '' ) { // Phoenix Point Definition - resolves guid to BaseDef
    const guid = path ? this.xps( path + '/@guid' ) : this.getAttribute( 'guid' );
    return guid ? defs.get( guid.toLowerCase() ) : null;
 };
-Element.prototype.ppn = function pp_getName ( name = 0 ) {
+Element.prototype.ppn = function pp_getName ( name = 0 ) { // Phoenix Point Name - get name from ViewElement
    const guid = this.getAttribute( 'guid' ), key = guid ? guid + '-name' + name : '';
    let result = getCache( key ), ele = this, param;
    if ( result ) return result;

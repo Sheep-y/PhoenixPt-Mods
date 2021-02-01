@@ -1,4 +1,5 @@
-﻿[code]﻿[/code]Designed for [url=https://www.nexusmods.com/phoenixpoint/mods/43]Modnix 3[/url] with [url=https://www.nexusmods.com/phoenixpoint/mods/49]Scripting Library[/url].  Other mod loaders may work but would dump less data.
+﻿Designed for [url=https://www.nexusmods.com/phoenixpoint/mods/43]Modnix 3[/url] with [url=https://www.nexusmods.com/phoenixpoint/mods/49]JavaScript Runtime[/url].
+Other mod loaders may work but would dump less data.
 
 This mod will, when you first enter Geoscape after game launch, take the live data from game and export them.
 Modders of all skill levels should find the data useful when modding Phoenix Point.
@@ -8,11 +9,13 @@ In Modnix you can select a mod to see its path, and can click on it to open File
 
 [b]Guid[/b]
 
-[code]Guid.csv[/code] lists the type, guid, name, and current ViewElementDef text (if any) of all Defs in the game.
-You can use it to find the guid / name of every data.  If it is not on the list, it is not in [code]DefRepository[/code].
+[font=Courier New]Guid.csv[/font] lists the type, guid, name, path, and current ViewElement text (if any) of all Defs in the game.
+You can use it to find the guid / name of every data.  If it is not on the list, it is probably not a game data object.
 
-Note that guid of some data types may not stay the same from patch to patch.
-Examples include but are not limited to various [code]RequirementDef[/code], [code]RewardDef[/code], and [code]CostDef[/code].
+Note that guid of some data types may change from patch to patch.
+Examples include but are not limited to various [font=Courier New]RequirementDef[/font], [font=Courier New]RewardDef[/font], and [font=Courier New]CostDef[/font].
+
+The most obvious usage is to find the guid you need to make a [url=https://github.com/tracktwo/ppdefmodifier]PPDefModifier[/url] mod.
 
 [b]BaseDef[/b]
 
@@ -23,7 +26,7 @@ The most obvious application is to learn a data and modify it, whether with PPDe
 The data of Phoenix Point is flexible but complex.  These dumps provide another way to browser them, an alternative to Asset Studio and dnSpy.
 
 XML is chosen for its separation of attribute and value, simple syntax, and mature tools.
-There is no plan to switch to json, but you are free to fork and make a pull request.
+There is no plan to switch to json, but you are free to fork and hack the code, or write an independent converter.
 
 To keep the data file manageable, zeros and empty list are omitted, and most objects have an "id".
 Future occurrence of the same object instance will use "ref" to refer to it.
@@ -32,26 +35,37 @@ Future occurrence of the same object instance will use "ref" to refer to it.
 
 All translatable text in the game are dumped to csv, grouped by their source.
 While you can't import them back, UI mods can use them to find and reuse simple terms and phases to support all official languages.
-Once you got the term, use [code]new LocalizedTextBind( TERM ).Localize()[/code] to translate it into the game's current language.
+Once you got the term, use [font=Courier New]new LocalizedTextBind( TERM ).Localize()[/font] to translate it into the game's current language.
 
 Excel is notoriously fickle when it comes to csv.
 Use a standard-compliance spreadsheet such as [url=https://www.openoffice.org/]OpenOffice[/url], [url=https://www.libreoffice.org/]LibreOffice[/url], or [url=https://www.google.com/sheets/about/]Google Sheets[/url] for best result.
 
-Research translations may be missing.  This should be a vanilla issue as in-game research text also ignore language switch.
+Research translations may be missing.  This should be a vanilla issue as in-game research text also require a restart to switch language.
 
 [b]Console Commands[/b]
 
-[code]ConsoleCommand.csv[/code] lists all registered console commands, including those from active mods if any.
+[font=Courier New]ConsoleCommand.csv[/font] lists all registered console commands, including those from active mods if any.
 You can use [url=https://www.nexusmods.com/phoenixpoint/mods/7]Console Enabler[/url] or [url=https://www.nexusmods.com/phoenixpoint/mods/44/]Debug Console[/url] to enable the in-game console and use the commands.
 
 Note that even built-in commands are unsupported and may change from patch to patch.
-For example the [code]vehicle_destroy[/code] command worked on release but broke in a later patch, and the bug is invisible [i]until[/i] you save the game.
+For example the [font=Courier New]vehicle_destroy[/font] command worked on release but broke in a later patch, and the bug is invisible [i]until[/i] you save the game.
 So, use them at your own risk!
 
 [b]Other data[/b]
 
-Data not listed above can be exported with the help of the Scripting Library mod.
+Data not listed above can be exported with the help of the [url=https://www.nexusmods.com/phoenixpoint/mods/49]JavaScript Runtime[/url] mod.
 
-By default, several game variables such as game difficulties and tactical contribution weights are exported to [code]Data-GameSettings.xml[/code].
+By default, several game variables such as game difficulties and tactical contribution weights are exported to [font=Courier New]Data-GameSettings.xml[/font].
 
-You can rename, change, add, or remove these data by editing the [code]Dump_Others[/code] section in the mod's config.
+You can rename, change, add, or remove these data by editing the [font=Courier New]Dump_Others[/font] section in the mod's config.
+
+[b]Browsers[/b]
+
+Because of my need to maintain the [url=https://github.com/Sheep-y/PhoenixPt-Mods/tree/master/TechTree]Tech Tree[/url],
+I coded a research browser to decipher the technologies.
+
+It is bundled with the mod as a webpage.  Should run on any modern browser.
+Plain good vanilla HTML + CSS + JavaScript, no library used, Internet not required.
+
+Unfortunately, I don't have time to update it for other data.
+If you think you know JavaScript, please help yourself.  Do bring safety gears.  My code can cause brain damage and PTSD.
