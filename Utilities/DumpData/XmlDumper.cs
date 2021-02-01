@@ -238,7 +238,7 @@ namespace Sheepy.PhoenixPt.DumpData {
 
       private void NullMem ( string name ) {
          _StartTag( name );
-         Writer.Write( " null=\"1\"/>" );
+         Writer.Write( " null=\"\"/>" );
       }
 
       private void _StartTag ( string tag ) {

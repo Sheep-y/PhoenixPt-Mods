@@ -240,7 +240,7 @@ Element.prototype.ppn = function pp_getName ( name = 0 ) { // Phoenix Point Name
    const guid = this.getAttribute( 'guid' ), key = guid ? guid + '-name' + name : '';
    let result = getCache( key ), ele = this, param;
    if ( result ) return result;
-   if ( ele.getAttribute( 'null' ) ) return '';
+   if ( ele.hasAttribute( 'null' ) ) return '';
    else if ( ! ele.firstElementChild ) ele = ele.ppd();
    const view = ele?.xpn( "ViewElementDef" ) || ele?.xpn( "ViewElement" );
    if ( ! view ) debugger;
