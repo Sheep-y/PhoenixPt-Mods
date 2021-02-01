@@ -58,7 +58,7 @@ Note that it is non-trivial.  If it is trivial, you are doing it wrong.  For exa
 
 ClearScript is a great library.  Microsoft have made sure that most concepts are transparently translated.
 For example, generic methods just require you to pass in a type as the generic parameter, e.g. [font=Courier New]Repo.Get( GeoVehicleDef, "name" )[/font]
-IEnumerables from C# can be looped with for..of, e.g. [font=Courier New]for ( let v of Repo.GetAll( GeoVehicleDef ) ) console.log( v )[/font]
+IEnumerables from C# can be looped with for..of, e.g. [font=Courier New]for ( let v of Repo.getAll( GeoVehicleDef ) ) console.log( v )[/font]
 
 For more details, read the [url=https://microsoft.github.io/ClearScript/Tutorial/FAQtorial]ClearScript FAQtorial[/url].  The [font=Courier New]ExtendedHostFunctions[/font] object can be accessed as [font=Courier New]host[/font] and [font=Courier New]xHost[/font], so most examples should work as long as you do them in order.
 
@@ -71,44 +71,46 @@ Other classes can be imported through the host / xHost object.
 You can access these helpers from within JavaScript.  They are thread-safe.
 You can also access all game types without writing their namespace - they have already been "imported".
 
-Note: The Repo and Damage helpers may be moved into an independent mod in the future, but there is no roadmap yet on when that may happen.
+All helpers have both C# style methods (GetAll) and JS style methods (getAll), except console which only have lowercase methods.
+The Repo and Damage helpers may be moved into an independent mod in the future, but there is no roadmap yet on when that may happen.
 
 [b]console[/b]
 Offers basic console methods such as console.log, .error, .warn, .debug (maps to verbose level), .trace etc.
 If you want to log a formatted message, you must use Unity's tags and C# composit formatting.  e.g. [code]console.log( '<color=blue>{0}</color>', 123 )[/code]
+
 [b]Log[/b]   
-   ﻿Log.Error
-   ﻿Log.Warn
-   ﻿Log.Info - Log
-   ﻿Log.Verbo / Log.Verbose - Call API to log message at verbose level.
+   ﻿Log.error
+   ﻿Log.warn
+   ﻿Log.info - Log
+   ﻿Log.verbo / Log.verbose - Call API to log message at verbose level.
 
 [b]Api[/b]
-   ﻿Api.Call( string, object... ) - Call Modnix API.
-   ﻿Api.Call( type, string, object... ) - Call Modnix API and cast result to specific type.  Will throw error if the cast failed.
+   ﻿Api.call( string, object... ) - Call Modnix API.
+   ﻿Api.call( type, string, object... ) - Call Modnix API and cast result to specific type.  Will throw error if the cast failed.
 
 [b]Repo[/b]
-   ﻿Repo.Repo - Direct access to the game's [font=Courier New]DefRepository[/font].
-   ﻿Repo.Get( string ) - Find a BaseDef from guid, name, or path.  Name and path are cached and should be faster than you doing the seek.
-   ﻿Repo.Get( type, string ) - Find a Def from guid, name, or path.  type must be a subclass of BaseDef.  You usually want to use this method.
-   ﻿Repo.GetAll( string or type ) - Find all BaseDef of a given name, path, or type.
-   ﻿Repo.GetAll( type, string) - Find all Def of a given name or path of given type.  Type must be a subclass of BaseDef.
+   ﻿Repo.repo - Direct access to the game's [font=Courier New]DefRepository[/font].
+   ﻿Repo.get( string ) - Find a BaseDef from guid, name, or path.  Name and path are cached and should be faster than you doing the seek.
+   ﻿Repo.get( type, string ) - Find a Def from guid, name, or path.  type must be a subclass of BaseDef.  You usually want to use this method.
+   ﻿Repo.getAll( string or type ) - Find all BaseDef of a given name, path, or type.
+   ﻿Repo.getAll( type, string) - Find all Def of a given name or path of given type.  Type must be a subclass of BaseDef.
 
 [b]Damage[/b]
    ﻿Damage.Parse( string ) - Find DamageKeywordDef from string - acid, blast, bleed, fire, goo, mist, paralyse, pierce, poison, psychic, shock, shred, sonic, syphon/vampiric, viral, virophage, and normal.  Default to normal if no name supplied.
-   WeaponDef.GetDamage(, string / DamageKeywordDef ) - Get the weapon's damage number (float) of a specific damage type.
-   WeaponDef.SetDamage( string / DamageKeywordDef, float ) Set the weapon's damage and return the weapon (for call chains).
-   WeaponDef.AddDamage( string / DamageKeywordDef, float ) - Add damage number and return the weapon.
-   WeaponDef.ExchangeDamage( string / DamageKeywordDef, float ) - Set damage and return original damage.
-   WeaponDef.CompareExchangeDamage( string / DamageKeywordDef, float ) - Set to second damage if it matches the first, and return the result (float).
-   ﻿WeaponDef.Acid( float ) - Set or remove Acid damage, and return the weapn.
-   ﻿WeaponDef.Damage( float ) - Set or remove normal damage, and return the weapn.
-   ﻿WeaponDef.Blast( float ) / WeaponDef.Bleed( float ) / WeaponDef.Fire( float ) / WeaponDef.Goo( float) etc. - ditto
+   WeaponDef.getDamage( string / DamageKeywordDef = "normal" ) - Get the weapon's damage number (float) of a specific damage type.
+   WeaponDef.setDamage( float ) Set the weapon's normal damage and return the weapon (for call chains).
+   WeaponDef.setDamage( string / DamageKeywordDef, float ) Set the weapon's damage and return the weapon.
+   WeaponDef.addDamage( string / DamageKeywordDef, float ) - Add damage number and return the new damage.
+   WeaponDef.exchangeDamage( string / DamageKeywordDef, float ) - Set damage and return original damage.
+   WeaponDef.compareExchangeDamage( string / DamageKeywordDef, float, float ) - Set to first damage if the original matches the second, and always return the original.
+   ﻿WeaponDef.acid() - Get Acid damage.  Same for Blast / Bleed / Damage / Fire etc.
+   ﻿WeaponDef.acid( float ) - Set or remove Acid damage, and return the weapon. Same for Blast / Bleed / Damage / Fire etc.
 
 [size=5][b]API (Modnix)[/b][/size]
 
 The API may be called by other mods.  If Debug Console is installed, they may also be called through the "modnix" console command.
 
-Note: Like helpers, the pp.def and pp.defs APIs may be moved out in the future, but as of writing there is no roadmap.
+Like helpers, the pp.def and pp.defs APIs may be moved out in the future, but as of writing there is no roadmap.
 
 [b]eval.js
 [/b]   ﻿Param: string
