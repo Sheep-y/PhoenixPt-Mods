@@ -1,13 +1,13 @@
 Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
-# Version 2.2, in development
+# Version 2.2, 2021-02-01
 
 * Fix: Directory with same name as dump files will now be deleted for the dumps.
 * Add research browser, an offline html page that can load and better present research data.
 * Add AIActionDef, HumanCustomizationDef, and SharedGameTagsDataDef.
 * Split EntitlementDef to a separate dump file by default.
 * New guid dump column: ResourcePath.
-* Dump_Others now ignore empty entries.
+* Dump_Others now ignore empty entries, and switched from eval.cs to eval.js.
 * Better fill Guid dump's view element columns.
 
 # Version 2.1, 2020-08-29

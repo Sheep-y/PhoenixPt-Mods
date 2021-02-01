@@ -216,7 +216,7 @@ namespace Sheepy.PhoenixPt.DumpData {
          var list = Config.Dump_Others.Where( e => ! string.IsNullOrWhiteSpace( e ) ).ToArray();
          if ( list == null || list.Length == 0 ) return;
          if ( Api( "api_info", "eval.js" ) == null ) {
-            Warn( "'Dump_Others' requires Scripting Library or other mod that provides the 'eval.js' api.  Delete the lines or change it to 'null' to remove this warning." );
+            Warn( "'Dump_Others' requires JavaScript Runtime or other mod that provides the 'eval.js' api.  Delete the lines or change it to 'null' to remove this warning." );
             return;
          }
          for ( var i = 0 ; i < list.Length-1 ; i += 2 ) {
