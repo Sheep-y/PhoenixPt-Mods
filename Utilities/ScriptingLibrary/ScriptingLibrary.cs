@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
@@ -20,6 +21,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          Task.Run( () => Api( "eval.js", "\"Scripting Warmup\"" ) );
       }
 
+      private static Regex codeFormat = new Regex( "\r?\n\\s*", RegexOptions.Compiled );
       private static readonly string[] ScriptNames = new string[] { "js", "javascript", "ecmascript" };
 
       public static object ActionMod ( string modId, Dictionary<string,object> action ) { try {
@@ -27,7 +29,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          if ( action?.TryGetValue( "eval", out value ) != true || ! ( value is string code ) ) return false;
          if ( action?.TryGetValue( "script", out lang ) != true || ! ( lang is string l ) || ! ScriptNames.Contains( l.Trim().ToLowerInvariant() ) ) return false;
          if ( Eval_Lib_Result is Exception lib_err ) return lib_err;
-         Info( "Action> {0}", code );
+         Func< string > codeFmt = () => codeFormat.Replace( code, " " );
+         Info( "Action> {0}", codeFmt );
          var result = ScriptingEngine.Eval( modId, code );
          if ( result is Exception ev_err ) return ev_err;
          Verbo( "Action< {0}", result );
