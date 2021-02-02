@@ -1,5 +1,10 @@
 Changelog of JavaScript Runtime, a Phoenix Point Mod by Sheepy
 
+# Version 2.1, in development
+
+* Added all Unity namespaces as the Unity object.
+* Import all UnityEngine.CoreModule classes to global.
+
 # Version 2, 2021-02-01
 
 * Switch to ClearScript to support V8 engine.  Renamed from Scripting Library to JavaScript Runtime.

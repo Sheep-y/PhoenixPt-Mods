@@ -3,6 +3,7 @@ using Microsoft.ClearScript.V8;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
@@ -13,11 +14,14 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static void PrepareEngine ( V8ScriptEngine engine ) {
          lock ( HostObjects ) {
             if ( HostObjects.Count == 0 ) {
-               Verbo( "Listing game object types" );
+               Verbo( "Listing assemblies" );
                HostObjects.Add( "host", new ExtendedHostFunctions() );
                HostObjects.Add( "xHost", new ExtendedHostFunctions() );
                HostObjects.Add( "DotNet", new HostTypeCollection( "mscorlib", "System", "System.Core", "System.Numerics" ) );
                HostObjects.Add( "Game", new HostTypeCollection( "Assembly-CSharp" ) );
+               HostObjects.Add( "Unity", new HostTypeCollection(
+                  AppDomain.CurrentDomain.GetAssemblies().Select( e => e.GetName().Name ).Where( e => e.StartsWith( "UnityEngine." ) ).ToArray() ) );
+               Verbo( "Listing game object types" );
                HostTypes.Add( "Api", typeof( ApiHelper ) );
                HostTypes.Add( "Log", typeof( LogHelper ) );
                HostTypes.Add( "Repo", typeof( RepoHelper ) );
@@ -25,7 +29,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
                //HostTypes.Add( "Patch", typeof( PatchHelper ) );
                HostTypes.Add( "Damage", typeof( DamageHelpers ) );
                HostTypes.Add( "Enumerable", typeof( Enumerable ) );
-               foreach ( var type in GameAssembly.GetTypes() ) {
+               foreach ( var type in GameAssembly.GetTypes().Concat( Assembly.Load( "UnityEngine.CoreModule" ).GetTypes() )  ) {
                   var name = type.Name;
                   if ( name == "JSON" ) continue;
                   if ( HostTypes.ContainsKey( name ) || HostObjects.ContainsKey( name ) ) continue;
