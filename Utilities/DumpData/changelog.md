@@ -10,6 +10,7 @@ Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 * Dump_Others now ignore empty entries, and switched from eval.cs to eval.js.
 * Better fill Guid dump's view element columns.
 * Null attributes are now empty, instead of having "1".  Use hasAttribute to test null.
+* Tested on Phoenix Point 1.9.3.66065.
 
 # Version 2.1, 2020-08-29
 

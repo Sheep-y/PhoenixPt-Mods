@@ -1,6 +1,6 @@
 Changelog of JavaScript Runtime, a Phoenix Point Mod by Sheepy
 
-# Version 2.1, in development
+# Version 2.1, 2021-02-02
 
 * Added all Unity namespaces as the Unity object.
 * Import all UnityEngine.CoreModule classes to global.
