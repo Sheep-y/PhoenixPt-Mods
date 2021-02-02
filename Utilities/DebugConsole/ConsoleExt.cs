@@ -56,7 +56,10 @@ namespace Sheepy.PhoenixPt.DebugConsole {
       private static readonly string[] SkipAssembly = new string[]{
           "0Harmony,",
           "Assembly-CSharp,",
+          "Boo.Lang,",
           "Cinemachine,",
+          "ClearScript.",
+          "Facepunch.",
           "HarmonySharedState,",
           "Ionic.Zip.Unity,",
           "Microsoft.",
@@ -65,6 +68,7 @@ namespace Sheepy.PhoenixPt.DebugConsole {
           "netstandard",
           "Newtonsoft.Json,",
           "QHierarchy",
+          "SonyPS4",
           "System,",
           "System.",
           "Unity,",

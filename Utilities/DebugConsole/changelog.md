@@ -1,5 +1,9 @@
 Changelog of Debug Console, a Phoenix Point Mod by Sheepy
 
+# Version 7.1, in development
+
+* Command scan now skips some newly added game libraries and scripting libraries.
+
 # Version 7, 2021-02-01
 
 * Fix: Long, coloured console messages no longer blow up the game with stackoverflow.
