@@ -11,7 +11,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static readonly Dictionary< string, object > HostObjects = new Dictionary<string, object>();
       private static readonly Dictionary< string, Type > HostTypes = new Dictionary<string, Type>();
 
-      private static void PrepareEngine ( V8ScriptEngine engine ) {
+      private static V8ScriptEngine NewEngine () {
+         var engine = new V8ScriptEngine( V8ScriptEngineFlags.DisableGlobalMembers );
          lock ( HostObjects ) {
             if ( HostObjects.Count == 0 ) {
                Verbo( "Listing assemblies" );
@@ -25,6 +26,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
                HostTypes.Add( "Api", typeof( ApiHelper ) );
                HostTypes.Add( "Log", typeof( LogHelper ) );
                HostTypes.Add( "Repo", typeof( RepoHelper ) );
+               HostTypes.Add( "Reflection", typeof( ReflectionHelper ) );
                HostTypes.Add( "console", typeof( ConsoleHelper ) );
                //HostTypes.Add( "Patch", typeof( PatchHelper ) );
                HostTypes.Add( "Damage", typeof( DamageHelpers ) );
@@ -38,11 +40,13 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
                Info( "Found {0} object types to add to JavaScript", HostTypes.Count );
             }
          }
+         engine.AllowReflection = true;
          foreach ( var obj in HostObjects )
             engine.AddHostObject( obj.Key, obj.Value );
          foreach ( var obj in HostTypes )
             engine.AddHostType( obj.Key, obj.Value );
          Verbo( "Engine ready" );
+         return engine;
       }
 
 
@@ -52,10 +56,9 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          object state; // Make sure Mod will not crash when V8 cannot be loaded.
          lock ( Sessions ) Sessions.TryGetValue( id, out state );
          if ( ! ( state is V8ScriptEngine engine ) ) {
-            Verbo( "New eval shell for {0}", id );
-            state = engine = new V8ScriptEngine( V8ScriptEngineFlags.DisableGlobalMembers );
-            PrepareEngine( engine );
-            lock ( Sessions ) Sessions[ id ] = state;
+            Verbo( "New js engine shell for {0}", id );
+            engine = NewEngine();
+            lock ( Sessions ) Sessions[ id ] = engine;
          }
          lock ( engine ) return engine.Evaluate( code );
       } catch ( Exception ex ) { return ex; } }

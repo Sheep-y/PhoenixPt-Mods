@@ -88,6 +88,18 @@ If you want to log a formatted message, you must use Unity's tags and C# composi
    ﻿Api.call( string, object... ) - Call Modnix API.
    ﻿Api.call( type, string, object... ) - Call Modnix API and cast result to specific type.  Will throw error if the cast failed.
 
+[b]Reflection[/b]
+   GameAssembly => The game's assembly.
+   GetType( string ) => Find and return a type by name. Null if not found.
+   AnyBinding => BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
+   (extensions)
+   Type.FindField( string ) - Find all field of the given name (any binding), returns IEnumerable<FieldInfo>.
+   Type.FindFields( string ) - Find all fields of the given name (any binding), returns IEnumerable<FieldInfo>.
+   Type.FindMethod( string ) - Find first method of the given name (any binding), returns MethodInfo.
+   Type.FindMethods( string ) - Find all methods of the given name (any binding), returns IEnumerable<MethodInfo>.
+   Type.FindPropety( string ) - Find all property of the given name (any binding), returns IEnumerable<PropertyInfo>.
+   Type.FindPropeties( string ) - Find all properties of the given name (any binding), returns IEnumerable<PropertyInfo>.
+
 [b]Repo[/b]
    ﻿Repo.repo - Direct access to the game's [font=Courier New]DefRepository[/font].
    ﻿Repo.get( string ) - Find a BaseDef from guid, name, or path.  Name and path are cached and should be faster than you doing the seek.
@@ -97,6 +109,7 @@ If you want to log a formatted message, you must use Unity's tags and C# composi
 
 [b]Damage[/b]
    ﻿Damage.Parse( string ) - Find DamageKeywordDef from string - acid, blast, bleed, fire, goo, mist, paralyse, pierce, poison, psychic, shock, shred, sonic, syphon/vampiric, viral, virophage, and normal.  Default to normal if no name supplied.
+   (extensions)
    WeaponDef.getDamage( string / DamageKeywordDef = "normal" ) - Get the weapon's damage number (float) of a specific damage type.
    WeaponDef.setDamage( float ) Set the weapon's normal damage and return the weapon (for call chains).
    WeaponDef.setDamage( string / DamageKeywordDef, float ) Set the weapon's damage and return the weapon.

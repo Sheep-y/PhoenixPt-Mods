@@ -1,5 +1,10 @@
 Changelog of JavaScript Runtime, a Phoenix Point Mod by Sheepy
 
+# Version 2.2, in development
+
+* Allow reflection, such as DotNetObject.GetType().
+* New reflection extenstions: FindMethod(s), FindField(s), FindPropert(y|ies).
+
 # Version 2.1, 2021-02-02
 
 * Added all Unity namespaces as the Unity object.
@@ -16,7 +21,7 @@ Changelog of JavaScript Runtime, a Phoenix Point Mod by Sheepy
 * Moved console shell to Debug Console.  The one-line Eval command still works.
 * Tested on Phoenix Point 1.9.3.66065.
 
-# Version Beta, never release
+# Version Beta, never released
 
 * Mod API now run in the Eval context of the caller, inheriting its variables and state.
 * Giving up on 2021 Jan, because can't get the mod to work on on Year One Edition.
@@ -27,7 +32,6 @@ Changelog of JavaScript Runtime, a Phoenix Point Mod by Sheepy
 
 # Version Alpha 0.0.2020.0603
 
-* First public release.
 * Support "Eval" mod actions, with each mod having their own shell.
 * Support "Eval" console command (single line / Eval mode), "eval.cs" Api, "pp.def" Api, "pp.defs" Api.
 * GetDef, GetDefs, and assorted weapon damage helpers.

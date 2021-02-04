@@ -8,6 +8,7 @@ using PhoenixPoint.Tactical.Entities.Weapons;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
@@ -53,12 +54,27 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       }
    }
 
+   public static class ReflectionHelper {
+      public static Assembly GameAssembly => GameAssembly;
+      public static Type GetType ( string name ) => Type.GetType( name, false );
+
+      public const BindingFlags AnyBinding = Static | Instance | Public | NonPublic;
+      public static MethodInfo Method ( this Type cls, string name ) => cls.GetMethod( name, AnyBinding );
+      public static FieldInfo Field ( this Type cls, string name ) => cls.GetField( name, AnyBinding );
+      public static PropertyInfo Property ( this Type cls, string name ) => cls.GetProperty( name, AnyBinding );
+      public static IEnumerable<MethodInfo> Methods ( this Type cls, string name ) => cls.GetMethods( AnyBinding ).Where( e => e.Name == name );
+      public static IEnumerable<FieldInfo> Fields ( this Type cls, string name ) => cls.GetFields( AnyBinding ).Where( e => e.Name == name );
+      public static IEnumerable<PropertyInfo> Properties ( this Type cls, string name ) => cls.GetProperties( AnyBinding ).Where( e => e.Name == name );
+   }
+
+   /*
    public static class PatchHelper {
       public static void Run ( ScriptObject callback ) {
          Action action = () => callback.Invoke( false );
          ZyMod.Info( action.Method );
       }
    }
+   */
 
    public static class RepoHelper {
       private static DefRepository _Repo;
@@ -74,8 +90,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static IEnumerable< BaseDef > getAll ( object nameOrType ) => DataCache.API_PP_Defs( null, nameOrType );
       public static IEnumerable< BaseDef > GetAll ( object nameOrType ) => getAll( nameOrType );
 
-      public static IEnumerable< T > getAll< T > ( object nameOrType = null ) where T : BaseDef => DataCache.API_PP_Defs( null, nameOrType ).OfType<T>();
-      public static IEnumerable< T > GetAll< T > ( object nameOrType = null ) where T : BaseDef => getAll< T >( nameOrType );
+      public static IEnumerable< T > getAll< T > ( string name = null ) where T : BaseDef => DataCache.API_PP_Defs( null, name ).OfType<T>();
+      public static IEnumerable< T > GetAll< T > ( string name = null ) where T : BaseDef => getAll< T >( name );
    }
 
    public static class DamageHelpers {
