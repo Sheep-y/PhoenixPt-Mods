@@ -58,7 +58,6 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
    }
 
    public static class PatchHelper {
-
       public static Assembly GameAssembly => ZyMod.GameAssembly;
       public static Type GetType ( string name ) => GameAssembly.GetType( name, false ) ?? ZyMod.UnityCore.GetType( name, false ) ?? Type.GetType( name, false );
       public static Type GetType< T > () => typeof( T );
@@ -71,55 +70,75 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static IEnumerable<FieldInfo> Fields ( this Type cls, string name ) => cls.GetFields( AnyBinding ).Where( e => e.Name == name );
       public static IEnumerable<PropertyInfo> Properties ( this Type cls, string name ) => cls.GetProperties( AnyBinding ).Where( e => e.Name == name );
 
-      public static void After < T > ( string method, ScriptObject patch ) {
-         var type = typeof( T );
-         var target = type?.Method( method );
-         if ( target == null ) throw new NullReferenceException( type.Name + "." + method + " not found" );
-         ZyMod.Info( patch.GetProperty( "length" ) ?? "no length" );
-         var mod_id = ScriptEngine.Current?.Name ?? "<unknown>";
-         lock ( Postfixes ) {
-            Postfixes.TryGetValue( target, out CallbackList list );
-            if ( list == null ) Postfixes[ target ] = list = new List< KeyValuePair< string, ScriptObject > >();
-            list.Add( new KeyValuePair<string, ScriptObject>( mod_id, patch ) );
-         }
-         Harmony.Patch( target, null, new HarmonyMethod( typeof( PatchHelper ).Method( nameof( PostfixProxy ) ) ) );
-      }
-
       private static readonly HarmonyInstance Harmony = HarmonyInstance.Create( "js.helper" );
       private static readonly IDictionary< MethodBase, CallbackList > Prefixes = new Dictionary< MethodBase, CallbackList >();
       private static readonly IDictionary< MethodBase, CallbackList > Postfixes = new Dictionary< MethodBase, CallbackList >();
       private static readonly IDictionary< MethodBase, CallbackList > ResultPrefixes = new Dictionary< MethodBase, CallbackList >();
       private static readonly IDictionary< MethodBase, CallbackList > ResultPostfixes = new Dictionary< MethodBase, CallbackList >();
 
-      //private static void PostfixResultProxy ( object __instance, ref object __result, object __originalMethod ) {
-      //}
-      private static void PostfixProxy ( object __instance, object __originalMethod ) { try {
-         var method = __originalMethod as MethodBase;
-         CallbackList list = null;
-         lock ( Postfixes ) Postfixes.TryGetValue( method, out list );
-         if ( list.Count == 0 ) lock ( Postfixes ) {
+      public static void Before < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Prefixes, nameof( PrefixProxy ) );
+      public static void After < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Postfixes, nameof( PostfixProxy ) );
+
+      private static void AddPatch ( Type type, string method, ScriptObject patch, IDictionary< MethodBase, CallbackList > map, string patcher ) {
+         var target = type?.Method( method );
+         if ( target == null ) throw new NullReferenceException( type?.Name + "." + method + " not found" );
+         AddPatch( target, patch, map, patcher );
+      }
+
+      private static void AddPatch ( MethodBase target, ScriptObject patch, IDictionary< MethodBase, CallbackList > map, string patcher ) {
+         var mod_id = ScriptEngine.Current?.Name ?? "<unknown>";
+         lock ( map ) {
+            map.TryGetValue( target, out CallbackList list );
+            if ( list == null ) map[ target ] = list = new List< KeyValuePair< string, ScriptObject > >();
+            list.Add( new KeyValuePair<string, ScriptObject>( mod_id, patch ) );
+         }
+         var hfunc = new HarmonyMethod( typeof( PatchHelper ).Method( patcher ) );
+         if ( patcher.IndexOf( "prefix", StringComparison.InvariantCultureIgnoreCase ) >= 0 )
+            Harmony.Patch( target, hfunc );
+         else
+            Harmony.Patch( target, null, hfunc );
+      }
+
+      private static void PrefixProxy ( object __instance, object __originalMethod ) => RunProxy( "prefix", Prefixes, __instance, __originalMethod );
+      private static void PostfixProxy ( object __instance, object __originalMethod ) => RunProxy( "postfix", Postfixes, __instance, __originalMethod );
+
+      private static object RunProxy ( string name, IDictionary< MethodBase, CallbackList > map, params object[] args ) { try {
+         var method = args[ args.Length - 1 ] as MethodBase;
+         KeyValuePair< string, ScriptObject >[] list = null;
+         lock ( map ) {
+            if ( ! map.TryGetValue( method, out CallbackList tmp ) ) return null;
+            list = tmp?.ToArray();
+         }
+         if ( list == null || list.Length == 0 ) return null;
+         foreach ( var patch in list ) {
+            var logArg = new object[]{ name, patch.Key, method.DeclaringType, method.Name };
+            try {
+               ZyMod.Verbo( "Calling {0} patch of {1} on {2}.{3}", logArg );
+               var result = patch.Value.Invoke( false, args );
+               if ( result is bool flag && ! flag && name.IndexOf( "prefix", StringComparison.InvariantCultureIgnoreCase ) >= 0 ) {
+                  ZyMod.Info( "Call aborted by {0} patch of {1} on {2}.{3}:", logArg );
+                  return false;
+               }
+            } catch ( Exception ex ) {
+               ZyMod.Warn( "Error in {0} patch of {1} on {2}.{3}:", logArg );
+               ZyMod.Warn( ex );
+            }
+         }
+         return true;
+      } catch  ( Exception ex ) { ZyMod.Warn( ex ); return ex; } }
+
+      /*
+         if ( list?.Count == 0 ) lock ( map ) {
             if ( list.Count == 0 ) {
-               Postfixes.Remove( method );
+               map.Remove( method );
                list = null;
             }
          }
          if ( list == null ) {
-            Harmony.Unpatch( method, typeof( PatchHelper ).Method( nameof( PostfixProxy ) ) );
-            return;
+            Harmony.Unpatch( method, patcher );
+            return null;
          }
-         ZyMod.Verbo( "Calling {1} postfix patch(es) on {0}", method, list.Count );
-         foreach ( var patch in list ) try {
-            var func = patch.Value;
-            switch ( func.GetProperty( "length" ) ) {
-               case 0 : func.Invoke( false ); break;
-               case 1 : func.Invoke( false, __instance ); break;
-               default: func.Invoke( false, __instance, __originalMethod ); break;
-            }
-         } catch ( Exception ex ) {
-            ZyMod.Warn( "Error in postfix patch of {0} on {1}:", patch.Key, method );
-            ZyMod.Warn( ex );
-         }
-      } catch  ( Exception ex ) { ZyMod.Warn( ex ); } }
+       */
    }
 
    public static class RepoHelper {
