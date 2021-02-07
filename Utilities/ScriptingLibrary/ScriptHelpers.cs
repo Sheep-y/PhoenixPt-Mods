@@ -1,6 +1,7 @@
 ﻿using Base.Core;
 using Base.Defs;
 using Base.Utils.GameConsole;
+using Harmony;
 using Microsoft.ClearScript;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Tactical.Entities.DamageKeywords;
@@ -12,6 +13,8 @@ using System.Reflection;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
+   using CallbackList = IList< KeyValuePair< string, ScriptObject > >;
+
    public static class ConsoleHelper {
       public static void assert ( bool assertion, params object[] args ) { if ( ! assertion ) error( "Assertion failed:", args ); }
 
@@ -54,9 +57,11 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       }
    }
 
-   public static class ReflectionHelper {
-      public static Assembly GameAssembly => GameAssembly;
-      public static Type GetType ( string name ) => Type.GetType( name, false );
+   public static class PatchHelper {
+
+      public static Assembly GameAssembly => ZyMod.GameAssembly;
+      public static Type GetType ( string name ) => GameAssembly.GetType( name, false ) ?? ZyMod.UnityCore.GetType( name, false ) ?? Type.GetType( name, false );
+      public static Type GetType< T > () => typeof( T );
 
       public const BindingFlags AnyBinding = Static | Instance | Public | NonPublic;
       public static MethodInfo Method ( this Type cls, string name ) => cls.GetMethod( name, AnyBinding );
@@ -65,16 +70,57 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static IEnumerable<MethodInfo> Methods ( this Type cls, string name ) => cls.GetMethods( AnyBinding ).Where( e => e.Name == name );
       public static IEnumerable<FieldInfo> Fields ( this Type cls, string name ) => cls.GetFields( AnyBinding ).Where( e => e.Name == name );
       public static IEnumerable<PropertyInfo> Properties ( this Type cls, string name ) => cls.GetProperties( AnyBinding ).Where( e => e.Name == name );
-   }
 
-   /*
-   public static class PatchHelper {
-      public static void Run ( ScriptObject callback ) {
-         Action action = () => callback.Invoke( false );
-         ZyMod.Info( action.Method );
+      public static void After < T > ( string method, ScriptObject patch ) {
+         var type = typeof( T );
+         var target = type?.Method( method );
+         if ( target == null ) throw new NullReferenceException( type.Name + "." + method + " not found" );
+         ZyMod.Info( patch.GetProperty( "length" ) ?? "no length" );
+         var mod_id = ScriptEngine.Current?.Name ?? "<unknown>";
+         lock ( Postfixes ) {
+            Postfixes.TryGetValue( target, out CallbackList list );
+            if ( list == null ) Postfixes[ target ] = list = new List< KeyValuePair< string, ScriptObject > >();
+            list.Add( new KeyValuePair<string, ScriptObject>( mod_id, patch ) );
+         }
+         Harmony.Patch( target, null, new HarmonyMethod( typeof( PatchHelper ).Method( nameof( PostfixProxy ) ) ) );
       }
+
+      private static readonly HarmonyInstance Harmony = HarmonyInstance.Create( "js.helper" );
+      private static readonly IDictionary< MethodBase, CallbackList > Prefixes = new Dictionary< MethodBase, CallbackList >();
+      private static readonly IDictionary< MethodBase, CallbackList > Postfixes = new Dictionary< MethodBase, CallbackList >();
+      private static readonly IDictionary< MethodBase, CallbackList > ResultPrefixes = new Dictionary< MethodBase, CallbackList >();
+      private static readonly IDictionary< MethodBase, CallbackList > ResultPostfixes = new Dictionary< MethodBase, CallbackList >();
+
+      //private static void PostfixResultProxy ( object __instance, ref object __result, object __originalMethod ) {
+      //}
+      private static void PostfixProxy ( object __instance, object __originalMethod ) { try {
+         var method = __originalMethod as MethodBase;
+         CallbackList list = null;
+         lock ( Postfixes ) Postfixes.TryGetValue( method, out list );
+         if ( list.Count == 0 ) lock ( Postfixes ) {
+            if ( list.Count == 0 ) {
+               Postfixes.Remove( method );
+               list = null;
+            }
+         }
+         if ( list == null ) {
+            Harmony.Unpatch( method, typeof( PatchHelper ).Method( nameof( PostfixProxy ) ) );
+            return;
+         }
+         ZyMod.Verbo( "Calling {1} postfix patch(es) on {0}", method, list.Count );
+         foreach ( var patch in list ) try {
+            var func = patch.Value;
+            switch ( func.GetProperty( "length" ) ) {
+               case 0 : func.Invoke( false ); break;
+               case 1 : func.Invoke( false, __instance ); break;
+               default: func.Invoke( false, __instance, __originalMethod ); break;
+            }
+         } catch ( Exception ex ) {
+            ZyMod.Warn( "Error in postfix patch of {0} on {1}:", patch.Key, method );
+            ZyMod.Warn( ex );
+         }
+      } catch  ( Exception ex ) { ZyMod.Warn( ex ); } }
    }
-   */
 
    public static class RepoHelper {
       private static DefRepository _Repo;

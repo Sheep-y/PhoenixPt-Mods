@@ -332,8 +332,13 @@ namespace Sheepy.PhoenixPt {
       #endif
 
       #if ZyLib
-      public static Assembly GameAssembly => Api( "assembly", "game" ) as Assembly
-         ?? AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault( e => e.FullName.StartsWith( "Assembly-CSharp,", StringComparison.OrdinalIgnoreCase ) );
+      public static Assembly GameAssembly => Api( "assembly", "game" ) as Assembly ?? FindAssembly( "Assembly-CSharp" );
+      public static Assembly UnityCore => FindAssembly( "UnityEngine.CoreModule" );
+
+      public static Assembly FindAssembly ( string name ) {
+         if ( ! name.EndsWith( "," ) ) name += ",";
+         return Array.Find( AppDomain.CurrentDomain.GetAssemblies(), e => e.FullName.StartsWith( name, StringComparison.OrdinalIgnoreCase ) );
+      }
       #endif
 
       #if ZyYield

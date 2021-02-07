@@ -11,8 +11,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static readonly Dictionary< string, object > HostObjects = new Dictionary<string, object>();
       private static readonly Dictionary< string, Type > HostTypes = new Dictionary<string, Type>();
 
-      private static V8ScriptEngine NewEngine () {
-         var engine = new V8ScriptEngine( V8ScriptEngineFlags.DisableGlobalMembers );
+      private static V8ScriptEngine NewEngine ( string id ) {
+         var engine = new V8ScriptEngine( id, V8ScriptEngineFlags.DisableGlobalMembers );
          lock ( HostObjects ) {
             if ( HostObjects.Count == 0 ) {
                Verbo( "Listing assemblies" );
@@ -26,7 +26,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
                HostTypes.Add( "Api", typeof( ApiHelper ) );
                HostTypes.Add( "Log", typeof( LogHelper ) );
                HostTypes.Add( "Repo", typeof( RepoHelper ) );
-               HostTypes.Add( "Reflection", typeof( ReflectionHelper ) );
+               HostTypes.Add( "Patch", typeof( PatchHelper ) );
                HostTypes.Add( "console", typeof( ConsoleHelper ) );
                //HostTypes.Add( "Patch", typeof( PatchHelper ) );
                HostTypes.Add( "Damage", typeof( DamageHelpers ) );
@@ -57,7 +57,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
          lock ( Sessions ) Sessions.TryGetValue( id, out state );
          if ( ! ( state is V8ScriptEngine engine ) ) {
             Verbo( "New js engine shell for {0}", id );
-            engine = NewEngine();
+            engine = NewEngine( id );
             lock ( Sessions ) Sessions[ id ] = engine;
          }
          lock ( engine ) return engine.Evaluate( code );
