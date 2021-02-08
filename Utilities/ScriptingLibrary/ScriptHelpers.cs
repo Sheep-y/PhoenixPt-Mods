@@ -57,29 +57,72 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       }
    }
 
-   public static class PatchHelper {
+   public static class ReflectionHelper {
       public static Assembly GameAssembly => ZyMod.GameAssembly;
-      public static Type GetType ( string name ) => GameAssembly.GetType( name, false ) ?? ZyMod.UnityCore.GetType( name, false ) ?? Type.GetType( name, false );
-      public static Type GetType< T > () => typeof( T );
+      public static Assembly UnityCore => ZyMod.UnityCore;
+      public static Type getType ( string name ) => GameAssembly.GetType( name, false ) ?? ZyMod.UnityCore.GetType( name, false ) ?? Type.GetType( name, false );
+      public static Type GetType ( string name ) => getType( name );
+      public static Type getType < T > () => typeof( T );
+      public static Type GetType < T > () => typeof( T );
 
       public const BindingFlags AnyBinding = Static | Instance | Public | NonPublic;
-      public static MethodInfo Method ( this Type cls, string name ) => cls.GetMethod( name, AnyBinding );
-      public static FieldInfo Field ( this Type cls, string name ) => cls.GetField( name, AnyBinding );
-      public static PropertyInfo Property ( this Type cls, string name ) => cls.GetProperty( name, AnyBinding );
-      public static IEnumerable<MethodInfo> Methods ( this Type cls, string name ) => cls.GetMethods( AnyBinding ).Where( e => e.Name == name );
-      public static IEnumerable<FieldInfo> Fields ( this Type cls, string name ) => cls.GetFields( AnyBinding ).Where( e => e.Name == name );
-      public static IEnumerable<PropertyInfo> Properties ( this Type cls, string name ) => cls.GetProperties( AnyBinding ).Where( e => e.Name == name );
+      public static MethodInfo method ( this Type cls, string name ) => cls.GetMethod( name, AnyBinding );
+      public static FieldInfo field ( this Type cls, string name ) => cls.GetField( name, AnyBinding );
+      public static PropertyInfo property ( this Type cls, string name ) => cls.GetProperty( name, AnyBinding );
+      public static IEnumerable<MethodInfo> methods ( this Type cls, string name ) => cls.GetMethods( AnyBinding ).Where( e => e.Name == name );
+      public static IEnumerable<FieldInfo> fields ( this Type cls, string name ) => cls.GetFields( AnyBinding ).Where( e => e.Name == name );
+      public static IEnumerable<PropertyInfo> properties ( this Type cls, string name ) => cls.GetProperties( AnyBinding ).Where( e => e.Name == name );
+      public static MethodInfo Method ( this Type cls, string name ) => method( cls, name );
+      public static FieldInfo Field ( this Type cls, string name ) => field( cls, name );
+      public static PropertyInfo Property ( this Type cls, string name ) => property( cls, name );
+      public static IEnumerable<MethodInfo> Methods ( this Type cls, string name ) => methods( cls, name );
+      public static IEnumerable<FieldInfo> Fields ( this Type cls, string name ) => fields( cls, name );
+      public static IEnumerable<PropertyInfo> Properties ( this Type cls, string name ) => properties( cls, name );
 
+      public const BindingFlags ObjectBinding = Instance | Public | NonPublic;
+      public static object fieldValue ( this object obj, string name ) => obj?.GetType().GetField( name, ObjectBinding )?.GetValue( obj );
+      public static void fieldValue ( this object obj, string name, object value ) => obj?.GetType().GetField( name, ObjectBinding )?.SetValue( obj, value );
+      public static object propertyValue ( this object obj, string name ) => obj?.GetType().GetProperty( name, ObjectBinding )?.GetValue( obj );
+      public static void propertyValue ( this object obj, string name, object value ) => obj?.GetType().GetProperty( name, ObjectBinding )?.SetValue( obj, value );
+      public static void callMethod ( this object obj, string name, params object[] args ) => obj?.GetType().GetMethod( name, ObjectBinding )?.Invoke( obj, args );
+      public static object FieldValue ( this object obj, string name ) => fieldValue( obj, name );
+      public static void FieldValue ( this object obj, string name, object value ) => fieldValue( obj, name, value );
+      public static object PropertyValue ( this object obj, string name ) => propertyValue( obj, name );
+      public static void PropertyValue ( this object obj, string name, object value ) => propertyValue( obj, name, value );
+      public static void CallMethod ( this object obj, string name, params object[] args ) => callMethod( obj, name, args );
+
+      public const BindingFlags StaticBinding = Instance | Public | NonPublic;
+      public static object fieldValue<T> ( string name ) => typeof( T ).GetField( name, StaticBinding )?.GetValue( null );
+      public static void fieldValue<T> ( string name, object value ) => typeof( T ).GetField( name, StaticBinding )?.SetValue( null, value );
+      public static object propertyValue<T> ( string name ) => typeof( T ).GetProperty( name, StaticBinding )?.GetValue( null );
+      public static void propertyValue<T> ( string name, object value ) => typeof( T ).GetProperty( name, StaticBinding )?.SetValue( null, value );
+      public static void callMethod<T> ( string name, params object[] args ) => typeof( T ).GetMethod( name, StaticBinding )?.Invoke( null, args );
+      public static object FieldValue<T> ( string name ) => fieldValue<T>( name );
+      public static void FieldValue<T> ( string name, object value ) => fieldValue<T>( name, value );
+      public static object PropertyValue<T> ( string name ) => propertyValue<T>( name );
+      public static void PropertyValue<T> ( string name, object value ) => propertyValue<T>( name, value );
+      public static void CallMethod<T> ( string name, params object[] args ) => callMethod<T>( name, args );
+   }
+
+   public static class PatchHelper {
       private static readonly HarmonyInstance Harmony = HarmonyInstance.Create( "js.helper" );
       private static readonly IDictionary< MethodBase, CallbackList > Prefixes = new Dictionary< MethodBase, CallbackList >();
       private static readonly IDictionary< MethodBase, CallbackList > Postfixes = new Dictionary< MethodBase, CallbackList >();
       private static readonly IDictionary< MethodBase, CallbackList > ResultPrefixes = new Dictionary< MethodBase, CallbackList >();
       private static readonly IDictionary< MethodBase, CallbackList > ResultPostfixes = new Dictionary< MethodBase, CallbackList >();
 
-      public static void Before < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Prefixes, nameof( PrefixProxy ) );
-      public static void After < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Postfixes, nameof( PostfixProxy ) );
+      public static void prefix < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Prefixes, nameof( PrefixProxy ) );
+      public static void postfix < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Postfixes, nameof( PostfixProxy ) );
+      public static void Prefix < T > ( string method, ScriptObject patch ) => prefix<T>( method, patch );
+      public static void Postfix < T > ( string method, ScriptObject patch ) => postfix<T>( method, patch );
+      public static void before < T > ( string method, ScriptObject patch ) => prefix<T>( method, patch );
+      public static void after < T > ( string method, ScriptObject patch ) => postfix<T>( method, patch );
+      public static void Before < T > ( string method, ScriptObject patch ) => prefix<T>( method, patch );
+      public static void After < T > ( string method, ScriptObject patch ) => postfix<T>( method, patch );
 
       private static void AddPatch ( Type type, string method, ScriptObject patch, IDictionary< MethodBase, CallbackList > map, string patcher ) {
+         ZyMod.Info( "Adding patch" );
+         ZyMod.Api( "log flush" );
          var target = type?.Method( method );
          if ( target == null ) throw new NullReferenceException( type?.Name + "." + method + " not found" );
          AddPatch( target, patch, map, patcher );
