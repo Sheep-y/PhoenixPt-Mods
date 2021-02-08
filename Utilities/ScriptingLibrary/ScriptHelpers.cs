@@ -57,7 +57,30 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       }
    }
 
-   public static class ReflectionHelper {
+   public static class ExtensionHelper {
+      public static MethodInfo method ( this Type cls, string name ) => cls.GetMethod( name, PhoenixPt.ScriptingLibrary.Espy.AnyBinding );
+      public static FieldInfo field ( this Type cls, string name ) => cls.GetField( name, PhoenixPt.ScriptingLibrary.Espy.AnyBinding );
+      public static PropertyInfo property ( this Type cls, string name ) => cls.GetProperty( name, PhoenixPt.ScriptingLibrary.Espy.AnyBinding );
+      public static IEnumerable<MethodInfo> methods ( this Type cls, string name ) => cls.GetMethods( PhoenixPt.ScriptingLibrary.Espy.AnyBinding ).Where( e => e.Name == name );
+      public static IEnumerable<FieldInfo> fields ( this Type cls, string name ) => cls.GetFields( PhoenixPt.ScriptingLibrary.Espy.AnyBinding ).Where( e => e.Name == name );
+      public static IEnumerable<PropertyInfo> properties ( this Type cls, string name ) => cls.GetProperties( PhoenixPt.ScriptingLibrary.Espy.AnyBinding ).Where( e => e.Name == name );
+      public static MethodInfo Method ( this Type cls, string name ) => method( cls, name );
+      public static FieldInfo Field ( this Type cls, string name ) => field( cls, name );
+      public static PropertyInfo Property ( this Type cls, string name ) => property( cls, name );
+      public static IEnumerable<MethodInfo> Methods ( this Type cls, string name ) => methods( cls, name );
+      public static IEnumerable<FieldInfo> Fields ( this Type cls, string name ) => fields( cls, name );
+      public static IEnumerable<PropertyInfo> Properties ( this Type cls, string name ) => properties( cls, name );
+
+      public static Espy espy ( this object instance ) => PhoenixPt.ScriptingLibrary.Espy.create( instance );
+      public static Espy Espy ( this object instance ) => espy( instance );
+      public static object espy ( this object instance, string member ) {
+         var type = instance.GetType().GetMember( member, PhoenixPt.ScriptingLibrary.Espy.create( ) );
+         var e = espy( instance );
+         return e.field( member ) ?? e.property( member );
+      }
+   }
+
+   public class Espy {
       public static Assembly GameAssembly => ZyMod.GameAssembly;
       public static Assembly UnityCore => ZyMod.UnityCore;
       public static Type getType ( string name ) => GameAssembly.GetType( name, false ) ?? ZyMod.UnityCore.GetType( name, false ) ?? Type.GetType( name, false );
@@ -66,42 +89,48 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static Type GetType < T > () => typeof( T );
 
       public const BindingFlags AnyBinding = Static | Instance | Public | NonPublic;
-      public static MethodInfo method ( this Type cls, string name ) => cls.GetMethod( name, AnyBinding );
-      public static FieldInfo field ( this Type cls, string name ) => cls.GetField( name, AnyBinding );
-      public static PropertyInfo property ( this Type cls, string name ) => cls.GetProperty( name, AnyBinding );
-      public static IEnumerable<MethodInfo> methods ( this Type cls, string name ) => cls.GetMethods( AnyBinding ).Where( e => e.Name == name );
-      public static IEnumerable<FieldInfo> fields ( this Type cls, string name ) => cls.GetFields( AnyBinding ).Where( e => e.Name == name );
-      public static IEnumerable<PropertyInfo> properties ( this Type cls, string name ) => cls.GetProperties( AnyBinding ).Where( e => e.Name == name );
-      public static MethodInfo Method ( this Type cls, string name ) => method( cls, name );
-      public static FieldInfo Field ( this Type cls, string name ) => field( cls, name );
-      public static PropertyInfo Property ( this Type cls, string name ) => property( cls, name );
-      public static IEnumerable<MethodInfo> Methods ( this Type cls, string name ) => methods( cls, name );
-      public static IEnumerable<FieldInfo> Fields ( this Type cls, string name ) => fields( cls, name );
-      public static IEnumerable<PropertyInfo> Properties ( this Type cls, string name ) => properties( cls, name );
-
       public const BindingFlags ObjectBinding = Instance | Public | NonPublic;
-      public static object fieldValue ( this object obj, string name ) => obj?.GetType().GetField( name, ObjectBinding )?.GetValue( obj );
-      public static void fieldValue ( this object obj, string name, object value ) => obj?.GetType().GetField( name, ObjectBinding )?.SetValue( obj, value );
-      public static object propertyValue ( this object obj, string name ) => obj?.GetType().GetProperty( name, ObjectBinding )?.GetValue( obj );
-      public static void propertyValue ( this object obj, string name, object value ) => obj?.GetType().GetProperty( name, ObjectBinding )?.SetValue( obj, value );
-      public static void callMethod ( this object obj, string name, params object[] args ) => obj?.GetType().GetMethod( name, ObjectBinding )?.Invoke( obj, args );
-      public static object FieldValue ( this object obj, string name ) => fieldValue( obj, name );
-      public static void FieldValue ( this object obj, string name, object value ) => fieldValue( obj, name, value );
-      public static object PropertyValue ( this object obj, string name ) => propertyValue( obj, name );
-      public static void PropertyValue ( this object obj, string name, object value ) => propertyValue( obj, name, value );
-      public static void CallMethod ( this object obj, string name, params object[] args ) => callMethod( obj, name, args );
-
       public const BindingFlags StaticBinding = Instance | Public | NonPublic;
-      public static object fieldValue<T> ( string name ) => typeof( T ).GetField( name, StaticBinding )?.GetValue( null );
-      public static void fieldValue<T> ( string name, object value ) => typeof( T ).GetField( name, StaticBinding )?.SetValue( null, value );
-      public static object propertyValue<T> ( string name ) => typeof( T ).GetProperty( name, StaticBinding )?.GetValue( null );
-      public static void propertyValue<T> ( string name, object value ) => typeof( T ).GetProperty( name, StaticBinding )?.SetValue( null, value );
-      public static void callMethod<T> ( string name, params object[] args ) => typeof( T ).GetMethod( name, StaticBinding )?.Invoke( null, args );
-      public static object FieldValue<T> ( string name ) => fieldValue<T>( name );
-      public static void FieldValue<T> ( string name, object value ) => fieldValue<T>( name, value );
-      public static object PropertyValue<T> ( string name ) => propertyValue<T>( name );
-      public static void PropertyValue<T> ( string name, object value ) => propertyValue<T>( name, value );
-      public static void CallMethod<T> ( string name, params object[] args ) => callMethod<T>( name, args );
+      private BindingFlags myBinding => myObj == null ? StaticBinding : ObjectBinding;
+
+      private readonly Type myType;
+      private readonly object myObj;
+
+      public Espy ( Type myType, object myObj = null ) {
+         this.myType = myType;
+         this.myObj = myObj;
+      }
+
+      public static Espy create ( object instance ) => new Espy( instance.GetType(), instance );
+      public static Espy Create ( object instance ) => create( instance );
+      public static Espy create < T > ( object instance = null ) => new Espy( typeof( T ), instance );
+      public static Espy Create < T > ( object instance = null ) => create<T>( instance );
+
+      public FieldInfo[] fields () => myType.GetFields( myBinding );
+      public PropertyInfo[] properties () => myType.GetProperties( myBinding );
+      public MethodInfo[] methods () => myType.GetMethods( myBinding );
+      public FieldInfo[] Fields () => fields();
+      public PropertyInfo[] Properties () => properties();
+      public MethodInfo[] Methods () => methods();
+
+      public object field ( string name ) => myType.GetField( name, myBinding )?.GetValue( myObj );
+      public object property ( string name ) => myType.GetProperty( name, myBinding )?.GetValue( myObj );
+      public object invoke ( string name, params object[] args ) => myType.GetMethod( name, myBinding )?.Invoke( myObj, args );
+      public object Field ( string name ) => field( name );
+      public object Property ( string name ) => property( name );
+      public object Invoke ( string name, params object[] args ) => invoke( name, args );
+
+      public void field ( string name, object value ) => myType.GetField( name, myBinding )?.SetValue( myObj, value );
+      public void property ( string name, object value ) => myType.GetProperty( name, myBinding )?.SetValue( myObj, value );
+      public void Field ( string name, object value ) => field( name, value );
+      public void Property ( string name, object value ) => property( name, value );
+
+      public static object field < T > ( string name ) => create<T>().field( name );
+      public static object property < T > ( string name ) => create<T>().property( name );
+      public static object call < T > ( string name, params object[] args ) => create<T>().invoke( name, args );
+      public static object Field < T > ( string name ) => field<T>( name );
+      public static object Property < T > ( string name ) => property<T>( name );
+      public static object Call < T > ( string name, params object[] args ) => call<T>( name, args );
    }
 
    public static class PatchHelper {

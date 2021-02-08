@@ -3,7 +3,7 @@ Changelog of JavaScript Runtime, a Phoenix Point Mod by Sheepy
 # Version 2.2, in development
 
 * Allow reflection, such as DotNetObject.GetType().
-* New patch helper with reflection extenstions.
+* New patch helper, reflection helper (espy), and reflection extenstions.
 
 # Version 2.1, 2021-02-02
 
