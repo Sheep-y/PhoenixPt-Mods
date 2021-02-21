@@ -28,7 +28,10 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static void info ( object msg, params object[] args ) => ZyMod.Info( msg, args );
       public static void log ( object msg, params object[] args ) => ZyMod.Info( msg, args );
       public static void trace ( object msg, params object[] args ) => ZyMod.Trace( msg, args );
-      public static void warn ( object msg, params object[] args ) => ZyMod.Warn( msg, args );
+      public static void warn ( object msg, params object[] args ) {
+         //ZyMod.Info( ScriptEngine.Current?.Name ?? "<unknown>" );
+         ZyMod.Warn( msg, args );
+      }
    }
 
    public static class LogHelper {
@@ -38,12 +41,12 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static void Info ( object msg, params object[] args ) => info( msg, args );
       public static void Verbo ( object msg, params object[] args ) => verbo( msg, args );
       public static void Verbose ( object msg, params object[] args ) => verbo( msg, args );
-      public static void error ( object msg, params object[] args ) => ZyMod.Error( msg, args );
-      public static void warn ( object msg, params object[] args ) => ZyMod.Warn( msg, args );
+      public static void error ( object msg, params object[] args ) => ConsoleHelper.error( msg, args );
+      public static void warn ( object msg, params object[] args ) => ConsoleHelper.warn( msg, args );
       public static void warning ( object msg, params object[] args ) => warn( msg, args );
-      public static void info ( object msg, params object[] args ) => ZyMod.Info( msg, args );
-      public static void verbo ( object msg, params object[] args ) => ZyMod.Verbo( msg, args );
-      public static void verbose ( object msg, params object[] args ) => ZyMod.Verbo( msg, args );
+      public static void info ( object msg, params object[] args ) => ConsoleHelper.info( msg, args );
+      public static void verbo ( object msg, params object[] args ) => ConsoleHelper.debug( msg, args );
+      public static void verbose ( object msg, params object[] args ) => verbo( msg, args );
    }
 
    public static class ApiHelper {
@@ -151,22 +154,22 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static readonly HarmonyInstance Harmony = HarmonyInstance.Create( "js.helper" );
       private static readonly IDictionary< MethodBase, CallbackList > Prefixes = new Dictionary< MethodBase, CallbackList >();
       private static readonly IDictionary< MethodBase, CallbackList > Postfixes = new Dictionary< MethodBase, CallbackList >();
-      private static readonly IDictionary< MethodBase, CallbackList > ResultPostfixes = new Dictionary< MethodBase, CallbackList >();
+      private static readonly IDictionary< MethodBase, CallbackList > PrefixReturns = new Dictionary< MethodBase, CallbackList >();
+      private static readonly IDictionary< MethodBase, CallbackList > PostfixReturns = new Dictionary< MethodBase, CallbackList >();
 
       public static void prefix < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Prefixes, nameof( PrefixProxy ) );
       public static void postfix < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Postfixes, nameof( PostfixProxy ) );
+      public static void prefixReturn < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, PrefixReturns, nameof( PreReturnProxy ) );
+      public static void postfixReturn < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, PostfixReturns, nameof( PostReturnProxy ) );
       public static void Prefix < T > ( string method, ScriptObject patch ) => prefix<T>( method, patch );
       public static void Postfix < T > ( string method, ScriptObject patch ) => postfix<T>( method, patch );
+      public static void PrefixReturn < T > ( string method, ScriptObject patch ) => prefixReturn< T >( method, patch );
+      public static void PostfixReturn < T > ( string method, ScriptObject patch ) => postfixReturn< T >( method, patch );
 
       private static void AddPatch ( Type type, string method, ScriptObject patch, IDictionary< MethodBase, CallbackList > map, string patcher ) {
-         ZyMod.Info( "Adding patch" );
-         ZyMod.Api( "log flush" );
+         ZyMod.Info( "Adding {0} patch {1} to {2}.{3}", patcher.Replace( "Proxy", "" ), patch.GetProperty( "name" ) ?? "<anonymous>", type, method );
          var target = type?.Method( method );
          if ( target == null ) throw new NullReferenceException( type?.Name + "." + method + " not found" );
-         AddPatch( target, patch, map, patcher );
-      }
-
-      private static void AddPatch ( MethodBase target, ScriptObject patch, IDictionary< MethodBase, CallbackList > map, string patcher ) {
          var mod_id = ScriptEngine.Current?.Name ?? "<unknown>";
          lock ( map ) {
             map.TryGetValue( target, out CallbackList list );
@@ -180,11 +183,50 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             Harmony.Patch( target, null, hfunc );
       }
 
+      private static bool PrefixProxy ( object __instance, MethodBase __originalMethod ) => RunProxy( "prefix", Prefixes, __instance, __originalMethod );
+      private static void PostfixProxy ( object __instance, MethodBase __originalMethod ) => RunProxy( "postfix", Postfixes, __instance, __originalMethod );
+      private static void PreReturnProxy ( ref object __result, object __instance, MethodBase __originalMethod ) => RunResultProxy( "prefixReturn", PrefixReturns, ref __result, __instance, __originalMethod );
+      private static void PostReturnProxy ( ref object __result, object __instance, MethodBase __originalMethod ) => RunResultProxy( "postfixReturn", PostfixReturns, ref __result, __instance, __originalMethod );
+
+      private static bool RunProxy ( string name, IDictionary< MethodBase, CallbackList > map, object instance, MethodBase method )
+         => RunPatches( name, map, new PatchEvent( instance, method, name == "prefix", false, null ) );
+      private static bool RunResultProxy ( string name, IDictionary< MethodBase, CallbackList > map, ref object result, object instance, MethodBase method )
+         => RunPatches( name, map, new PatchEvent( instance, method, name == "prefixReturn", true, result ) );
+
+      private static bool RunPatches ( string name, IDictionary< MethodBase, CallbackList > map, PatchEvent evt ) { try {
+         foreach ( var patch in GetPatchList( map, evt.targetMethod ) ) {
+            var logArg = new object[]{ name, patch.Key, evt.targetMethod.DeclaringType, evt.targetMethod.Name };
+            try {
+               ZyMod.Verbo( "Calling {0} patch of {1} on {2}.{3}", logArg );
+               var func = patch.Value.InvokeMethod( "bind", new object[]{ evt.instance } ) as ScriptObject ?? patch.Value;
+               func.Invoke( false, new object[]{ evt } );
+               if ( evt.aborted ) {
+                  ZyMod.Info( "Call aborted by {0} patch of {1} on {2}.{3}:", logArg );
+                  return false;
+               }
+            } catch ( Exception ex ) {
+               ZyMod.Warn( "Error in {0} patch of {1} on {2}.{3}:", logArg );
+               ZyMod.Warn( ex );
+            }
+         }
+         return true;
+      } catch  ( Exception ex ) { ZyMod.Warn( ex ); return true; } }
+
+      private static KeyValuePair< string, ScriptObject >[] GetPatchList ( IDictionary< MethodBase, CallbackList > map, MethodBase method ) {
+         if ( method == null ) return null;
+         lock ( map ) {
+            if ( ! map.TryGetValue( method, out CallbackList tmp ) ) return Array.Empty<KeyValuePair< string, ScriptObject >>();
+            var list = tmp?.ToArray();
+            return list?.Length > 0 ? list : Array.Empty<KeyValuePair< string, ScriptObject >>();
+         }
+      }
+
       public static void unpatchAll () {
          var mod_id = ScriptEngine.Current?.Name ?? "<unknown>";
          Unpatch( mod_id, Prefixes, nameof( PrefixProxy ) );
          Unpatch( mod_id, Postfixes, nameof( PostfixProxy ) );
-         Unpatch( mod_id, ResultPostfixes, nameof( ResultPostfixes ) );
+         Unpatch( mod_id, PrefixReturns, nameof( PreReturnProxy ) );
+         Unpatch( mod_id, PostfixReturns, nameof( PostReturnProxy ) );
       }
       public static void UnpatchAll () => unpatchAll();
 
@@ -200,55 +242,33 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             }
          }
       }
+   }
 
-      private static bool PrefixProxy ( object __instance, MethodBase __originalMethod ) => RunProxy( "prefix", Prefixes, __instance, __originalMethod );
-      private static void PostfixProxy ( object __instance, MethodBase __originalMethod ) => RunProxy( "postfix", Postfixes, __instance, __originalMethod );
+   public class PatchEvent {
+      public readonly object instance;
+      public readonly MethodBase targetMethod;
+      public readonly bool canAbort;
+      public readonly bool hasResult;
+      public readonly object result;
 
-      private static bool RunProxy ( string name, IDictionary< MethodBase, CallbackList > map, object __instance, MethodBase method ) { try {
-         foreach ( var patch in GetPatchList( map, method ) ) {
-            var logArg = new object[]{ name, patch.Key, method.DeclaringType, method.Name };
-            try {
-               ZyMod.Verbo( "Calling {0} patch of {1} on {2}.{3}", logArg );
-               var result = patch.Value.Invoke( false, new object[]{ __instance, method } );
-               if ( result is bool flag && ! flag && name == "prefix" ) {
-                  ZyMod.Info( "Call aborted by {0} patch of {1} on {2}.{3}:", logArg );
-                  return false;
-               }
-            } catch ( Exception ex ) {
-               ZyMod.Warn( "Error in {0} patch of {1} on {2}.{3}:", logArg );
-               ZyMod.Warn( ex );
-            }
-         }
-         return true;
-      } catch  ( Exception ex ) { ZyMod.Warn( ex ); return true; } }
-
-
-      public static void resultPostfix < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, ResultPostfixes, nameof( ResultPostfixProxy ) );
-      public static void ResultPostfix < T > ( string method, ScriptObject patch ) => resultPostfix< T >( method, patch );
-
-      private static void ResultPostfixProxy ( ref object __result, object __instance, MethodBase __originalMethod ) => RunResultProxy( "postfix", Postfixes, ref __result, __instance, __originalMethod );
-
-      private static void RunResultProxy ( string name, IDictionary< MethodBase, CallbackList > map, ref object __result, object __instance, MethodBase method ) { try {
-         foreach ( var patch in GetPatchList( map, method ) ) {
-            var logArg = new object[]{ name, patch.Key, method.DeclaringType, method.Name };
-            try {
-               ZyMod.Verbo( "Calling {0} patch of {1} on {2}.{3}", logArg );
-               __result = patch.Value.Invoke( false, new object[]{ __result, __instance, method } );
-            } catch ( Exception ex ) {
-               ZyMod.Warn( "Error in {0} patch of {1} on {2}.{3}:", logArg );
-               ZyMod.Warn( ex );
-            }
-         }
-      } catch  ( Exception ex ) { ZyMod.Warn( ex ); } }
-
-      private static KeyValuePair< string, ScriptObject >[] GetPatchList ( IDictionary< MethodBase, CallbackList > map, MethodBase method ) {
-         if ( method == null ) return null;
-         lock ( map ) {
-            if ( ! map.TryGetValue( method, out CallbackList tmp ) ) return Array.Empty<KeyValuePair< string, ScriptObject >>();
-            var list = tmp?.ToArray();
-            return list?.Length > 0 ? list : Array.Empty<KeyValuePair< string, ScriptObject >>();
-         }
+      public PatchEvent ( object instance, MethodBase targetMethod, bool canAbort, bool hasResult, object result ) {
+         this.instance = instance;
+         this.targetMethod = targetMethod;
+         this.canAbort = canAbort;
+         this.hasResult = hasResult;
+         if ( hasResult ) this.result = result;
       }
+
+      public bool aborted { get; private set; }
+      public void abort() => aborted = canAbort ? false : true;
+
+      public object Instance => instance;
+      public MethodBase TargetMethod => targetMethod;
+      public bool CanAbort => canAbort;
+      public bool HasResult => hasResult;
+      public object Result => result;
+      public bool Aborted => aborted;
+      public void Abort() => abort();
    }
 
    public static class RepoHelper {
