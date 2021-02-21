@@ -124,10 +124,10 @@ If you want to log a formatted message, you must use Unity's tags and C# composi
    methods () - return a MethodInfo[] of all methods of this instance's (object's) type.
 
 [b]Patch[/b]
-   prefix( type, method, function ) - Add a prefix patch to the type's method.  The function will receive a PatchEvent as parameter.
-   postfix( type, method, function ) - Add a postfix patch to the type's method.  The function will receive a PatchEvent as parameter.
-   prefixReturn( type, method, function ) - Add a prefix patch to the type's method, capturing its return value.  The function will receive a PatchEvent as parameter.
-   postfixReturn( type, method, function ) - Add a postfix patch to the type's method, capturing its return value.  The function will receive a PatchEvent as parameter.
+   prefix( type, method, function ) - Add a Harmony prefix patch to the type's method.  The function will receive a PatchEvent as parameter.
+   postfix( type, method, function ) - Add a Harmony postfix patch to the type's method.  The function will receive a PatchEvent as parameter.
+   prefixReturn( type, method, function ) - Add a Harmony prefix patch to the type's method, capturing its return value.  The function will receive a PatchEvent as parameter.
+   postfixReturn( type, method, function ) - Add a Harmony postfix patch to the type's method, capturing its return value.  The function will receive a PatchEvent as parameter.
    unpatchAll() - Remove all patches added by current mod.
 
 [b]PatchEvent instance[/b]
@@ -138,6 +138,7 @@ If you want to log a formatted message, you must use Unity's tags and C# composi
    result - the result object.  Set this to change the method's result, but will throw exception if hasResult is false.
    abort() - Skip subsequence patches and the original method, if possible.  Only possible for prefix patches.
    aborted - true if abort() was called and canAbort is true.
+   (Note that it is impossible to dynamically capture call parameters.  That must be done with C#.)
 
 [b]Repo[/b]
    ﻿Repo.repo - Direct access to the game's [font=Courier New]DefRepository[/font].
