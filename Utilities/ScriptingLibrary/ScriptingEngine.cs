@@ -12,7 +12,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static readonly Dictionary< string, Type > HostTypes = new Dictionary<string, Type>();
 
       private static V8ScriptEngine NewEngine ( string id ) {
-         var engine = new V8ScriptEngine( id, V8ScriptEngineFlags.DisableGlobalMembers );
+         var engine = new V8ScriptEngine( id ?? "", V8ScriptEngineFlags.DisableGlobalMembers );
          lock ( HostObjects ) {
             if ( HostObjects.Count == 0 ) {
                Verbo( "Listing assemblies" );

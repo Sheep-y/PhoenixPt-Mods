@@ -4,6 +4,7 @@ Changelog of JavaScript Runtime, a Phoenix Point Mod by Sheepy
 
 * Allow reflection, such as DotNetObject.GetType().
 * New patch helper, reflection helper (espy), and reflection extenstions.
+* console log messages are now logged under the mod's name, without tagging JS Runtime.
 
 # Version 2.1, 2021-02-02
 

@@ -8,30 +8,55 @@ using PhoenixPoint.Tactical.Entities.DamageKeywords;
 using PhoenixPoint.Tactical.Entities.Weapons;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using static System.Reflection.BindingFlags;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
+   using Logger = Action< TraceEventType, object, object[] >;
    using CallbackList = IList< KeyValuePair< string, ScriptObject > >;
 
    public static class ConsoleHelper {
       public static void assert ( bool assertion, params object[] args ) { if ( ! assertion ) error( "Assertion failed:", args ); }
-
-      public static void clear () =>
-         typeof( GameConsoleWindow ).GetMethod( "ClearScreen", NonPublic | Public | Static | Instance )?.Invoke( GameConsoleWindow.Create(), Array.Empty<object>() );
-
+      public static void clear () => GameConsoleWindow.Create().espy().invoke( "ClearScreen" );
       public static void dir ( object obj ) => ScriptingExt.WriteToConsole( obj );
+      public static void debug ( object msg, params object[] args ) => GetLogger()( TraceEventType.Verbose, msg, args );
+      public static void error ( object msg, params object[] args ) => GetLogger()( TraceEventType.Error, msg, args );
+      public static void info ( object msg, params object[] args ) => GetLogger()( TraceEventType.Information, msg, args );
+      public static void log ( object msg, params object[] args ) => GetLogger()( TraceEventType.Information, msg, args );
+      public static void trace ( object msg, params object[] args ) => GetLogger()( TraceEventType.Transfer, msg, args );
+      public static void warn ( object msg, params object[] args ) => GetLogger()( TraceEventType.Warning, msg, args );
 
-      public static void debug ( object msg, params object[] args ) => ZyMod.Verbo( msg, args );
-      public static void error ( object msg, params object[] args ) => ZyMod.Error( msg, args );
-      public static void info ( object msg, params object[] args ) => ZyMod.Info( msg, args );
-      public static void log ( object msg, params object[] args ) => ZyMod.Info( msg, args );
-      public static void trace ( object msg, params object[] args ) => ZyMod.Trace( msg, args );
-      public static void warn ( object msg, params object[] args ) {
-         //ZyMod.Info( ScriptEngine.Current?.Name ?? "<unknown>" );
-         ZyMod.Warn( msg, args );
-      }
+      private static System.Collections.IList mods;
+      private static MethodInfo loggerFunc;
+      private static readonly IDictionary< string, Logger > loggerMap = new Dictionary< string, Logger >();
+
+      private static Logger GetLogger () { try {
+         lock ( loggerMap ) {
+               if ( mods == null ) {
+                  var type = ZyMod.FindAssembly( "ModnixLoader" )?.GetType( "Sheepy.Modnix.ModLoader" );
+                  if ( type != null ) mods = Espy.create( type )?.field( "EnabledMods" ) as System.Collections.IList;
+                  if ( mods == null ) mods = new List< object >( 0 );
+                  else {
+                     var loggerType = mods[0].espy().invoke( "Log" )?.GetType();
+                     loggerFunc = loggerType?.GetMethod( "Log", new Type[]{ typeof( TraceEventType ), typeof( object ), typeof( object[] ) } );
+                  }
+               }
+            }
+         var mod_id = ScriptEngine.Current?.Name;
+         Logger result = ZyMod.ApiLog;
+         if ( string.IsNullOrEmpty( mod_id ) || loggerFunc == null ) return result;
+         lock ( loggerMap ) if ( loggerMap.TryGetValue( mod_id, out result ) ) return result;
+         foreach ( var mod in mods ) {
+            if ( mod?.espy( "Metadata" )?.espy( "Id" )?.ToString() != mod_id ) continue;
+            var logger = mod.espy().invoke( "Log" );
+            result = loggerFunc.CreateDelegate( typeof( Logger ), logger ) as Logger ?? result;
+            break;
+         }
+         lock ( loggerMap ) loggerMap.Add( mod_id, result );
+         return result;
+      } catch ( Exception ) { return ZyMod.ApiLog; } }
    }
 
    public static class LogHelper {
@@ -105,7 +130,7 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       public const BindingFlags AnyBinding = Static | Instance | Public | NonPublic;
       public const BindingFlags ObjectBinding = Instance | Public | NonPublic;
-      public const BindingFlags StaticBinding = Instance | Public | NonPublic;
+      public const BindingFlags StaticBinding = Static   | Public | NonPublic;
       private BindingFlags myBinding => myObj == null ? StaticBinding : ObjectBinding;
 
       public readonly Type myType;
@@ -120,6 +145,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static Espy Create ( object instance ) => create( instance );
       public static Espy create < T > ( object instance = null ) => new Espy( typeof( T ), instance );
       public static Espy Create < T > ( object instance = null ) => create<T>( instance );
+      public static Espy create ( Type type ) => new Espy( type, null );
+      public static Espy Create ( Type type ) => create( type );
 
       public FieldInfo[] fields () => myType.GetFields( myBinding );
       public PropertyInfo[] properties () => myType.GetProperties( myBinding );
