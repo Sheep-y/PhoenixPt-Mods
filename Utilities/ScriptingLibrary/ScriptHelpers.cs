@@ -121,16 +121,23 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
    }
 
    public class Espy {
-      public static Assembly GameAssembly => ZyMod.GameAssembly;
-      public static Assembly UnityCore => ZyMod.UnityCore;
+      public static Assembly gameAssembly => ZyMod.GameAssembly;
+      public static Assembly GameAssembly => gameAssembly;
+      public static Assembly unityCore => ZyMod.UnityCore;
+      public static Assembly UnityCore => unityCore;
+
       public static Type getType ( string name ) => GameAssembly.GetType( name, false ) ?? ZyMod.UnityCore.GetType( name, false ) ?? Type.GetType( name, false );
       public static Type GetType ( string name ) => getType( name );
       public static Type getType < T > () => typeof( T );
       public static Type GetType < T > () => typeof( T );
 
-      public const BindingFlags AnyBinding = Static | Instance | Public | NonPublic;
-      public const BindingFlags ObjectBinding = Instance | Public | NonPublic;
-      public const BindingFlags StaticBinding = Static   | Public | NonPublic;
+      public const BindingFlags anyBinding = Static | Instance | Public | NonPublic;
+      public const BindingFlags objectBinding = Instance | Public | NonPublic;
+      public const BindingFlags staticBinding = Static   | Public | NonPublic;
+      public const BindingFlags AnyBinding = anyBinding;
+      public const BindingFlags ObjectBinding = objectBinding;
+      public const BindingFlags StaticBinding = staticBinding;
+
       private BindingFlags myBinding => myObj == null ? StaticBinding : ObjectBinding;
 
       public readonly Type myType;

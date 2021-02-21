@@ -63,8 +63,9 @@ For more details, read the [url=https://microsoft.github.io/ClearScript/Tutorial
 
 Core system classes can be accessed from the DotNet namespace, e.g. [font=Courier New]DotNet.System.Guid[/font]
 Game classes are already imported, but can also be access from the Game namespace, e.g. [font=Courier New]Game.Base.Core.GameUtl[/font]
-Unity CoreModule classes are imported since 2.1, and non-core classes can be accessed from the Unity namespace.
+Unity CoreModule classes are imported since 2.1, and all Unity classes can be accessed from the [font=Courier New]Unity[/font] namespace.
 Other classes can be imported through the host / xHost global object.
+
 
 [size=5][b]Scripting Helpers[/b][/size]
 
@@ -76,29 +77,67 @@ The Repo and Damage helpers may be moved into an independent mod in the future, 
 
 [b]console[/b]
 Offers basic console methods such as console.log, .error, .warn, .debug (maps to verbose level), .trace etc.
-If you want to log a formatted message, you must use Unity's tags and C# composit formatting.  e.g. [code]console.log( '<color=blue>{0}</color>', 123 )[/code]
+If you want to log a formatted message, you must use Unity's tags and C# composite formatting.  e.g. [code]console.log( '<color=blue>{0}</color>', 123 )[/code]
 
-[b]Log[/b]   
-   ﻿Log.error
-   ﻿Log.warn
-   ﻿Log.info - Log
-   ﻿Log.verbo / Log.verbose - Call API to log message at verbose level.
+[b]Log[/b]
+   ﻿Log.error - Log message at error level.
+   ﻿Log.warn - Log message at warning level.
+   ﻿Log.info - Log message at information level.
+   ﻿Log.verbo / Log.verbose - Log message at verbose level.
+   Since version 2.2, console and Log methods will use the calling mod as context (prefix), instead of JavaScript runtime.
 
 [b]Api[/b]
    ﻿Api.call( string, object... ) - Call Modnix API.
    ﻿Api.call( type, string, object... ) - Call Modnix API and cast result to specific type.  Will throw error if the cast failed.
 
-[b]Reflection[/b]
-   GameAssembly => The game's assembly.
-   GetType( string ) => Find and return a type by name. Null if not found.
-   AnyBinding => BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
+[b]Espy[/b]
+   gameAssembly - Get the game's assembly.
+   getType( string ) - Find and return a type by name.  Null if not found.
+   getType( type ) - Return the .Net Type object of the HostType.
+   field( type, string ) - Get the static field value of a type.
+   property( type, string ) - Get the static property value of a type.
+   call( type, string, ... object[] ) - Call the static method of a type and return its result.
+   create( object ) - Create a espy proxy instance for this object.
+   create( type ) - Create a espy proxy instance for this type.
+   anyBinding => BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
+   objectBinding => BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
+   staticBinding => BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic
    (extensions)
-   Type.FindField( string ) - Find all field of the given name (any binding), returns IEnumerable<FieldInfo>.
-   Type.FindFields( string ) - Find all fields of the given name (any binding), returns IEnumerable<FieldInfo>.
-   Type.FindMethod( string ) - Find first method of the given name (any binding), returns MethodInfo.
-   Type.FindMethods( string ) - Find all methods of the given name (any binding), returns IEnumerable<MethodInfo>.
-   Type.FindPropety( string ) - Find all property of the given name (any binding), returns IEnumerable<PropertyInfo>.
-   Type.FindPropeties( string ) - Find all properties of the given name (any binding), returns IEnumerable<PropertyInfo>.
+   Type.field( string ) - Find first field of the given name (any binding), returns FieldInfo.
+   Type.fields( string ) - Find all fields of the given name (any binding), returns IEnumerable<FieldInfo>.
+   Type.method( string ) - Find first method of the given name (any binding), returns MethodInfo.
+   Type.methods( string ) - Find all methods of the given name (any binding), returns IEnumerable<MethodInfo>.
+   Type.propety( string ) - Find first property of the given name (any binding), returns PropertyInfo.
+   Type.propeties( string ) - Find all properties of the given name (any binding), returns IEnumerable<PropertyInfo>.
+   object.espy() - Create a espy instance which helps getting members, setting members, and invoking methods. (See below)
+   object.espy( string ) - Get the value of a field or property.
+   object.espy( string, object ) - Set the value of a field or property.  Return true on success, false on failure.
+
+[b]Espy instance[/b]
+   field( string ) - Get the field value of this instance's object or type.
+   field( string, object ) - Set a field value of this instance's object or type.
+   property( string ) - Get the property value of this instance's object or type.
+   property( string, object ) - Set a property value of this instance's object or type.
+   invoke( string, ... object[] ) - Call the method of this instance's object or type.
+   fields () - return a FieldInfo[] of all fields of this instance's (object's) type.
+   properties () - return a PropertyInfo[] of all properties of this instance's (object's) type.
+   methods () - return a MethodInfo[] of all methods of this instance's (object's) type.
+
+[b]Patch[/b]
+   prefix( type, method, function ) - Add a prefix patch to the type's method.  The function will receive a PatchEvent as parameter.
+   postfix( type, method, function ) - Add a postfix patch to the type's method.  The function will receive a PatchEvent as parameter.
+   prefixReturn( type, method, function ) - Add a prefix patch to the type's method, capturing its return value.  The function will receive a PatchEvent as parameter.
+   postfixReturn( type, method, function ) - Add a postfix patch to the type's method, capturing its return value.  The function will receive a PatchEvent as parameter.
+   unpatchAll() - Remove all patches added by current mod.
+
+[b]PatchEvent instance[/b]
+   instance - the object owning the called method.  Non-arrow functions may also use 'this' instead.  Readonly.
+   targetMethod - the patched method, a MethodInfo.  Readonly.
+   canAbort - true if subsequence patches and the original method can be aborted.  Readonly.
+   hasResult - true if the result can be modified through this event object.  Readonly.
+   result - the result object.  Change this to change the method's result.
+   abort() - Skip subsequence patches and the original method, if possible.  Only possible for prefix patches.
+   aborted - true if abort() was called and canAbort is true.
 
 [b]Repo[/b]
    ﻿Repo.repo - Direct access to the game's [font=Courier New]DefRepository[/font].
