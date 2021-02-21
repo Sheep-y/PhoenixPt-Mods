@@ -74,10 +74,22 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static Espy espy ( this object instance ) => PhoenixPt.ScriptingLibrary.Espy.create( instance );
       public static Espy Espy ( this object instance ) => espy( instance );
       public static object espy ( this object instance, string member ) {
-         var type = instance.GetType().GetMember( member, PhoenixPt.ScriptingLibrary.Espy.create( ) );
-         var e = espy( instance );
-         return e.field( member ) ?? e.property( member );
+         var mem = instance?.GetType()?.GetMember( member, PhoenixPt.ScriptingLibrary.Espy.AnyBinding )?[0];
+         if ( mem == null ) return null;
+         if ( mem is FieldInfo f ) return f.GetValue( instance );
+         else if ( mem is PropertyInfo p ) return p.GetValue( instance );
+         else return null;
       }
+      public static object Espy ( this object instance, string member ) => espy( instance, member );
+      public static bool espy ( this object instance, string member, object value ) {
+         var mem = instance?.GetType()?.GetMember( member, PhoenixPt.ScriptingLibrary.Espy.AnyBinding )?[0];
+         if ( mem == null ) return false;
+         if ( mem is FieldInfo f ) f.SetValue( instance, value );
+         else if ( mem is PropertyInfo p ) p.SetValue( instance, value );
+         else return false;
+         return true;
+      }
+      public static bool Espy ( this object instance, string member, object value ) => espy( instance, member, value );
    }
 
    public class Espy {
@@ -93,8 +105,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public const BindingFlags StaticBinding = Instance | Public | NonPublic;
       private BindingFlags myBinding => myObj == null ? StaticBinding : ObjectBinding;
 
-      private readonly Type myType;
-      private readonly object myObj;
+      public readonly Type myType;
+      public readonly object myObj;
 
       public Espy ( Type myType, object myObj = null ) {
          this.myType = myType;
@@ -131,23 +143,20 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static object Field < T > ( string name ) => field<T>( name );
       public static object Property < T > ( string name ) => property<T>( name );
       public static object Call < T > ( string name, params object[] args ) => call<T>( name, args );
+
+      public override string ToString () => $"Espy({myType.Name})";
    }
 
    public static class PatchHelper {
       private static readonly HarmonyInstance Harmony = HarmonyInstance.Create( "js.helper" );
       private static readonly IDictionary< MethodBase, CallbackList > Prefixes = new Dictionary< MethodBase, CallbackList >();
       private static readonly IDictionary< MethodBase, CallbackList > Postfixes = new Dictionary< MethodBase, CallbackList >();
-      private static readonly IDictionary< MethodBase, CallbackList > ResultPrefixes = new Dictionary< MethodBase, CallbackList >();
       private static readonly IDictionary< MethodBase, CallbackList > ResultPostfixes = new Dictionary< MethodBase, CallbackList >();
 
       public static void prefix < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Prefixes, nameof( PrefixProxy ) );
       public static void postfix < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Postfixes, nameof( PostfixProxy ) );
       public static void Prefix < T > ( string method, ScriptObject patch ) => prefix<T>( method, patch );
       public static void Postfix < T > ( string method, ScriptObject patch ) => postfix<T>( method, patch );
-      public static void before < T > ( string method, ScriptObject patch ) => prefix<T>( method, patch );
-      public static void after < T > ( string method, ScriptObject patch ) => postfix<T>( method, patch );
-      public static void Before < T > ( string method, ScriptObject patch ) => prefix<T>( method, patch );
-      public static void After < T > ( string method, ScriptObject patch ) => postfix<T>( method, patch );
 
       private static void AddPatch ( Type type, string method, ScriptObject patch, IDictionary< MethodBase, CallbackList > map, string patcher ) {
          ZyMod.Info( "Adding patch" );
@@ -171,23 +180,37 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             Harmony.Patch( target, null, hfunc );
       }
 
-      private static void PrefixProxy ( object __instance, object __originalMethod ) => RunProxy( "prefix", Prefixes, __instance, __originalMethod );
-      private static void PostfixProxy ( object __instance, object __originalMethod ) => RunProxy( "postfix", Postfixes, __instance, __originalMethod );
+      public static void unpatchAll () {
+         var mod_id = ScriptEngine.Current?.Name ?? "<unknown>";
+         Unpatch( mod_id, Prefixes, nameof( PrefixProxy ) );
+         Unpatch( mod_id, Postfixes, nameof( PostfixProxy ) );
+         Unpatch( mod_id, ResultPostfixes, nameof( ResultPostfixes ) );
+      }
+      public static void UnpatchAll () => unpatchAll();
 
-      private static object RunProxy ( string name, IDictionary< MethodBase, CallbackList > map, params object[] args ) { try {
-         var method = args[ args.Length - 1 ] as MethodBase;
-         KeyValuePair< string, ScriptObject >[] list = null;
-         lock ( map ) {
-            if ( ! map.TryGetValue( method, out CallbackList tmp ) ) return null;
-            list = tmp?.ToArray();
+      private static void Unpatch ( string mod_id, IDictionary< MethodBase, CallbackList > patches, string patcher ) {
+         foreach ( var method in patches.ToArray() ) {
+            foreach ( var patch in method.Value.ToArray() ) {
+               if ( patch.Key != mod_id ) continue;
+               method.Value.Remove( patch );
+               if ( method.Value.Count == 0 ) {
+                  patches.Remove( method.Key );
+                  Harmony.Unpatch( method.Key, typeof( PatchHelper ).Method( patcher ) );
+               }
+            }
          }
-         if ( list == null || list.Length == 0 ) return null;
-         foreach ( var patch in list ) {
+      }
+
+      private static bool PrefixProxy ( object __instance, MethodBase __originalMethod ) => RunProxy( "prefix", Prefixes, __instance, __originalMethod );
+      private static void PostfixProxy ( object __instance, MethodBase __originalMethod ) => RunProxy( "postfix", Postfixes, __instance, __originalMethod );
+
+      private static bool RunProxy ( string name, IDictionary< MethodBase, CallbackList > map, object __instance, MethodBase method ) { try {
+         foreach ( var patch in GetPatchList( map, method ) ) {
             var logArg = new object[]{ name, patch.Key, method.DeclaringType, method.Name };
             try {
                ZyMod.Verbo( "Calling {0} patch of {1} on {2}.{3}", logArg );
-               var result = patch.Value.Invoke( false, args );
-               if ( result is bool flag && ! flag && name.IndexOf( "prefix", StringComparison.InvariantCultureIgnoreCase ) >= 0 ) {
+               var result = patch.Value.Invoke( false, new object[]{ __instance, method } );
+               if ( result is bool flag && ! flag && name == "prefix" ) {
                   ZyMod.Info( "Call aborted by {0} patch of {1} on {2}.{3}:", logArg );
                   return false;
                }
@@ -197,20 +220,35 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
             }
          }
          return true;
-      } catch  ( Exception ex ) { ZyMod.Warn( ex ); return ex; } }
+      } catch  ( Exception ex ) { ZyMod.Warn( ex ); return true; } }
 
-      /*
-         if ( list?.Count == 0 ) lock ( map ) {
-            if ( list.Count == 0 ) {
-               map.Remove( method );
-               list = null;
+
+      public static void resultPostfix < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, ResultPostfixes, nameof( ResultPostfixProxy ) );
+      public static void ResultPostfix < T > ( string method, ScriptObject patch ) => resultPostfix< T >( method, patch );
+
+      private static void ResultPostfixProxy ( ref object __result, object __instance, MethodBase __originalMethod ) => RunResultProxy( "postfix", Postfixes, ref __result, __instance, __originalMethod );
+
+      private static void RunResultProxy ( string name, IDictionary< MethodBase, CallbackList > map, ref object __result, object __instance, MethodBase method ) { try {
+         foreach ( var patch in GetPatchList( map, method ) ) {
+            var logArg = new object[]{ name, patch.Key, method.DeclaringType, method.Name };
+            try {
+               ZyMod.Verbo( "Calling {0} patch of {1} on {2}.{3}", logArg );
+               __result = patch.Value.Invoke( false, new object[]{ __result, __instance, method } );
+            } catch ( Exception ex ) {
+               ZyMod.Warn( "Error in {0} patch of {1} on {2}.{3}:", logArg );
+               ZyMod.Warn( ex );
             }
          }
-         if ( list == null ) {
-            Harmony.Unpatch( method, patcher );
-            return null;
+      } catch  ( Exception ex ) { ZyMod.Warn( ex ); } }
+
+      private static KeyValuePair< string, ScriptObject >[] GetPatchList ( IDictionary< MethodBase, CallbackList > map, MethodBase method ) {
+         if ( method == null ) return null;
+         lock ( map ) {
+            if ( ! map.TryGetValue( method, out CallbackList tmp ) ) return Array.Empty<KeyValuePair< string, ScriptObject >>();
+            var list = tmp?.ToArray();
+            return list?.Length > 0 ? list : Array.Empty<KeyValuePair< string, ScriptObject >>();
          }
-       */
+      }
    }
 
    public static class RepoHelper {
