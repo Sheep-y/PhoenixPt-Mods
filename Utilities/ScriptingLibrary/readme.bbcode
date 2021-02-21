@@ -135,7 +135,7 @@ If you want to log a formatted message, you must use Unity's tags and C# composi
    targetMethod - the patched method, a MethodInfo.  Readonly.
    canAbort - true if subsequence patches and the original method can be aborted.  Readonly.
    hasResult - true if the result can be modified through this event object.  Readonly.
-   result - the result object.  Change this to change the method's result.
+   result - the result object.  Set this to change the method's result, but will throw exception if hasResult is false.
    abort() - Skip subsequence patches and the original method, if possible.  Only possible for prefix patches.
    aborted - true if abort() was called and canAbort is true.
 

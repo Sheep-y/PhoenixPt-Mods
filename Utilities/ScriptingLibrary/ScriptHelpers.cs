@@ -191,17 +191,38 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static readonly IDictionary< MethodBase, CallbackList > PrefixReturns = new Dictionary< MethodBase, CallbackList >();
       private static readonly IDictionary< MethodBase, CallbackList > PostfixReturns = new Dictionary< MethodBase, CallbackList >();
 
-      public static void prefix < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Prefixes, nameof( PrefixProxy ) );
-      public static void postfix < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, Postfixes, nameof( PostfixProxy ) );
-      public static void prefixReturn < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, PrefixReturns, nameof( PreReturnProxy ) );
-      public static void postfixReturn < T > ( string method, ScriptObject patch ) => AddPatch( typeof( T ), method, patch, PostfixReturns, nameof( PostReturnProxy ) );
-      public static void Prefix < T > ( string method, ScriptObject patch ) => prefix<T>( method, patch );
-      public static void Postfix < T > ( string method, ScriptObject patch ) => postfix<T>( method, patch );
+      public static void prefix < T > ( string method, ScriptObject patch ) => prefix( typeof( T ), method, patch );
+      public static void prefix ( object type, string method, ScriptObject patch ) => prefix( type.espy( "Type" ) as Type ?? type?.GetType(), method, patch );
+      public static void prefix ( Type type, string method, ScriptObject patch ) => AddPatch( type, method, patch, Prefixes, nameof( PrefixProxy ) );
+
+      public static void postfix < T > ( string method, ScriptObject patch ) => postfix( typeof( T ), method, patch );
+      public static void postfix ( object type, string method, ScriptObject patch ) => postfix( type.espy( "Type" ) as Type ?? type?.GetType(), method, patch );
+      public static void postfix ( Type type, string method, ScriptObject patch ) => AddPatch( type, method, patch, Postfixes, nameof( PostfixProxy ) );
+
+      public static void prefixReturn < T > ( string method, ScriptObject patch ) => prefixReturn( typeof( T ), method, patch );
+      public static void prefixReturn ( object type, string method, ScriptObject patch ) => prefixReturn( type.espy( "Type" ) as Type ?? type?.GetType(), method, patch );
+      public static void prefixReturn ( Type type, string method, ScriptObject patch ) => AddPatch( type, method, patch, PrefixReturns, nameof( PreReturnProxy ) );
+
+      public static void postfixReturn < T > ( string method, ScriptObject patch ) => postfixReturn( typeof( T ), method, patch );
+      public static void postfixReturn ( object type, string method, ScriptObject patch ) => postfixReturn( type.espy( "Type" ) as Type ?? type?.GetType(), method, patch );
+      public static void postfixReturn ( Type type, string method, ScriptObject patch ) => AddPatch( type, method, patch, PostfixReturns, nameof( PostReturnProxy ) );
+
+      public static void Prefix < T > ( string method, ScriptObject patch ) => prefix< T >( method, patch );
+      public static void Prefix ( object type, string method, ScriptObject patch ) => prefix( type, method, patch );
+      public static void Prefix ( Type type, string method, ScriptObject patch ) => prefix( type, method, patch );
+      public static void Postfix < T > ( string method, ScriptObject patch ) => postfix< T >( method, patch );
+      public static void Postfix ( object type, string method, ScriptObject patch ) => postfix( type, method, patch );
+      public static void Postfix ( Type type, string method, ScriptObject patch ) => postfix( type, method, patch );
       public static void PrefixReturn < T > ( string method, ScriptObject patch ) => prefixReturn< T >( method, patch );
+      public static void PrefixReturn ( object type, string method, ScriptObject patch ) => prefixReturn( type, method, patch );
+      public static void PrefixReturn ( Type type, string method, ScriptObject patch ) => prefixReturn( type, method, patch );
       public static void PostfixReturn < T > ( string method, ScriptObject patch ) => postfixReturn< T >( method, patch );
+      public static void PostfixReturn ( object type, string method, ScriptObject patch ) => postfixReturn( type, method, patch );
+      public static void PostfixReturn ( Type type, string method, ScriptObject patch ) => postfixReturn( type, method, patch );
 
       private static void AddPatch ( Type type, string method, ScriptObject patch, IDictionary< MethodBase, CallbackList > map, string patcher ) {
-         ZyMod.Info( "Adding {0} patch {1} to {2}.{3}", patcher.Replace( "Proxy", "" ), patch.GetProperty( "name" ) ?? "<anonymous>", type, method );
+         string name = patch.GetProperty( "name" )?.ToString();
+         ZyMod.Info( "Adding {0} patch {1} to {2}.{3}", patcher.Replace( "Proxy", "" ), string.IsNullOrEmpty( name ) ? "(anonymous)" : name, type, method );
          var target = type?.Method( method );
          if ( target == null ) throw new NullReferenceException( type?.Name + "." + method + " not found" );
          var mod_id = ScriptEngine.Current?.Name ?? "<unknown>";
@@ -219,13 +240,18 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
       private static bool PrefixProxy ( object __instance, MethodBase __originalMethod ) => RunProxy( "prefix", Prefixes, __instance, __originalMethod );
       private static void PostfixProxy ( object __instance, MethodBase __originalMethod ) => RunProxy( "postfix", Postfixes, __instance, __originalMethod );
-      private static void PreReturnProxy ( ref object __result, object __instance, MethodBase __originalMethod ) => RunResultProxy( "prefixReturn", PrefixReturns, ref __result, __instance, __originalMethod );
+      private static bool PreReturnProxy ( ref object __result, object __instance, MethodBase __originalMethod ) => RunResultProxy( "prefixReturn", PrefixReturns, ref __result, __instance, __originalMethod );
       private static void PostReturnProxy ( ref object __result, object __instance, MethodBase __originalMethod ) => RunResultProxy( "postfixReturn", PostfixReturns, ref __result, __instance, __originalMethod );
 
       private static bool RunProxy ( string name, IDictionary< MethodBase, CallbackList > map, object instance, MethodBase method )
          => RunPatches( name, map, new PatchEvent( instance, method, name == "prefix", false, null ) );
-      private static bool RunResultProxy ( string name, IDictionary< MethodBase, CallbackList > map, ref object result, object instance, MethodBase method )
-         => RunPatches( name, map, new PatchEvent( instance, method, name == "prefixReturn", true, result ) );
+
+      private static bool RunResultProxy ( string name, IDictionary< MethodBase, CallbackList > map, ref object result, object instance, MethodBase method ) {
+         var evt = new PatchEvent( instance, method, name == "prefixReturn", true, result );
+         var ok = RunPatches( name, map, evt );
+         result = evt.result;
+         return ok;
+      }
 
       private static bool RunPatches ( string name, IDictionary< MethodBase, CallbackList > map, PatchEvent evt ) { try {
          foreach ( var patch in GetPatchList( map, evt.targetMethod ) ) {
@@ -283,14 +309,22 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public readonly MethodBase targetMethod;
       public readonly bool canAbort;
       public readonly bool hasResult;
-      public readonly object result;
+
+      private object _result;
+      public object result {
+         get { return _result; }
+         set {
+            if ( ! hasResult ) throw new InvalidOperationException( "Use prefixReturn or postfixReturn to patch return value" );
+            _result = value;
+         }
+      }
 
       public PatchEvent ( object instance, MethodBase targetMethod, bool canAbort, bool hasResult, object result ) {
          this.instance = instance;
          this.targetMethod = targetMethod;
          this.canAbort = canAbort;
          this.hasResult = hasResult;
-         if ( hasResult ) this.result = result;
+         if ( hasResult ) _result = result;
       }
 
       public bool aborted { get; private set; }
