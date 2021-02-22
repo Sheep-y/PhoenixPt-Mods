@@ -17,8 +17,8 @@ For example,
 [/code]would return the speed of Manticore.
 (Note that [font=Courier New]BaseStats.Speed[/font] is a C# [url=https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/struct]struct[/url], which restricts how you can modify it.  Welcome to modding.)
 
-If you prefer [url=https://www.nexusmods.com/phoenixpoint/mods/7]Console Enabler[/url], does not provide console shells, i.e. there is no "JavaScript mode".
-You may still run one-lined script, e.g. [code]JavaScript '"Foobar".substr(3)[/code]
+If you prefer [url=https://www.nexusmods.com/phoenixpoint/mods/7]Console Enabler[/url], it does not provide console shells, i.e. there is no "JavaScript mode".
+You may still run one-lined script, e.g. [code]JavaScript '"Foobar".substr(3)'[/code]
 Remember, you can copy and paste in the console input with Ctrl+C and Ctrl+V.
 
 
@@ -42,15 +42,15 @@ And ClearScript is just a wrapper.  Nothing (too) fancy.
 My previous attempt, C# Scripting Library, depended on [url=https://github.com/dotnet/roslyn#readme]Rosyln[/url], which depends on [url=https://docs.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/dynamic-language-runtime-overview]Dynamic Language Runtime[/url] and [url=https://www.c-sharpcorner.com/article/net-framework-vs-net-core-vs-net-standard/].Net Standard[/url], which is not only heavy and creates lots of dynamic assemblies that stay in memory forever, but must also override system libraries.  After a few game updates, the conflicts can no longer be resolved.
 
 There are other alternatives such as [url=https://ironpython.net/]IronPython[/url] and [url=http://ironruby.net/]IronRuby[/url].  They seem to be lighter than Rosyln, so may be a modder can make them works.
-Me?   I am happy with JavaScript.
+Me? I am happy with JavaScript.
 
 
 [size=5][b]PPML Support?[/b][/size]
 
-Not planned because I don't think it is important.  Lots of mods to update, and I haven't play Phoenix Point at all.
-You can fork and contribute code, like how I updated PPDefModifier.  We can't be more happy to have helps.
+Not planned because I don't think it is important.   Lots of mods to update, and I haven't play Phoenix Point at all.
+You can fork and contribute code, like how I updated PPDefModifier.   We can't be more happy to have helps.
 
-Note that it is non-trivial.  If it is trivial, you are doing it wrong.  For example, you need to reimplement [font=Courier New]console[/font].  It is [i]not[/i] as simple as [font=Courier New]string.Format[/font].
+Note that it is non-trivial.  If it is trivial, you are doing it wrong.   For example, you need to reimplement [font=Courier New]console[/font].   It is [i]not[/i] as simple as [font=Courier New]string.Format[/font].
 
 
 [b][size=5]C# to JavaScript and back[/size][/b]
@@ -59,7 +59,7 @@ ClearScript is a great library.  Microsoft have made sure that most concepts are
 For example, generic methods just require you to pass in a type as the generic parameter, e.g. [font=Courier New]Repo.Get( GeoVehicleDef, "name" )[/font]
 IEnumerables from C# can be looped with for..of, e.g. [font=Courier New]for ( let v of Repo.getAll( GeoVehicleDef ) ) console.log( v )[/font]
 
-For more details, read the [url=https://microsoft.github.io/ClearScript/Tutorial/FAQtorial]ClearScript FAQtorial[/url].  The [font=Courier New]ExtendedHostFunctions[/font] object can be accessed as [font=Courier New]host[/font] and [font=Courier New]xHost[/font], so most examples should work as long as you do them in order.
+For more details, read the [url=https://microsoft.github.io/ClearScript/Tutorial/FAQtorial]ClearScript FAQtorial[/url].   The [font=Courier New]ExtendedHostFunctions[/font] object can be accessed as [font=Courier New]host[/font] and [font=Courier New]xHost[/font], so most examples should work as long as you do them in order.
 
 Core system classes can be accessed from the DotNet namespace, e.g. [font=Courier New]DotNet.System.Guid[/font]
 Game classes are already imported, but can also be access from the Game namespace, e.g. [font=Courier New]Game.Base.Core.GameUtl[/font]
@@ -80,29 +80,29 @@ Offers basic console methods such as console.log, .error, .warn, .debug (maps to
 If you want to log a formatted message, you must use Unity's tags and C# composite formatting.  e.g. [code]console.log( '<color=blue>{0}</color>', 123 )[/code]
 
 [b]Log[/b]
-   ﻿Log.error - Log message at error level.
-   ﻿Log.warn - Log message at warning level.
-   ﻿Log.info - Log message at information level.
-   ﻿Log.verbo / Log.verbose - Log message at verbose level.
-   Since version 2.2, console and Log methods will use the calling mod as context (prefix), instead of JavaScript runtime.
+   ﻿.error - Log message at error level.
+   ﻿.warn - Log message at warning level.
+   ﻿.info - Log message at information level.
+   ﻿.verbo / Log.verbose - Log message at verbose level.
+   // Since version 2.2, console and Log methods will use the calling mod as context (prefix), instead of JavaScript runtime.
 
 [b]Api[/b]
-   ﻿Api.call( string, object... ) - Call Modnix API.
-   ﻿Api.call( type, string, object... ) - Call Modnix API and cast result to specific type.  Will throw error if the cast failed.
+   ﻿.call( string, object... ) - Call Modnix API.
+   ﻿.call( type, string, object... ) - Call Modnix API and cast result to specific type.  Will throw error if the cast failed.
 
 [b]Espy[/b]
-   gameAssembly - Get the game's assembly.
-   getType( string ) - Find and return a type by name.  Null if not found.
-   getType( type ) - Return the .Net Type object of the HostType.
-   field( type, string ) - Get the static field value of a type.
-   property( type, string ) - Get the static property value of a type.
-   call( type, string, ... object[] ) - Call the static method of a type and return its result.
-   create( object ) - Create a espy proxy instance for this object.
-   create( type ) - Create a espy proxy instance for this type.
-   anyBinding => BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-   objectBinding => BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-   staticBinding => BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic
-   (extensions)
+   .gameAssembly - Get the game's assembly.
+   .getType( string ) - Find and return a type by name.  Null if not found.
+   .getType( type ) - Return the .Net Type object of the HostType.
+   .field( type, string ) - Get the static field value of a type.
+   .property( type, string ) - Get the static property value of a type.
+   .call( type, string, ... object[] ) - Call the static method of a type and return its result.
+   .create( object ) - Create a espy proxy instance for this object.
+   .create( type ) - Create a espy proxy instance for this type.
+   .anyBinding => BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
+   .objectBinding => BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
+   .staticBinding => BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic
+   // extensions
    Type.field( string ) - Find first field of the given name (any binding), returns FieldInfo.
    Type.fields( string ) - Find all fields of the given name (any binding), returns IEnumerable<FieldInfo>.
    Type.method( string ) - Find first method of the given name (any binding), returns MethodInfo.
@@ -114,42 +114,42 @@ If you want to log a formatted message, you must use Unity's tags and C# composi
    object.espy( string, object ) - Set the value of a field or property.  Return true on success, false on failure.
 
 [b]Espy instance[/b]
-   field( string ) - Get the field value of this instance's object or type.
-   field( string, object ) - Set a field value of this instance's object or type.
-   property( string ) - Get the property value of this instance's object or type.
-   property( string, object ) - Set a property value of this instance's object or type.
-   invoke( string, ... object[] ) - Call the method of this instance's object or type.
-   fields () - return a FieldInfo[] of all fields of this instance's (object's) type.
-   properties () - return a PropertyInfo[] of all properties of this instance's (object's) type.
-   methods () - return a MethodInfo[] of all methods of this instance's (object's) type.
+   .field( string ) - Get the field value of this instance's object or type.
+   .field( string, object ) - Set a field value of this instance's object or type.
+   .property( string ) - Get the property value of this instance's object or type.
+   .property( string, object ) - Set a property value of this instance's object or type.
+   .invoke( string, ... object[] ) - Call the method of this instance's object or type.
+   .fields () - return a FieldInfo[] of all fields of this instance's (object's) type.
+   .properties () - return a PropertyInfo[] of all properties of this instance's (object's) type.
+   .methods () - return a MethodInfo[] of all methods of this instance's (object's) type.
 
 [b]Patch[/b]
-   prefix( type, method, function ) - Add a Harmony prefix patch to the type's method.  The function will receive a PatchEvent as parameter.
-   postfix( type, method, function ) - Add a Harmony postfix patch to the type's method.  The function will receive a PatchEvent as parameter.
-   prefixReturn( type, method, function ) - Add a Harmony prefix patch to the type's method, capturing its return value.  The function will receive a PatchEvent as parameter.
-   postfixReturn( type, method, function ) - Add a Harmony postfix patch to the type's method, capturing its return value.  The function will receive a PatchEvent as parameter.
-   unpatchAll() - Remove all patches added by current mod.
+   .prefix( type, method, function ) - Add a Harmony prefix patch to the type's method.  The function will receive a PatchEvent as parameter.
+   .postfix( type, method, function ) - Add a Harmony postfix patch to the type's method.  The function will receive a PatchEvent as parameter.
+   .prefixReturn( type, method, function ) - Add a Harmony prefix patch to the type's method, capturing its return value.  The function will receive a PatchEvent as parameter.
+   .postfixReturn( type, method, function ) - Add a Harmony postfix patch to the type's method, capturing its return value.  The function will receive a PatchEvent as parameter.
+   .unpatchAll() - Remove all patches added by current mod.
 
 [b]PatchEvent instance[/b]
-   instance - the object owning the called method.  Non-arrow functions may also use 'this' instead.  Readonly.
-   targetMethod - the patched method, a MethodInfo.  Readonly.
-   canAbort - true if subsequence patches and the original method can be aborted.  Readonly.
-   hasResult - true if the result can be modified through this event object.  Readonly.
-   result - the result object.  Set this to change the method's result, but will throw exception if hasResult is false.
-   abort() - Skip subsequence patches and the original method, if possible.  Only possible for prefix patches.
-   aborted - true if abort() was called and canAbort is true.
-   (Note that it is impossible to dynamically capture call parameters.  That must be done with C#.)
+   .instance - the object owning the called method.  Non-arrow functions may also use 'this' instead.  Readonly.
+   .targetMethod - the patched method, a MethodInfo.  Readonly.
+   .canAbort - true if subsequence patches and the original method can be aborted.  Readonly.
+   .hasResult - true if the result can be modified through this event object.  Readonly.
+   .result - the result object.  Set this to change the method's result, but will throw exception if hasResult is false.
+   .abort() - Skip subsequence patches and the original method, if possible.  Only possible for prefix patches.
+   .aborted - true if abort() was called and canAbort is true.
+   // Note that it is impossible to dynamically capture call parameters.  That must be done with C#.
 
 [b]Repo[/b]
-   ﻿Repo.repo - Direct access to the game's [font=Courier New]DefRepository[/font].
-   ﻿Repo.get( string ) - Find a BaseDef from guid, name, or path.  Name and path are cached and should be faster than you doing the seek.
-   ﻿Repo.get( type, string ) - Find a Def from guid, name, or path.  type must be a subclass of BaseDef.  You usually want to use this method.
-   ﻿Repo.getAll( string or type ) - Find all BaseDef of a given name, path, or type.
-   ﻿Repo.getAll( type, string) - Find all Def of a given name or path of given type.  Type must be a subclass of BaseDef.
+   ﻿.repo - Direct access to the game's [font=Courier New]DefRepository[/font].
+   ﻿.get( string ) - Find a BaseDef from guid, name, or path.  Name and path are cached and should be faster than you doing the seek.
+   ﻿.get( type, string ) - Find a Def from guid, name, or path.  type must be a subclass of BaseDef.  You usually want to use this method.
+   ﻿.getAll( string or type ) - Find all BaseDef of a given name, path, or type.
+   ﻿.getAll( type, string) - Find all Def of a given name or path of given type.  Type must be a subclass of BaseDef.
 
 [b]Damage[/b]
-   ﻿Damage.Parse( string ) - Find DamageKeywordDef from string - acid, blast, bleed, fire, goo, mist, paralyse, pierce, poison, psychic, shock, shred, sonic, syphon/vampiric, viral, virophage, and normal.  Default to normal if no name supplied.
-   (extensions)
+   ﻿.Parse( string ) - Find DamageKeywordDef from string - acid, blast, bleed, fire, goo, mist, paralyse, pierce, poison, psychic, shock, shred, sonic, syphon/vampiric, viral, virophage, and normal.  Default to normal if no name supplied.
+   // extensions
    WeaponDef.getDamage( string / DamageKeywordDef = "normal" ) - Get the weapon's damage number (float) of a specific damage type.
    WeaponDef.setDamage( float ) Set the weapon's normal damage and return the weapon (for call chains).
    WeaponDef.setDamage( string / DamageKeywordDef, float ) Set the weapon's damage and return the weapon.
@@ -159,9 +159,9 @@ If you want to log a formatted message, you must use Unity's tags and C# composi
    ﻿WeaponDef.acid() - Get Acid damage.  Same for Blast / Bleed / Damage / Fire etc.
    ﻿WeaponDef.acid( float ) - Set or remove Acid damage, and return the weapon. Same for Blast / Bleed / Damage / Fire etc.
 
-[size=5][b]API (Modnix)[/b][/size]
+[size=5][b]API[/b][/size]
 
-The API may be called by other mods.  If Debug Console is installed, they may also be called through the "modnix" console command.
+These API may be called by other mods through Modnix.   If Debug Console is installed, they may also be called through the "modnix" console command.
 
 Like helpers, the pp.def and pp.defs APIs may be moved out in the future, but as of writing there is no roadmap.
 
