@@ -1,5 +1,11 @@
 Changelog of Dump Data, a Phoenix Point Mod by Sheepy
 
+# Version 2.3, 2021-07-30
+
+* Made compatible with Phoenix Point 1.11.  Not tested on old versions.
+* Catch a wider range of errors when exporting fields and properties.
+* Tested on Phoenix Point 1.11.1.69893.
+
 # Version 2.2, 2021-02-01
 
 * Fix: Directory with same name as dump files will now be deleted for the dumps.

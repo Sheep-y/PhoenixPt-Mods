@@ -82,7 +82,7 @@ namespace Sheepy.PhoenixPt.DumpData {
          if ( type.IsClass ) {
             var bDef = val as BaseDef;
             if ( ! ( val is Array ) ) { // Simple objects
-               if ( val is AK.Wwise.Bank ) return; // Ref error NullReferenceException
+               if ( val is  AK.Wwise.Bank ) return; // Ref error NullReferenceException
                if ( bDef != null && Skip_Dumped_Defs )
                   foreach ( var simpleDef in Mod.DumpedTypes )
                      if ( DataType != simpleDef && simpleDef.IsAssignableFrom( val.GetType() ) ) {
@@ -167,6 +167,7 @@ namespace Sheepy.PhoenixPt.DumpData {
          if ( ! Skip_Empty_Objects ) return false;
          if ( subject is AK.Wwise.Event wEvt ) return wEvt.WwiseObjectReference == null && wEvt.ObjectReference == null && wEvt.Id == 0;
          if ( subject is AK.Wwise.Switch wSwt ) return wSwt.WwiseObjectReference == null && wSwt.ObjectReference == null && wSwt.GroupWwiseObjectReference == null;
+ 
          var type = subject.GetType();
          foreach ( var f in type.GetFields( Public | NonPublic | Instance ) ) {
             if ( IsObsolete( f ) ) continue;
@@ -200,7 +201,7 @@ namespace Sheepy.PhoenixPt.DumpData {
             if ( IsObsolete( f ) ) continue;
             if ( isBaseDef && f.Name == "Guid" ) continue;
             Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
-         } catch ( ApplicationException ex ) {
+         } catch ( Exception ex ) {
             StartTag( f.Name, true, "err_F", ex.GetType().Name ); // Field.GetValue error
          }
          if ( ! subject.GetType().IsClass ) return;
@@ -208,7 +209,7 @@ namespace Sheepy.PhoenixPt.DumpData {
                if ( IsObsolete( f ) || ! f.CanRead ) continue;
                if ( isBaseDef && f.Name == "name" ) continue;
                Mem2Xml( f.Name, f.GetValue( subject ), level + 1 );
-            } catch ( ApplicationException ex ) {
+            } catch ( Exception ex ) {
             StartTag( f.Name, true, "err_P", ex.GetType().Name ); // Property.GetValue error
          }
       }
