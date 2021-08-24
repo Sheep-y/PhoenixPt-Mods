@@ -1,5 +1,9 @@
 Changelog of JavaScript Runtime, a Phoenix Point Mod by Sheepy
 
+# Version 2.2.1, in development
+
+* Add shock damage helpers.
+
 # Version 2.2, 2021-02-21
 
 * Allow reflection, such as DotNetObject.GetType().

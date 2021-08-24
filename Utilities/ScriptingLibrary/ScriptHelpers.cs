@@ -469,6 +469,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static WeaponDef Poison ( this WeaponDef weapon, float value ) => poison( weapon, value );
       public static float Psychic ( this WeaponDef weapon ) => psychic( weapon );
       public static WeaponDef Psychic ( this WeaponDef weapon, float value ) => psychic( weapon, value );
+      public static float Shock ( this WeaponDef weapon ) => shock( weapon );
+      public static WeaponDef Shock ( this WeaponDef weapon, float value ) => shock( weapon, value );
       public static float Shred ( this WeaponDef weapon ) => shred( weapon );
       public static WeaponDef Shred ( this WeaponDef weapon, float value ) => shred( weapon, value );
       public static float Sonic ( this WeaponDef weapon ) => sonic( weapon );
@@ -502,6 +504,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       public static WeaponDef poison ( this WeaponDef weapon, float value ) => SetDamage( weapon, "poison", value );
       public static float psychic ( this WeaponDef weapon ) => GetDamage( weapon, "psychic" );
       public static WeaponDef psychic ( this WeaponDef weapon, float value ) => SetDamage( weapon, "psychic", value );
+      public static float shock ( this WeaponDef weapon ) => GetDamage( weapon, "shock" );
+      public static WeaponDef shock ( this WeaponDef weapon, float value ) => SetDamage( weapon, "shock", value );
       public static float shred ( this WeaponDef weapon ) => GetDamage( weapon, "shred" );
       public static WeaponDef shred ( this WeaponDef weapon, float value ) => SetDamage( weapon, "shred", value );
       public static float sonic ( this WeaponDef weapon ) => GetDamage( weapon, "sonic" );
