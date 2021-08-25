@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using static Microsoft.ClearScript.V8.V8ScriptEngineFlags;
 
 namespace Sheepy.PhoenixPt.ScriptingLibrary {
 
@@ -12,7 +13,8 @@ namespace Sheepy.PhoenixPt.ScriptingLibrary {
       private static readonly Dictionary< string, Type > HostTypes = new Dictionary<string, Type>();
 
       private static V8ScriptEngine NewEngine ( string id ) {
-         var engine = new V8ScriptEngine( id ?? "", V8ScriptEngineFlags.DisableGlobalMembers );
+         V8Settings.EnableTopLevelAwait = true;
+         var engine = new V8ScriptEngine( id ?? "", DisableGlobalMembers | EnableDateTimeConversion | EnableTaskPromiseConversion | EnableValueTaskPromiseConversion );
          lock ( HostObjects ) {
             if ( HostObjects.Count == 0 ) {
                Verbo( "Listing assemblies" );

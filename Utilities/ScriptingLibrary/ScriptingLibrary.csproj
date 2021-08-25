@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\Microsoft.ClearScript.V8.Native.win-x86.7.1.0\build\Microsoft.ClearScript.V8.Native.win-x86.props" Condition="Exists('..\..\packages\Microsoft.ClearScript.V8.Native.win-x86.7.1.0\build\Microsoft.ClearScript.V8.Native.win-x86.props')" />
-  <Import Project="..\..\packages\Microsoft.ClearScript.V8.Native.win-x64.7.1.0\build\Microsoft.ClearScript.V8.Native.win-x64.props" Condition="Exists('..\..\packages\Microsoft.ClearScript.V8.Native.win-x64.7.1.0\build\Microsoft.ClearScript.V8.Native.win-x64.props')" />
-  <Import Project="..\..\packages\Microsoft.ClearScript.V8.ICUData.7.1.0\build\Microsoft.ClearScript.V8.ICUData.props" Condition="Exists('..\..\packages\Microsoft.ClearScript.V8.ICUData.7.1.0\build\Microsoft.ClearScript.V8.ICUData.props')" />
+  <Import Project="..\..\packages\Microsoft.ClearScript.V8.Native.win-x86.7.1.5\build\Microsoft.ClearScript.V8.Native.win-x86.props" Condition="Exists('..\..\packages\Microsoft.ClearScript.V8.Native.win-x86.7.1.5\build\Microsoft.ClearScript.V8.Native.win-x86.props')" />
+  <Import Project="..\..\packages\Microsoft.ClearScript.V8.Native.win-x64.7.1.5\build\Microsoft.ClearScript.V8.Native.win-x64.props" Condition="Exists('..\..\packages\Microsoft.ClearScript.V8.Native.win-x64.7.1.5\build\Microsoft.ClearScript.V8.Native.win-x64.props')" />
+  <Import Project="..\..\packages\Microsoft.ClearScript.V8.ICUData.7.1.5\build\Microsoft.ClearScript.V8.ICUData.props" Condition="Exists('..\..\packages\Microsoft.ClearScript.V8.ICUData.7.1.5\build\Microsoft.ClearScript.V8.ICUData.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -43,17 +43,17 @@
       <HintPath>C:\Program Files\Epic Games\PhoenixPoint\PhoenixPointWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="ClearScript.Core, Version=7.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.ClearScript.Core.7.1.0\lib\net45\ClearScript.Core.dll</HintPath>
+    <Reference Include="ClearScript.Core, Version=7.1.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.ClearScript.Core.7.1.5\lib\net45\ClearScript.Core.dll</HintPath>
     </Reference>
-    <Reference Include="ClearScript.V8, Version=7.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.ClearScript.V8.7.1.0\lib\net45\ClearScript.V8.dll</HintPath>
+    <Reference Include="ClearScript.V8, Version=7.1.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.ClearScript.V8.7.1.5\lib\net45\ClearScript.V8.dll</HintPath>
     </Reference>
-    <Reference Include="ClearScript.Windows, Version=7.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.ClearScript.Windows.7.1.0\lib\net45\ClearScript.Windows.dll</HintPath>
+    <Reference Include="ClearScript.Windows, Version=7.1.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.ClearScript.Windows.7.1.5\lib\net45\ClearScript.Windows.dll</HintPath>
     </Reference>
-    <Reference Include="ClearScript.Windows.Core, Version=7.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.ClearScript.Windows.Core.7.1.0\lib\net45\ClearScript.Windows.Core.dll</HintPath>
+    <Reference Include="ClearScript.Windows.Core, Version=7.1.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.ClearScript.Windows.Core.7.1.5\lib\net45\ClearScript.Windows.Core.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -63,6 +63,9 @@
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -111,4 +114,12 @@ mkdir "lib"
 copy "$(TargetDir)ClearScript*.d??" lib\
 "c:\Program Files\7-Zip\7z.exe" a -bd -bb0 -mx=9 -mfb=258 "$(SolutionDir)distro\$(TargetName).7z" "$(ProjectDir)$(OutDir)$(TargetFileName)" ".\lib" -x!lib\*-x86.dll</PostBuildEvent>
   </PropertyGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\Microsoft.ClearScript.V8.ICUData.7.1.5\build\Microsoft.ClearScript.V8.ICUData.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.ClearScript.V8.ICUData.7.1.5\build\Microsoft.ClearScript.V8.ICUData.props'))" />
+    <Error Condition="!Exists('..\..\packages\Microsoft.ClearScript.V8.Native.win-x64.7.1.5\build\Microsoft.ClearScript.V8.Native.win-x64.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.ClearScript.V8.Native.win-x64.7.1.5\build\Microsoft.ClearScript.V8.Native.win-x64.props'))" />
+    <Error Condition="!Exists('..\..\packages\Microsoft.ClearScript.V8.Native.win-x86.7.1.5\build\Microsoft.ClearScript.V8.Native.win-x86.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.ClearScript.V8.Native.win-x86.7.1.5\build\Microsoft.ClearScript.V8.Native.win-x86.props'))" />
+  </Target>
 </Project>
