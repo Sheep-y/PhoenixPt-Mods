@@ -15,29 +15,36 @@ usually custom jobs or for self use, can be found here.
 
 ## List of Mods
 
-Mods published on NexusMods, and tested on Phoenix Point 1.8.64176.
+Mods published on NexusMods, and tested on Phoenix Point 1.11.1.69893.
 
 * [**Block Telemetry**](https://www.nexusmods.com/phoenixpoint/mods/48/) - Opt-out of and blocks telemetry.
 * [**Debug Console**](https://www.nexusmods.com/phoenixpoint/mods/44/) - Enable console and direct unity log and game log to it.
 * [**Dump Data**](https://www.nexusmods.com/phoenixpoint/mods/50/) - Dump game text and data into xml and csv.
+* [**JavaScript Runtime**](https://www.nexusmods.com/phoenixpoint/mods/49) - Support JavaScript evaluations and Eval mod actions.
+* [**Skip Intro**](https://www.nexusmods.com/phoenixpoint/mods/17) - Skip logos, openings, and landings.
+
+Demo mods, tested on Phoenix Point 1.11.1.69893.
+They can be downloaded from [Modnix 3 releases](https://github.com/Sheep-y/Modnix/releases) in [one bundle]((https://github.com/Sheep-y/Modnix/releases/download/v3.0.2021.0204/Demo.Mods.20210221.tar).
+
+* Biometric Unlocks - Unlock all possible solider customisation options.
+* Essential Mods - Block Telemetry + Skip Intro (mod package demo).
+* Hide Socials - Hide the social icons and game version on main menu (js mod demo).
+* Legend Prologue - Enable Prologue for Legendary difficulty, allowing you to acquire the signature crews (disarm/rearm demo).
+* Tailwind - Boost air vehicle speed.
+
+Mods published on NexusMods, and tested on earlier Phoenix Point.
 * [**Full Body Augmentations**](https://www.nexusmods.com/phoenixpoint/mods/33) - Removes mutation and bionics cap.
 * [**Geoscape Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape screens.
 * [**Globe Tweaks**](https://www.nexusmods.com/phoenixpoint/mods/13) - Enhance Geoscape pausing and centring.
 * [**Independent Gear**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlocks all independent gears.
-* [**No Ambush & No Nothing Found**](https://www.nexusmods.com/phoenixpoint/mods/12/) - Removes ambushes and/or found nothing random event.
-* [**Recruit Info**](https://www.nexusmods.com/phoenixpoint/mods/28) - See recruit's skills, grafts, and equipments on haven screen.
-* [**Scripting Library**](https://www.nexusmods.com/phoenixpoint/mods/49) - Support C# evaluations and Eval mod actions.
-* [**Skip Intro**](https://www.nexusmods.com/phoenixpoint/mods/17) - Skip logos, openings, and landings.
-* [**Tech Progression**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlock more things as you research.
-* [**Traditional Chinese**](https://www.nexusmods.com/phoenixpoint/mods/47) - Convert Simplified Chinese to Traditional Chinese.
-
-Mods published on NexusMods, and tested up to 1.5.x.
-
-* [**Laser on Fire**](https://www.nexusmods.com/phoenixpoint/mods/33) - Add fire to lasers and change Destiny III aiming to first person.
 * [**Limited War**](https://www.nexusmods.com/phoenixpoint/mods/24) - Tone down the scale and damage of faction war.
 * [**Loot Everything**](https://www.nexusmods.com/phoenixpoint/mods/33) - Loot all items, optionally loot all armours and mounts.
 * [**Mitigate Shred**](https://www.nexusmods.com/phoenixpoint/mods/33) - Convert absorbed damage (by armour) to shred.
+* [**No Ambush & No Nothing Found**](https://www.nexusmods.com/phoenixpoint/mods/12/) - Removes ambushes and/or found nothing random event.
+* [**Recruit Info**](https://www.nexusmods.com/phoenixpoint/mods/28) - See recruit's skills, grafts, and equipments on haven screen.
 * [**Scrap Vehicle**](https://www.nexusmods.com/phoenixpoint/mods/26) - Make it possible to recycle vehicles and mutogs.
+* [**Tech Progression**](https://www.nexusmods.com/phoenixpoint/mods/33) - Unlock more things as you research.
+* [**Traditional Chinese**](https://www.nexusmods.com/phoenixpoint/mods/47) - Convert Simplified Chinese to Traditional Chinese.
 * [**Variable Rage Burst**](https://www.nexusmods.com/phoenixpoint/mods/33) - Dynamic Rage Burst shots depending on weapon AP.
 
 Legacy mods that are deprecated due to Phoenix Point updates:
