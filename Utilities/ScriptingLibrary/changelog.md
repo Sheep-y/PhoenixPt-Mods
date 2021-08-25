@@ -1,8 +1,8 @@
 Changelog of JavaScript Runtime, a Phoenix Point Mod by Sheepy
 
-# Version 2.2.1, in development
+# Version 2.2.1, 2021-08-25
 
-* Add missing shock damage helpers.
+* Add missing shock damage helpers. Thanks dt123(NexusMods) / dtony22(Discord).
 * Update ClearScript from 7.1 to 7.1.5, which updates V8 from 8.8.278.14 to 9.2.230.21.
 * JS Date/Promise are now mapped to DateTime/Task<object> and vice versa.
 
